@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -42,6 +42,15 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --color-error-red-500: var(--error-red-500);
+  --font-sansat: var(--font-sansation);
+  --color-custom-1: #BE1F24  ;
+  --color-custom-2: #1D1F2C  ;
+  --color-custom-3: #3F8FEE;
+  --color-custom-4: #eb3d4d;
+  --color-custom-5: #4A4C56;
+  --color-custom-5: #E9E9EA80;
+  --color-custom-6: #ECF4FD;
+  --font-raleway:var(--font-raleway);
   --text-1: 1px;
   --text-2: 2px;
   --text-3: 3px;
@@ -225,4 +234,28 @@
 
 * {
   font-family: var(--font-raleway);
+}
+.backdrop-filter {
+  backdrop-filter: blur(300px);
+}
+button{
+  cursor: pointer;
+}
+.dot{
+  width: 8px;
+    height: 8px;
+    border-radius: 100px;
+    background: #1A3C64;
+}
+
+input:focus{
+  outline: 0;
+}
+[data-slot='dialog-overlay']{
+  backdrop-filter: blur(20px);
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.active-otp{
+  background: linear-gradient(180deg, #FF8D4D 0%, #FF4D97 100%),
+    linear-gradient(180deg, #FF8D4D 0%, #F87C47 100%) !important;
 }

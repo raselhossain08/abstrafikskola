@@ -1,48 +1,70 @@
-import type { Metadata } from "next";
-import { Raleway } from "next/font/google";
-import "./globals.css";
-
+import type { Metadata } from 'next';
+import { Raleway } from 'next/font/google';
+import './globals.css';
+import localFont from 'next/font/local';
+import Header from '@/components/common/Header';
+import Contact from '@/components/common/Contact';
+import Footer from '@/components/common/Footer';
 // Load Raleway font with variable support
 const raleway = Raleway({
-  variable: "--font-raleway",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  variable: '--font-raleway',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
 });
-
+const sansation = localFont({
+  src: [
+    {
+      path: '../../public/fonts/Sansation-Light.ttf', // Updated path
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/Sansation-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/Sansation-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-sansation',
+});
 // App-wide metadata for SEO
 export const metadata: Metadata = {
-  title: "ABS Trafikskola",
+  title: 'ABS Trafikskola',
   description:
-    "ABS Trafikskola is a modern driving school app that helps students learn to drive safely and confidently. Book driving lessons, track progress, and access driving theory – all in one app.",
+    'ABS Trafikskola is a modern driving school app that helps students learn to drive safely and confidently. Book driving lessons, track progress, and access driving theory – all in one app.',
   keywords: [
-    "Driving School",
-    "ABS Trafikskola",
-    "Learn to Drive",
-    "Trafikskola",
-    "Swedish Driving Lessons",
-    "Theory Test",
+    'Driving School',
+    'ABS Trafikskola',
+    'Learn to Drive',
+    'Trafikskola',
+    'Swedish Driving Lessons',
+    'Theory Test',
   ],
-  authors: [{ name: "ABS Trafikskola Team", url: "https://yourdomain.com" }],
-  creator: "ABS Trafikskola",
+  authors: [{ name: 'ABS Trafikskola Team', url: 'https://yourdomain.com' }],
+  creator: 'ABS Trafikskola',
   icons: {
-    icon: "/favicon.ico",
+    icon: '/favicon.ico',
   },
   openGraph: {
-    title: "ABS Trafikskola",
+    title: 'ABS Trafikskola',
     description:
-      "Join ABS Trafikskola to become a confident and safe driver. Book lessons and learn theory from your phone.",
-    url: "https://yourdomain.com",
-    siteName: "ABS Trafikskola",
+      'Join ABS Trafikskola to become a confident and safe driver. Book lessons and learn theory from your phone.',
+    url: 'https://yourdomain.com',
+    siteName: 'ABS Trafikskola',
     images: [
       {
-        url: "/og-image.jpg", // Optional: Add OpenGraph preview image
+        url: '/og-image.jpg', // Optional: Add OpenGraph preview image
         width: 1200,
         height: 630,
-        alt: "ABS Trafikskola App",
+        alt: 'ABS Trafikskola App',
       },
     ],
-    locale: "sv_SE",
-    type: "website",
+    locale: 'sv_SE',
+    type: 'website',
   },
 };
 
@@ -52,9 +74,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="sv">
-      <body className={`${raleway.variable} font-sans antialiased`}>
-        {children}
+    <html lang="sv" className={`${raleway.variable} ${sansation.variable}`}>
+      <body className="font-sansation antialiased">
+        <Header /> {children}
+        <Footer />
       </body>
     </html>
   );

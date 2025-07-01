@@ -1,9 +1,9 @@
-import Image from "next/image";
-import Link from "next/link";
-import React from "react";
+import Image from 'next/image';
+import Link from 'next/link';
+import React from 'react';
 
 // Define types for the translations
-type Language = "en" | "sv" | "ar";
+type Language = 'en' | 'sv' | 'ar';
 type Translations = {
   location: string;
   email: string;
@@ -14,22 +14,22 @@ type Translations = {
 // Translation objects
 const translations: Record<Language, Translations> = {
   en: {
-    location: "Dalagatan 1 L, 15133 Södertälje",
-    email: "info@skärholmskola.se",
-    phone: "08 598 66666",
-    whatsapp: "073 998 8241",
+    location: 'Dalagatan 1 L, 15133 Södertälje',
+    email: 'info@skärholmskola.se',
+    phone: '08 598 66666',
+    whatsapp: '073 998 8241',
   },
   sv: {
-    location: "Dalagatan 1 L, 15133 Södertälje",
-    email: "info@skärholmskola.se",
-    phone: "08 598 66666",
-    whatsapp: "073 998 8241",
+    location: 'Dalagatan 1 L, 15133 Södertälje',
+    email: 'info@skärholmskola.se',
+    phone: '08 598 66666',
+    whatsapp: '073 998 8241',
   },
   ar: {
-    location: "دالاغاتان 1 لتر، 15133 سودرتاليا",
-    email: "info@skärholmskola.se",
-    phone: "08 598 66666",
-    whatsapp: "073 998 8241",
+    location: 'دالاغاتان 1 لتر، 15133 سودرتاليا',
+    email: 'info@skärholmskola.se',
+    phone: '08 598 66666',
+    whatsapp: '073 998 8241',
   },
 };
 
@@ -37,15 +37,15 @@ interface TopHeaderProps {
   lang?: Language;
 }
 
-export default function TopHeader({ lang = "en" }: TopHeaderProps) {
+export default function TopHeader({ lang = 'en' }: TopHeaderProps) {
   const t = translations[lang];
 
   return (
-    <div 
-      className="bg-error-red-500 py-[8px] md:py-[20px] md:max-h-[64px]" 
-      dir={lang === "ar" ? "rtl" : "ltr"}
+    <div
+      className="bg-error-red-500 py-[8px] md:py-[20px] md:max-h-[64px]"
+      dir={lang === 'ar' ? 'rtl' : 'ltr'}
     >
-      <div className="container mx-auto px-5 lg:px-0">
+      <div className="w-full xl:w-[1320px] mx-auto px-5 xl:px-0">
         <div className="flex w-full justify-between items-center">
           {/* Location */}
           <div className="items-center space-x-1 lg:flex hidden">
@@ -179,6 +179,10 @@ export default function TopHeader({ lang = "en" }: TopHeaderProps) {
             </Link>
           </div>
         </div>
+
+        {/* mobile */}
+
+        
       </div>
     </div>
   );
