@@ -11,7 +11,7 @@ const raleway = Raleway({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
 });
-const sansation = localFont({
+const satoshi = localFont({
   src: [
     {
       path: '../../public/fonts/Sansation-Light.ttf', // Updated path
@@ -29,7 +29,7 @@ const sansation = localFont({
       style: 'normal',
     },
   ],
-  variable: '--font-sansation',
+  variable: '--font-satoshi',
 });
 // App-wide metadata for SEO
 export const metadata: Metadata = {
