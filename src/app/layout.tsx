@@ -11,7 +11,7 @@ const raleway = Raleway({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
 });
-const satoshi = localFont({
+const sansation = localFont({
   src: [
     {
       path: '../../public/fonts/Sansation-Light.ttf', // Updated path
