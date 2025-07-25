@@ -21,15 +21,15 @@ export default function PricingCard({
   return (
     <Card
       className={clsx(
-        'md:max-h-[290px] text-left px-1 py-8 border rounded-[16px] transition-all duration-200',
+        'h-[290px] text-left px-1 py-8 border rounded-[16px] transition-all duration-200',
         active
           ? 'bg-[#3F8FEE] text-white'
           : 'bg-white border-[#C3DCFA] text-[#2D66A9]',
         index === 2 ? ' col-span-2 md:col-span-1' : ''
       )}
     >
-      <CardContent className=" flex flex-col justify-between h-full px-3 sm:px-6">
-        <div className="space-y-2 sm:space-y-5">
+      <CardContent className="flex flex-col justify-between h-full px-3 sm:px-6 py-0">
+        <div className="space-y-2 sm:space-y-4 flex-grow">
           <h3 className="font-raleway font-semibold text-16 sm:text-[20px] leading-[26px]">
             {title}
           </h3>
@@ -43,24 +43,26 @@ export default function PricingCard({
           </p>
           <p
             className={clsx(
-              'font-raleway font-normal text-14 sm:text-[14px] leading-[140%] pb-4',
+              'font-raleway font-normal text-14 sm:text-[14px] ',
               active ? 'text-white/80' : 'text-[#4A4C56]'
             )}
           >
             {details}
           </p>
         </div>
-        <button
-          onClick={() => onBookNow?.(title)}
-          className={clsx(
-            'font-raleway font-medium text-[16px] leading-[140%] border border-[#3F8FEE] px-4 py-[6px] rounded-full transition w-full',
-            active
-              ? 'bg-white text-[#3F8FEE] hover:bg-gray-100'
-              : 'text-[#3F8FEE] hover:bg-blue-50'
-          )}
-        >
-          Book Now
-        </button>
+        <div className="mt-4">
+          <button
+            onClick={() => onBookNow?.(title)}
+            className={clsx(
+              'font-raleway font-medium text-[16px] leading-[140%] border border-[#3F8FEE] px-4 py-[6px] rounded-full transition w-full',
+              active
+                ? 'bg-white text-[#3F8FEE] hover:bg-gray-100'
+                : 'text-[#3F8FEE] hover:bg-blue-50'
+            )}
+          >
+            Book Now
+          </button>
+        </div>
       </CardContent>
     </Card>
   );
