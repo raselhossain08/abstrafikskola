@@ -1,11 +1,51 @@
+'use client';
 import Contact from '@/components/common/Contact';
 import { Button } from '@/components/ui/button';
-import React from 'react';
+import React, { useState } from 'react';
 import { FaRegClock } from 'react-icons/fa6';
 import { pricingData } from '@/data/pricingData';
 import { FaPhoneAlt } from 'react-icons/fa';
-export default function page() {
+import { ProductDialog } from '@/components/dialog/ProductDialog';
+
+type ProductItem = {
+  date: string;
+  time: string;
+  title: string;
+  seats: string;
+  price: string;
+};
+
+export default function PriceListPage() {
   const categories = [...new Set(pricingData.map((item) => item.category))];
+
+  const [productDialogOpen, setProductDialogOpen] = useState(false);
+  const [productData, setProductData] = useState<ProductItem>({
+    date: '2024-03-20 Wednesday',
+    time: '17:00 - 20:15',
+    title: 'Handledarkurs [Svenska]',
+    seats: '5 seats available',
+    price: '299 kr',
+  });
+
+  const handleBookOnline = (title: string, price: number) => {
+    // Update product data based on the selected course
+    const courseData: ProductItem = {
+      date: '2024-03-20 Wednesday',
+      time: '17:00 - 20:15',
+      title:
+        title === 'Handledarkurs'
+          ? 'Handledarkurs [Svenska]'
+          : title === 'Risk1 (Riskettan)'
+            ? 'Risk1 [Svenska]'
+            : title,
+      seats: '5 seats available',
+      price: `${price} kr`,
+    };
+
+    setProductData(courseData);
+    setProductDialogOpen(true);
+  };
+
   return (
     <>
       <div className=" bg-white py-12 md:py-20 px-4">
@@ -45,7 +85,10 @@ export default function page() {
                   {pricingData
                     .filter((item) => item.category === category)
                     .map((item, index) => (
-                      <div className="w-full sm:basis-5/12 xl:w-[588px] space-y-5 my-5" key={index}>
+                      <div
+                        className="w-full sm:basis-5/12 xl:w-[588px] space-y-5 my-5"
+                        key={index}
+                      >
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex flex-col">
                             <h3 className="text-[#1D1F2C] font-semibold text-20 sm:text-32">
@@ -71,6 +114,11 @@ export default function page() {
                           {item.description}
                         </p>
                         <Button
+                          onClick={() => {
+                            if (!item.isNumber) {
+                              handleBookOnline(item.title, item.price);
+                            }
+                          }}
                           className=" border border-[#3F8FEE] rounded-[30px] h-[48px] min-w-[130px] bg-transparent  flex items-center justify-center font-sansat text-14 tracking-[0.5%] leading-[140%] hover:bg-[#3F8FEE] hover:text-white has-[span]:text-blue-600 
                         "
                         >
@@ -135,6 +183,11 @@ export default function page() {
         </div>
       </div>
       <Contact />
+      <ProductDialog
+        open={productDialogOpen}
+        onOpenChange={setProductDialogOpen}
+        data={productData}
+      />
     </>
   );
 }

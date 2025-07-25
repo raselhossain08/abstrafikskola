@@ -1,0 +1,22 @@
+{
+    "heading": "Prisplaner",
+    "drivingLesson": "Vår körlektioner är 50 minuter",
+    "description": "Boka Risk 1 och Handledarkurs för privat körning online. Ring eller mejla oss för att boka körlektioner, Risk 2 (Halkbana), teori, syntest och taxilektioner etc",
+    "termsConditions": {
+        "title": "Villkor",
+        "installment": "Baserat på månadsbetalning på 24 månader. Engångsavgift och månadsräkningsavgifter tillkommer",
+        "fullPayment": {
+            "title": "Full betalning krävs:",
+            "description": "Full betalning måste göras vid bokningstillfället."
+        },
+        "classCancellations": {
+            "title": "Avbokningar av lektioner:",
+            "description": "Vänligen avboka lektioner minst 24 timmar i förväg på vardagar. För måndagsbokningar måste avbokningar göras senast fredag."
+        },
+        "riskCancellations": {
+            "title": "Risk 1 och Risk 2 avbokningar:",
+            "description": "Avbokningar för Risk 1 och Risk 2 måste göras minst 2 dagar i förväg på vardagar. För måndags Risk 2 bokningar måste avbokningar göras senast torsdag."
+        },
+        "thanks": "Tack för din förståelse och ditt samarbete."
+    }
+}

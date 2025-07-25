@@ -1,0 +1,51 @@
+{
+    "title": "Our Team",
+    "subtitle": "Meet our experienced and certified driving instructors",
+    "hero": {
+        "title": "Team Are Helping You",
+        "description": "Our team consists of highly qualified and experienced driving instructors who are passionate about road safety and teaching. Each instructor is certified and committed to helping you become a confident, safe driver."
+    },
+    "members": [
+        {
+            "name": "Sangit Alam",
+            "position": "Trafikskolechef, Utbildningsledare"
+        },
+        {
+            "name": "Mrad Sarkes",
+            "position": "Trafiklärare"
+        }
+    ],
+    "stats": {
+        "experience": "Years of Experience",
+        "students": "Students Trained",
+        "passRate": "Pass Rate",
+        "instructors": "Certified Instructors"
+    },
+    "qualities": {
+        "title": "What Makes Our Team Special",
+        "items": [
+            {
+                "title": "Certified & Licensed",
+                "description": "All our instructors are fully certified and licensed by Swedish authorities"
+            },
+            {
+                "title": "Patient & Understanding",
+                "description": "We understand that learning to drive can be stressful, so we create a supportive environment"
+            },
+            {
+                "title": "Multilingual",
+                "description": "Our team speaks multiple languages to better serve our diverse community"
+            },
+            {
+                "title": "Continuous Training",
+                "description": "We regularly update our skills and knowledge to provide the best instruction"
+            }
+        ]
+    },
+    "join": {
+        "title": "Join Our Team",
+        "description": "Are you a certified driving instructor looking to join a professional team? We're always looking for passionate instructors who share our commitment to road safety.",
+        "cta": "Apply Now",
+        "contact": "Contact HR"
+    }
+}

@@ -11,12 +11,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IoCloseSharp } from 'react-icons/io5';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Login } from '../../dialog/Login';
-
-type Language = 'en' | 'sv' | 'ar';
+import { useLanguage, type Language } from '@/contexts/LanguageContext';
 
 interface NavigationItem {
   name: string;
@@ -54,6 +53,7 @@ const navigationTranslations: Record<Language, NavigationItem[]> = {
     { name: 'Handledarkurs', href: '/handledarkurs' },
     { name: 'Riskettan', href: '/riskettan' },
     { name: 'Halkbana', href: '/halkbana' },
+    { name: 'Taxi', href: '/taxi' },
     {
       name: 'Info',
       href: '',
@@ -71,6 +71,8 @@ const navigationTranslations: Record<Language, NavigationItem[]> = {
     { name: 'قائمة الأسعار', href: '/price-list' },
     { name: 'دورة القيادة', href: '/handledarkurs' },
     { name: 'ريسكيتان', href: '/riskettan' },
+    { name: 'هالكبانا', href: '/halkbana' },
+    { name: 'تاكسي', href: '/taxi' },
     {
       name: 'معلومات',
       href: '/info/about',
@@ -105,17 +107,38 @@ const languages = [
 
 interface NavBarProps {
   lang?: Language;
+  isScrolled?: boolean;
 }
 
-export default function NavBar({ lang = 'en' }: NavBarProps) {
+export default function NavBar({
+  lang = 'en',
+  isScrolled = false,
+}: NavBarProps) {
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  const { language, setLanguage } = useLanguage();
   const pathname = usePathname();
+  const router = useRouter();
   const [loginOpen, setLoginOpen] = useState(false);
-  const navigationItems = navigationTranslations[lang];
+  const navigationItems = navigationTranslations[language];
   const [selectedLanguage, setSelectedLanguage] = useState(
-    languages.find((l) => l.code === lang) || languages[0]
+    languages.find((l) => l.code === language) || languages[0]
   );
+
+  // Update selected language when context language changes
+  useEffect(() => {
+    setSelectedLanguage(
+      languages.find((l) => l.code === language) || languages[0]
+    );
+  }, [language]);
+
+  const handleLanguageChange = (newLang: string) => {
+    const languageObj = languages.find((l) => l.code === newLang);
+    if (languageObj) {
+      setLanguage(newLang as Language);
+      setSelectedLanguage(languageObj);
+    }
+  };
 
   const handleDropdownToggle = (index: number) => {
     setActiveDropdown(activeDropdown === index ? null : index);
@@ -124,8 +147,10 @@ export default function NavBar({ lang = 'en' }: NavBarProps) {
   return (
     <>
       <div
-        className="bg-white flex items-center h-[56px]  lg:h-[96px] "
-        dir={lang === 'ar' ? 'rtl' : 'ltr'}
+        className={`bg-white flex items-center h-[56px] lg:h-[96px] transition-all duration-300 ${
+          isScrolled ? 'lg:h-[70px] shadow-md' : ''
+        }`}
+        dir={language === 'ar' ? 'rtl' : 'ltr'}
       >
         <div className="w-full xl:w-[1320px] mx-auto px-4 xl:px-0">
           <div className="flex items-center justify-between">
@@ -340,10 +365,7 @@ export default function NavBar({ lang = 'en' }: NavBarProps) {
                   <DropdownMenuSeparator />
                   <DropdownMenuRadioGroup
                     value={selectedLanguage.code}
-                    onValueChange={(value) => {
-                      const lang = languages.find((l) => l.code === value);
-                      if (lang) setSelectedLanguage(lang);
-                    }}
+                    onValueChange={handleLanguageChange}
                   >
                     {languages.map((language) => (
                       <DropdownMenuRadioItem

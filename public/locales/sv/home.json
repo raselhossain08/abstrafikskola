@@ -1,0 +1,83 @@
+{
+    "hero": {
+        "welcome": "Välkommen till",
+        "title": "ABS TRAFIKSKOLA",
+        "subtitle": "Körkort med Självförtroende",
+        "cta": "Boka Träning",
+        "features": [
+            {
+                "icon": "/img/hero/icon1.svg",
+                "title": "Kör Nu, Betala Senare!",
+                "text": "Kör nu, betala senare med hjälp av Resurs Bank – räntefria delbetalningar i upp till 24 månader."
+            },
+            {
+                "icon": "/img/hero/icon2.svg",
+                "title": "Förstklassiga Instruktörer!",
+                "text": "Bästa lärarna i branschen som är passionerade och skickliga i sitt arbete."
+            },
+            {
+                "icon": "/img/hero/icon3.svg",
+                "title": "Samma Bil som Trafikverket!",
+                "text": "Öva i liknande typer av nya bilar som du kommer att använda för ditt körprov – precis som Trafikverket Förarprov!"
+            },
+            {
+                "icon": "/img/hero/icon4.svg",
+                "title": "Hjälp med Provbokningar!",
+                "text": "Assistans med att hitta provbokningstider för dem som framgångsrikt avslutar alla körsteg."
+            },
+            {
+                "icon": "/img/hero/icon5.svg",
+                "title": "Öppet på Helger!",
+                "text": "Flexibla helgtimmar för att passa ditt upptagna schema."
+            }
+        ]
+    },
+    "pricing": {
+        "title": "Våra Kurser & Priser",
+        "subtitle": "Välj det perfekta körpaketet för dina behov",
+        "bookOnline": "Boka Online",
+        "contactUs": "Kontakta Oss"
+    },
+    "intensive": {
+        "title": "Intensiv Körprogram",
+        "subtitle": "Få ditt körkort snabbt",
+        "description": "Vårt intensiva körprogram är designat för dig som vill få körkort snabbt. Slutför din utbildning på bara några veckor med våra expertinstruktörer.",
+        "features": [
+            "Accelererad inlärningsprocess",
+            "Erfarna instruktörer",
+            "Flexibel schemaläggning",
+            "Höga godkännandegrader"
+        ],
+        "cta": "Läs Mer"
+    },
+    "whyChoose": {
+        "title": "Varför Välja Oss?",
+        "subtitle": "Upplev skillnaden med vår professionella körskola",
+        "reasons": [
+            {
+                "title": "Expert Instruktörer",
+                "description": "Våra certifierade instruktörer har många års erfarenhet och höga framgångsgrader"
+            },
+            {
+                "title": "Moderna Fordon",
+                "description": "Lär dig i välskötta, moderna bilar utrustade med de senaste säkerhetsfunktionerna"
+            },
+            {
+                "title": "Flexibel Schemaläggning",
+                "description": "Boka lektioner vid tider som passar dig, inklusive kvällar och helger"
+            },
+            {
+                "title": "Överkomliga Priser",
+                "description": "Konkurrenskraftiga priser utan dolda avgifter och flexibla betalningsalternativ"
+            }
+        ]
+    },
+    "feedback": {
+        "title": "Studentrecensioner",
+        "subtitle": "Se vad våra studenter säger om sin upplevelse"
+    },
+    "gallery": {
+        "title": "Galleri",
+        "subtitle": "Ta en titt på våra faciliteter och träningsmiljö"
+    }
+}

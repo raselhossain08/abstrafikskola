@@ -1,0 +1,61 @@
+{
+    "navigation": {
+        "home": "Hem",
+        "priceList": "Prislista",
+        "handledarkurs": "Handledarkurs",
+        "riskettan": "Riskettan",
+        "halkbana": "Halkbana",
+        "taxi": "Taxi",
+        "info": "Info",
+        "about": "Om oss",
+        "faq": "FAQ",
+        "terms": "Villkor",
+        "contact": "Kontakt",
+        "login": "Logga in"
+    },
+    "buttons": {
+        "bookNow": "Boka Nu",
+        "bookOnline": "Boka Online",
+        "contactUs": "Kontakta Oss",
+        "learnMore": "Läs Mer",
+        "readMore": "Läs Mer",
+        "getStarted": "Kom Igång",
+        "apply": "Ansök",
+        "submit": "Skicka",
+        "cancel": "Avbryt",
+        "close": "Stäng"
+    },
+    "common": {
+        "loading": "Laddar...",
+        "error": "Fel",
+        "success": "Framgång",
+        "warning": "Varning",
+        "info": "Information",
+        "currency": "kr",
+        "duration": "Varaktighet",
+        "price": "Pris",
+        "includes": "Inkluderar",
+        "excludes": "Exkluderar",
+        "requirements": "Krav",
+        "description": "Beskrivning",
+        "features": "Funktioner",
+        "benefits": "Fördelar"
+    },
+    "footer": {
+        "companyName": "Abstrak Trafikskola",
+        "description": "Ledande körskola i Södertälje med professionell undervisning och överkomliga priser.",
+        "quickLinks": "Snabblänkar",
+        "services": "Tjänster",
+        "contact": "Kontaktinformation",
+        "followUs": "Följ Oss",
+        "allRightsReserved": "Alla rättigheter förbehållna.",
+        "privacyPolicy": "Integritetspolicy",
+        "termsOfService": "Användarvillkor"
+    },
+    "language": {
+        "selectLanguage": "Välj Språk",
+        "english": "Engelska",
+        "swedish": "Svenska",
+        "arabic": "Arabiska"
+    }
+}

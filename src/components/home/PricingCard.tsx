@@ -6,7 +6,8 @@ type PricingCardProps = {
   price: string;
   details: string;
   active?: boolean;
-  index?:number;
+  index?: number;
+  onBookNow?: (title: string) => void;
 };
 
 export default function PricingCard({
@@ -15,6 +16,7 @@ export default function PricingCard({
   details,
   active,
   index,
+  onBookNow,
 }: PricingCardProps) {
   return (
     <Card
@@ -49,6 +51,7 @@ export default function PricingCard({
           </p>
         </div>
         <button
+          onClick={() => onBookNow?.(title)}
           className={clsx(
             'font-raleway font-medium text-[16px] leading-[140%] border border-[#3F8FEE] px-4 py-[6px] rounded-full transition w-full',
             active

@@ -1,9 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
+import { type Language } from '@/contexts/LanguageContext';
 
 // Define types for the translations
-type Language = 'en' | 'sv' | 'ar';
 type Translations = {
   location: string;
   email: string;
@@ -35,14 +35,20 @@ const translations: Record<Language, Translations> = {
 
 interface TopHeaderProps {
   lang?: Language;
+  isScrolled?: boolean;
 }
 
-export default function TopHeader({ lang = 'en' }: TopHeaderProps) {
+export default function TopHeader({
+  lang = 'en',
+  isScrolled = false,
+}: TopHeaderProps) {
   const t = translations[lang];
 
   return (
     <div
-      className="bg-error-red-500 py-[8px] md:py-[20px] md:max-h-[64px]"
+      className={`bg-error-red-500 py-[8px] md:py-[20px] md:max-h-[64px] transition-all duration-300 ${
+        isScrolled ? 'md:py-[8px] md:max-h-[40px]' : ''
+      }`}
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
     >
       <div className="w-full xl:w-[1320px] mx-auto px-5 xl:px-0">
@@ -181,8 +187,6 @@ export default function TopHeader({ lang = 'en' }: TopHeaderProps) {
         </div>
 
         {/* mobile */}
-
-        
       </div>
     </div>
   );

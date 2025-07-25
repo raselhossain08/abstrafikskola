@@ -1,0 +1,54 @@
+{
+    "title": "Price List",
+    "subtitle": "Choose from our comprehensive range of driving courses and packages",
+    "categories": {
+        "courses": "Courses",
+        "lessons": "Lessons",
+        "packages": "Packages"
+    },
+    "courses": {
+        "handledarkurs": {
+            "title": "Handledarkurs",
+            "description": "Get ready for private driving lessons with our Handledarkurs. This essential course lays the groundwork for safe driving. Book your Handledarkurs online today and start your journey to confident driving!",
+            "duration": "180 mins, ex.rest"
+        },
+        "risk1": {
+            "title": "Risk1 (Riskettan)",
+            "description": "Essential for safe driving. Risk 1 covers comprehensive training on alcohol, drugs, fatigue, and risky behavior. Book online and get started now!",
+            "duration": "180 mins, ex.rest"
+        },
+        "risk2": {
+            "title": "Risk2 (Risktvåan)",
+            "description": "Advanced risk awareness training. Risk 2 focuses on dangerous situations, emergency braking, and collision avoidance. Complete your safety education today!",
+            "duration": "240 mins, ex.rest"
+        },
+        "halkbana": {
+            "title": "Halkbana (Slippery Road)",
+            "description": "Master winter driving conditions. Learn to handle skids, emergency braking on ice, and safe winter driving techniques. Essential for Swedish driving conditions!",
+            "duration": "240 mins, ex.rest"
+        },
+        "introduktion": {
+            "title": "Introduktionsutbildning",
+            "description": "Introduction to traffic and vehicles. Perfect for beginners who want to understand traffic rules and vehicle basics before starting practical lessons.",
+            "duration": "120 mins"
+        }
+    },
+    "lessons": {
+        "manualLesson": {
+            "title": "Manual Driving Lesson",
+            "description": "One-on-one driving lesson with our certified instructor in a manual transmission vehicle. Perfect for building confidence and skills."
+        },
+        "automaticLesson": {
+            "title": "Automatic Driving Lesson",
+            "description": "One-on-one driving lesson with our certified instructor in an automatic transmission vehicle. Ideal for easier learning."
+        }
+    },
+    "common": {
+        "bookOnline": "Book Online",
+        "contactUs": "Contact Us",
+        "currency": "kr",
+        "perLesson": "per lesson",
+        "includes": "Includes:",
+        "excludes": "Excludes:"
+    }
+}

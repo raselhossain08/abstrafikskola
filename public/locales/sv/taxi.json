@@ -1,0 +1,77 @@
+{
+    "title": "Taxiutbildning",
+    "subtitle": "Professionell taxiförarutbildning och certifiering",
+    "hero": {
+        "title": "Bli en Certifierad Taxiförare",
+        "description": "Vårt omfattande taxiutbildningsprogram förbereder dig för en framgångsrik karriär som professionell taxiförare i Sverige. Lär dig alla viktiga färdigheter, regler och lokalkännedom som behövs.",
+        "cta": "Starta Utbildning"
+    },
+    "overview": {
+        "title": "Utbildningsöversikt",
+        "description": "Vår taxiutbildning täcker allt du behöver för att bli en licensierad taxiförare, inklusive fordonshantering, kundservice, navigering och juridiska krav.",
+        "highlights": [
+            "Komplett certifieringsprogram",
+            "Lokal områdeskännedom utbildning",
+            "Kundservicefärdigheter",
+            "Navigering och ruttplanering",
+            "Juridiska krav och regler",
+            "Praktisk körbedömning"
+        ]
+    },
+    "curriculum": {
+        "title": "Utbildningsplan",
+        "modules": [
+            {
+                "title": "Trafikregler",
+                "description": "Omfattande kunskap om svenska trafiklagarna och taxi-specifika regler"
+            },
+            {
+                "title": "Lokal Geografi",
+                "description": "Detaljerad kunskap om lokala områden, landmärken och optimala rutter"
+            },
+            {
+                "title": "Kundservice",
+                "description": "Professionella interaktionsfärdigheter och kundnöjdhetstekniker"
+            },
+            {
+                "title": "Fordonshantering",
+                "description": "Säkra körtekniker och grundläggande fordonsunderhåll"
+            },
+            {
+                "title": "Nödprocedurer",
+                "description": "Hur man hanterar nödsituationer och svåra situationer"
+            },
+            {
+                "title": "Teknologisystem",
+                "description": "Använda taximätare, GPS-system och bokningsapplikationer"
+            }
+        ]
+    },
+    "requirements": {
+        "title": "Krav",
+        "list": [
+            "Giltigt svenskt körkort (minimum 2 år)",
+            "Rent brottsregister",
+            "Läkarintyg",
+            "Grundläggande svenska språkkunskaper",
+            "Godkänd skriftlig och praktisk examination"
+        ]
+    },
+    "certification": {
+        "title": "Certifieringsprocess",
+        "description": "Efter framgångsrikt slutförande av vårt utbildningsprogram får du officiell certifiering för att arbeta som taxiförare i Sverige.",
+        "steps": [
+            "Slutför utbildningsmoduler",
+            "Godkänd skriftlig examination",
+            "Slutför praktisk bedömning",
+            "Få certifiering",
+            "Ansök om taxilicens"
+        ]
+    },
+    "booking": {
+        "title": "Starta Din Taxiutbildning",
+        "description": "Redo att börja din karriär som professionell taxiförare? Kontakta oss för att lära dig mer om vårt utbildningsprogram och anmälan.",
+        "cta": "Anmäl Dig Nu",
+        "contact": "Kontakta Oss"
+    }
+}

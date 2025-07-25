@@ -1,0 +1,46 @@
+{
+    "title": "Vanliga Frågor",
+    "subtitle": "Hitta svar på vanliga frågor om vår körskola",
+    "faq": [
+        {
+            "question": "Hur lång tid tar det att få körkort?",
+            "answer": "Tiden varierar beroende på dina framsteg och övningsfrekvens. I genomsnitt tar det 3-6 månader med regelbundna lektioner och övning."
+        },
+        {
+            "question": "Vilken är minimiåldern för att börja körlektioner?",
+            "answer": "Du kan börja körlektioner vid 16 års ålder med körkortstillstånd. Du kan dock inte ta praktiskt prov förrän du fyller 18."
+        },
+        {
+            "question": "Måste jag slutföra alla kurser före det praktiska provet?",
+            "answer": "Ja, du måste slutföra Handledarkurs och Risk1 innan du tar ditt praktiska körprov. Risk2 och andra kurser kan krävas beroende på din körkortstyp."
+        },
+        {
+            "question": "Kan jag använda min egen bil för körlektioner?",
+            "answer": "Ja, du kan använda din egen bil om den uppfyller säkerhetskraven och har dubbla pedaler. Vi rekommenderar dock att du använder våra skolbilar för optimal inlärning."
+        },
+        {
+            "question": "Vad händer om jag inte klarar körprovet?",
+            "answer": "Ingen fara! Du kan ta om provet efter ytterligare övning. Vi hjälper dig identifiera förbättringsområden och förbereda dig för nästa försök."
+        },
+        {
+            "question": "Erbjuder ni lektioner på andra språk än svenska?",
+            "answer": "Ja, vi har instruktörer som talar engelska, arabiska och andra språk. Ange din språkpreferens när du bokar."
+        },
+        {
+            "question": "Hur mycket kostar det att få körkort?",
+            "answer": "Den totala kostnaden varierar baserat på hur många lektioner du behöver. Kolla vår prislista för detaljerad information om kurs- och lektionsavgifter."
+        },
+        {
+            "question": "Kan jag boka lektioner online?",
+            "answer": "Ja, du kan boka lektioner genom vårt online-bokningssystem eller genom att ringa vårt kontor under kontorstid."
+        },
+        {
+            "question": "Vad ska jag ta med till min första lektion?",
+            "answer": "Ta med ditt körkortstillstånd, foto-ID och bekväma kläder. Vi tillhandahåller all nödvändig säkerhetsutrustning och undervisningsmaterial."
+        },
+        {
+            "question": "Ingår parkering i körlektionerna?",
+            "answer": "Ja, våra omfattande körlektioner inkluderar parkeringsövning, motorvägskörning, stadskörning och alla färdigheter som behövs för provet."
+        }
+    ]
+}

@@ -1,3 +1,5 @@
+'use client';
+
 import Contact from '@/components/common/Contact';
 import Gallery from '@/components/home/Gallery';
 import HeroSection from '@/components/home/HeroSection';

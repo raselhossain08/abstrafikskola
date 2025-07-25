@@ -1,6 +1,6 @@
 'use client';
 import Contact from '@/components/common/Contact';
-import { Handledarkurs } from '@/components/dialog/Handledarkurs';
+import { ProductDialog } from '@/components/dialog/ProductDialog';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import React, { useState } from 'react';
@@ -63,11 +63,11 @@ const courseSlots: HandledarkursItem[] = [
 export default function page() {
   const [handledarkursOpen, setHandledarkursOpen] = useState(false);
   const [popupData, setPopupData] = useState<HandledarkursItem>(courseSlots[0]);
-  
+
   const handleSubmit = (data: HandledarkursItem) => {
-    setHandledarkursOpen(true)
+    setHandledarkursOpen(true);
     setPopupData(data);
-    console.log(data)
+    console.log(data);
   };
   return (
     <>
@@ -422,7 +422,7 @@ export default function page() {
         </div>
       </div>
       <Contact />
-      <Handledarkurs
+      <ProductDialog
         open={handledarkursOpen}
         onOpenChange={setHandledarkursOpen}
         data={popupData}

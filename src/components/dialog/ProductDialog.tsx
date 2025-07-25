@@ -9,7 +9,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useState } from 'react';
 
-interface HandledarkursItem {
+interface ProductItem {
   date: string;
   time: string;
   title: string;
@@ -17,10 +17,10 @@ interface HandledarkursItem {
   price: string;
 }
 
-interface HandledarkursProps {
+interface ProductDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: HandledarkursItem;
+  data: ProductItem;
 }
 
 const validationSchema = Yup.object().shape({
@@ -41,11 +41,11 @@ const validationSchema = Yup.object().shape({
     .required('Email is required'),
 });
 
-export function Handledarkurs({
+export function ProductDialog({
   open,
   onOpenChange,
   data,
-}: HandledarkursProps) {
+}: ProductDialogProps) {
   const { date, time, title, seats, price } = data;
   if (!data) return null;
   const [isConfirmed, setIsConfirmed] = useState(false);

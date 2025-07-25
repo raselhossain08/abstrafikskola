@@ -5,6 +5,10 @@ import localFont from 'next/font/local';
 import Header from '@/components/common/Header';
 import Contact from '@/components/common/Contact';
 import Footer from '@/components/common/Footer';
+import { LanguageProvider } from '@/contexts/LanguageContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ServerCookies } from '@/lib/cookies';
+
 // Load Raleway font with variable support
 const raleway = Raleway({
   variable: '--font-raleway',
@@ -68,16 +72,27 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Get initial language from server-side cookies
+  const initialLanguage = await ServerCookies.getLanguage();
+
   return (
-    <html lang="sv" className={`${raleway.variable} ${sansation.variable}`}>
+    <html
+      lang={initialLanguage}
+      className={`${raleway.variable} ${sansation.variable}`}
+    >
       <body className="font-sansation antialiased">
-        <Header /> {children}
-        <Footer />
+        <AuthProvider>
+          <LanguageProvider initialLanguage={initialLanguage}>
+            <Header />
+            <main>{children}</main>
+            <Footer />
+          </LanguageProvider>
+        </AuthProvider>
       </body>
     </html>
   );

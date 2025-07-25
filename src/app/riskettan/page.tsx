@@ -1,20 +1,20 @@
-'use client'
+'use client';
 import Contact from '@/components/common/Contact';
-import { Handledarkurs } from '@/components/dialog/Handledarkurs';
+import { ProductDialog } from '@/components/dialog/ProductDialog';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import React, { useState } from 'react';
 import { FaCalendarAlt, FaRegClock } from 'react-icons/fa';
 import { FaCheck } from 'react-icons/fa6';
 import { SlLike } from 'react-icons/sl';
-type HandledarkursItem = {
+type ProductItem = {
   date: string;
   time: string;
   title: string;
   seats: string;
   price: string;
 };
-const riskOneSlots: HandledarkursItem[] = [
+const riskOneSlots: ProductItem[] = [
   {
     date: '2024-06-18 Tuesday',
     time: '17:00 - 20:15',
@@ -66,13 +66,11 @@ const riskOneSlots: HandledarkursItem[] = [
   },
 ];
 
-export default function page() {
+export default function RiskettanPage() {
   const [handledarkursOpen, setHandledarkursOpen] = useState(false);
-  const [popupData, setPopupData] = useState<HandledarkursItem>(
-    riskOneSlots[0]
-  );
-  
-  const handleSubmit = (data: HandledarkursItem) => {
+  const [popupData, setPopupData] = useState<ProductItem>(riskOneSlots[0]);
+
+  const handleSubmit = (data: ProductItem) => {
     setHandledarkursOpen(true);
     setPopupData(data);
   };
@@ -350,7 +348,7 @@ export default function page() {
         </div>
       </div>
       <Contact />
-      <Handledarkurs
+      <ProductDialog
         open={handledarkursOpen}
         onOpenChange={setHandledarkursOpen}
         data={popupData}
