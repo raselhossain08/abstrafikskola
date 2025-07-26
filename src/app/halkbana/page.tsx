@@ -1,12 +1,26 @@
 'use client';
 
 import Image from 'next/image';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaCheck } from 'react-icons/fa6';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { scheduleAPI, Schedule } from '@/lib/api';
+import { Button } from '@/components/ui/button';
+import { ProductDialog } from '@/components/dialog/ProductDialog';
+import Contact from '@/components/common/Contact';
 
 // Static metadata will be handled by layout.tsx or metadata.ts file
+
+type HalkbanaItem = {
+  _id?: string;
+  scheduleId?: string;
+  date: string;
+  time: string;
+  title: string;
+  seats: string;
+  price: string;
+};
 
 const content = {
   hero: {
@@ -138,6 +152,169 @@ const content = {
 export default function HalkbanaPage() {
   const { language } = useLanguage();
   const { user, isAuthenticated } = useAuth();
+
+  // State for API integration
+  const [halkbanaOpen, setHalkbanaOpen] = useState(false);
+  const [popupData, setPopupData] = useState<HalkbanaItem | null>(null);
+  const [courseSlots, setCourseSlots] = useState<HalkbanaItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch course schedules from API
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Search for "Halkbana" or "Risk2" schedules
+        const response = await scheduleAPI.getByTitle('Halkbana');
+
+        if (response.success && response.data) {
+          // Transform API data to match component format
+          const transformedSlots: HalkbanaItem[] = response.data.map(
+            (schedule: Schedule) => {
+              // Format date with day name
+              const scheduleDate = new Date(schedule.date);
+              const formattedDate = scheduleDate.toLocaleDateString(
+                language === 'ar'
+                  ? 'ar-SA'
+                  : language === 'sv'
+                    ? 'sv-SE'
+                    : 'en-US',
+                {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                }
+              );
+
+              // Format time range
+              const timeRange = `${schedule.startTime} - ${schedule.endTime}`;
+
+              // Calculate available seats
+              const availableSeats =
+                schedule.availableSlots ||
+                schedule.maxStudents - schedule.currentBookings;
+              const seatsText =
+                availableSeats > 0
+                  ? `${availableSeats} ${language === 'ar' ? 'مقاعد متاحة' : language === 'sv' ? 'platser tillgängliga' : 'seats available'}`
+                  : language === 'ar'
+                    ? 'مكتملة'
+                    : language === 'sv'
+                      ? 'Fullbokad'
+                      : 'Fully booked';
+
+              return {
+                _id: schedule._id,
+                scheduleId: schedule.scheduleId,
+                date: formattedDate,
+                time: timeRange,
+                title: schedule.title,
+                seats: seatsText,
+                price: `${schedule.price} ${language === 'ar' ? 'كرونة' : 'kr'}`,
+              };
+            }
+          );
+
+          setCourseSlots(transformedSlots);
+        } else {
+          // Fallback to static data if API fails or no data
+          setCourseSlots([
+            {
+              date:
+                language === 'ar'
+                  ? 'الأربعاء 2024-03-20'
+                  : language === 'sv'
+                    ? '2024-03-20 Onsdag'
+                    : '2024-03-20 Wednesday',
+              time: '09:00 - 12:00',
+              title:
+                language === 'ar'
+                  ? 'دورة هالكبانا (ريسك 2)'
+                  : language === 'sv'
+                    ? 'Halkbana (Risk2)'
+                    : 'Halkbana (Risk2)',
+              seats:
+                language === 'ar'
+                  ? '8 مقاعد متاحة'
+                  : language === 'sv'
+                    ? '8 platser tillgängliga'
+                    : '8 seats available',
+              price: language === 'ar' ? '599 كرونة' : '599 kr',
+            },
+            {
+              date:
+                language === 'ar'
+                  ? 'السبت 2024-03-23'
+                  : language === 'sv'
+                    ? '2024-03-23 Lördag'
+                    : '2024-03-23 Saturday',
+              time: '13:00 - 16:00',
+              title:
+                language === 'ar'
+                  ? 'دورة هالكبانا (ريسك 2)'
+                  : language === 'sv'
+                    ? 'Halkbana (Risk2)'
+                    : 'Halkbana (Risk2)',
+              seats:
+                language === 'ar'
+                  ? '6 مقاعد متاحة'
+                  : language === 'sv'
+                    ? '6 platser tillgängliga'
+                    : '6 seats available',
+              price: language === 'ar' ? '599 كرونة' : '599 kr',
+            },
+          ]);
+        }
+      } catch (err) {
+        console.error('Error fetching schedules:', err);
+        setError(
+          language === 'ar'
+            ? 'فشل في تحميل جداول الدورات'
+            : language === 'sv'
+              ? 'Kunde inte ladda kursscheman'
+              : 'Failed to load course schedules'
+        );
+        // Fallback to static data
+        setCourseSlots([
+          {
+            date:
+              language === 'ar'
+                ? 'الأربعاء 2024-03-20'
+                : language === 'sv'
+                  ? '2024-03-20 Onsdag'
+                  : '2024-03-20 Wednesday',
+            time: '09:00 - 12:00',
+            title:
+              language === 'ar'
+                ? 'دورة هالكبانا (ريسك 2)'
+                : language === 'sv'
+                  ? 'Halkbana (Risk2)'
+                  : 'Halkbana (Risk2)',
+            seats:
+              language === 'ar'
+                ? '8 مقاعد متاحة'
+                : language === 'sv'
+                  ? '8 platser tillgängliga'
+                  : '8 seats available',
+            price: language === 'ar' ? '599 كرونة' : '599 kr',
+          },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchedules();
+  }, [language]);
+
+  const handleBooking = (data: HalkbanaItem) => {
+    setHalkbanaOpen(true);
+    setPopupData(data);
+    console.log('Booking data:', data);
+  };
 
   // Translation helper function
   const t = (content: any) => {
@@ -272,6 +449,139 @@ export default function HalkbanaPage() {
           </div>
         </div>
       </main>
+
+      {/* Course Schedule Section */}
+      <section className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 py-16 px-4">
+        <div className="w-full xl:w-[1320px] mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-white">
+            {language === 'ar'
+              ? 'المواعيد المتاحة لدورة هالكبانا'
+              : language === 'sv'
+                ? 'Tillgängliga tider för Halkbana'
+                : 'Available Halkbana Course Times'}
+          </h2>
+
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-lg text-gray-600 dark:text-gray-300">
+                {language === 'ar'
+                  ? 'جاري التحميل...'
+                  : language === 'sv'
+                    ? 'Laddar...'
+                    : 'Loading...'}
+              </span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+              <Button
+                onClick={() => window.location.reload()}
+                variant="outline"
+                className="px-6 py-2"
+              >
+                {language === 'ar'
+                  ? 'إعادة المحاولة'
+                  : language === 'sv'
+                    ? 'Försök igen'
+                    : 'Try Again'}
+              </Button>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+              {courseSlots.map((slot, index) => (
+                <div
+                  key={slot._id || index}
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-200 dark:border-gray-600"
+                >
+                  <div className="mb-4">
+                    <p className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+                      {slot.date}
+                    </p>
+                    <p className="text-blue-600 dark:text-blue-400 font-medium text-lg">
+                      {slot.time}
+                    </p>
+                  </div>
+
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">
+                      {language === 'ar'
+                        ? 'العنوان:'
+                        : language === 'sv'
+                          ? 'Titel:'
+                          : 'Title:'}
+                    </p>
+                    <p className="font-medium text-gray-800 dark:text-white">
+                      {slot.title}
+                    </p>
+                  </div>
+
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        {language === 'ar'
+                          ? 'المقاعد:'
+                          : language === 'sv'
+                            ? 'Platser:'
+                            : 'Seats:'}
+                      </p>
+                      <p className="font-medium text-green-600 dark:text-green-400">
+                        {slot.seats}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        {language === 'ar'
+                          ? 'السعر:'
+                          : language === 'sv'
+                            ? 'Pris:'
+                            : 'Price:'}
+                      </p>
+                      <p className="font-bold text-xl text-purple-600 dark:text-purple-400">
+                        {slot.price}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => handleBooking(slot)}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
+                    disabled={slot.seats.includes(
+                      language === 'ar'
+                        ? 'مكتملة'
+                        : language === 'sv'
+                          ? 'Fullbokad'
+                          : 'Fully booked'
+                    )}
+                  >
+                    {isAuthenticated
+                      ? language === 'ar'
+                        ? 'احجز الآن'
+                        : language === 'sv'
+                          ? 'Boka nu'
+                          : 'Book Now'
+                      : language === 'ar'
+                        ? 'سجل الدخول للحجز'
+                        : language === 'sv'
+                          ? 'Logga in för att boka'
+                          : 'Login to Book'}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <Contact />
+
+      {/* Booking Dialog */}
+      <ProductDialog
+        open={halkbanaOpen}
+        onOpenChange={setHalkbanaOpen}
+        data={popupData}
+      />
 
       {/* RTL Styles for Arabic */}
       <style jsx>{`

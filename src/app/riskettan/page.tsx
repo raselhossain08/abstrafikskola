@@ -3,72 +3,96 @@ import Contact from '@/components/common/Contact';
 import { ProductDialog } from '@/components/dialog/ProductDialog';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaRegClock } from 'react-icons/fa';
 import { FaCheck } from 'react-icons/fa6';
 import { SlLike } from 'react-icons/sl';
+import { scheduleAPI, type Schedule } from '@/lib/api';
+
 type ProductItem = {
+  _id?: string;
+  scheduleId?: string;
   date: string;
   time: string;
   title: string;
   seats: string;
   price: string;
 };
-const riskOneSlots: ProductItem[] = [
-  {
-    date: '2024-06-18 Tuesday',
-    time: '17:00 - 20:15',
-    title: 'Risk 1 [Swedish]',
-    seats: ' 5 places left',
-    price: '399 kr',
-  },
-  {
-    date: '2024-06-08 Saturday',
-    time: '10:00 - 13:15',
-    title: 'Risk 1 [Swedish]',
-    seats: ' 5 places left',
-    price: '399 kr',
-  },
-  {
-    date: '2024-06-08 Saturday',
-    time: '10:00 - 13:15',
-    title: 'Risk 1 [Swedish]',
-    seats: '5 places left',
-    price: '399 kr',
-  },
-  {
-    date: '2024-06-15 Saturday',
-    time: '10:00 - 13:15',
-    title: 'Risk 1 [English]',
-    seats: ' 5 places left',
-    price: '399 kr',
-  },
-  {
-    date: '2024-06-18 Tuesday',
-    time: '17:00 - 20:15',
-    title: 'Risk 1 [Swedish]',
-    seats: ' 5 places left',
-    price: '399 kr',
-  },
-  {
-    date: '2024-06-08 Saturday',
-    time: '10:00 - 13:30',
-    title: 'Risk 1 [Swedish/Arabic]',
-    seats: '5 places left',
-    price: '399 kr',
-  },
-  {
-    date: '2024-06-09 Sunday',
-    time: '10:00 - 13:15',
-    title: 'Risk 1 [English]',
-    seats: '5 places left',
-    price: '399 kr',
-  },
-];
 
 export default function RiskettanPage() {
   const [handledarkursOpen, setHandledarkursOpen] = useState(false);
-  const [popupData, setPopupData] = useState<ProductItem>(riskOneSlots[0]);
+  const [popupData, setPopupData] = useState<ProductItem | null>(null);
+
+  // State for API integration
+  const [riskOneSlots, setRiskOneSlots] = useState<ProductItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch course schedules from API
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Search for "Risk1" or "Riskettan" schedules
+        const response = await scheduleAPI.getByTitle('Risk1');
+
+        if (response.success && response.data) {
+          // Transform API data to match component format
+          const transformedSlots: ProductItem[] = response.data.map(
+            (schedule: Schedule) => {
+              // Format date with day name
+              const scheduleDate = new Date(schedule.date);
+              const formattedDate = scheduleDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+              });
+
+              // Format time range
+              const timeRange = `${schedule.startTime} - ${schedule.endTime}`;
+
+              // Calculate available seats
+              const availableSeats =
+                schedule.availableSlots ||
+                schedule.maxStudents - schedule.currentBookings;
+              const seatsText =
+                availableSeats > 0
+                  ? `${availableSeats} places left`
+                  : 'Fully booked';
+
+              return {
+                _id: schedule._id,
+                scheduleId: schedule.scheduleId,
+                date: formattedDate,
+                time: timeRange,
+                title: schedule.title,
+                seats: seatsText,
+                price: `${schedule.price} kr`,
+              };
+            }
+          );
+
+          setRiskOneSlots(transformedSlots);
+        } else {
+          // No data found from API
+          setRiskOneSlots([]);
+          console.log('No Risk1 courses found in database');
+        }
+      } catch (err) {
+        console.error('Error fetching schedules:', err);
+        setError('No courses at the moment');
+        // Set empty array instead of fallback data
+        setRiskOneSlots([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchedules();
+  }, []);
 
   const handleSubmit = (data: ProductItem) => {
     setHandledarkursOpen(true);
@@ -90,139 +114,195 @@ export default function RiskettanPage() {
               now and start your journey towards a safer driving experience.
             </p>
           </div>
-          {/* desktop version */}
-          <div className=" w-full">
-            {riskOneSlots.map((item, index) => {
-              return (
-                <div
-                  className="hidden xl:flex items-center justify-between bg-[0px 4px 35px 0px #0000000A] bg-white border border-[#FFFFFF] py-[9px] px-[24px] rounded-[8px] mb-8"
-                  style={{ boxShadow: ' 0px 4px 35px 0px #0000001A' }}
-                  key={index}
+
+          {/* Loading State */}
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-lg text-gray-600">
+                Loading schedules...
+              </span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-red-600 mb-4">{error}</p>
+              <Button
+                onClick={() => window.location.reload()}
+                variant="outline"
+                className="px-6 py-2"
+              >
+                Try Again
+              </Button>
+            </div>
+          ) : riskOneSlots.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="mb-4">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <div className="flex items-center space-x-2 w-[242px]">
-                    <Image
-                      src="/icons/calendar.svg"
-                      height={19.5}
-                      width={19.5}
-                      alt="calender"
-                    />
-                    <p className=" text-[#4A4C56] font-medium text-16">
-                      {item.date}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center space-x-2 w-[124px]">
-                    <Image
-                      src="/icons/watch.svg"
-                      height={19.5}
-                      width={19.5}
-                      alt="clock"
-                    />
-                    <p className="text-[#4A4C56] font-medium text-16">
-                      {item.time}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center space-x-2 w-[290px]">
-                    <h2 className=" text-24 font-bold tracking-[0.5%] text-[#1D1F2C]">
-                      {item.title}
-                    </h2>
-                  </div>
-                  <div className="flex items-center bg-[#ECF4FD80] border border-[#ECF4FD] px-[16px] py-[6px] space-x-3 rounded-[30px] text-[#3F8FEE] w-[220px]">
-                    <Image
-                      src="/icons/like.svg"
-                      height={19.5}
-                      width={19.5}
-                      alt="calender"
-                    />
-                    <span> &gt; {item.seats}</span>
-                  </div>
-                  <div className="">
-                    <h1 className=" text-40 font-bold  text-[#3F8FEE]">
-                      {item.price}
-                    </h1>
-                  </div>
-                  <div className="">
-                    <Button
-                      className=" border border-[#3F8FEE] rounded-[30px] h-[48px] min-w-[130px] bg-[#3F8FEE]  flex items-center justify-center font-sansat text-14 tracking-[0.5%] leading-[140%] hover:bg-[#3F8FEE] text-white "
-                      onClick={() => handleSubmit(item)}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No Risk 1 Courses Available
+              </h3>
+              <p className="text-gray-600 mb-4">
+                There are currently no Risk 1 courses scheduled. Please check
+                back later or contact us for more information.
+              </p>
+              <Button
+                onClick={() => window.location.reload()}
+                variant="outline"
+                className="px-6 py-2"
+              >
+                Refresh
+              </Button>
+            </div>
+          ) : (
+            <>
+              {/* desktop version */}
+              <div className=" w-full">
+                {riskOneSlots.map((item, index) => {
+                  return (
+                    <div
+                      className="hidden xl:flex items-center justify-between bg-[0px 4px 35px 0px #0000000A] bg-white border border-[#FFFFFF] py-[9px] px-[24px] rounded-[8px] mb-8"
+                      style={{ boxShadow: ' 0px 4px 35px 0px #0000001A' }}
+                      key={item._id || index}
                     >
-                      Book
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* mobile version */}
-          <div className=" w-full">
-            {riskOneSlots.map((item, index) => {
-              return (
-                <div
-                  className="block xl:hidden bg-[0px 4px 35px 0px #0000000A] bg-white border border-[#FFFFFF] py-[10px] px-[24px] rounded-[8px] mb-8"
-                  style={{ boxShadow: ' 0px 4px 35px 0px #0000001A' }}
-                  key={index}
-                >
-                  <div className=" flex items-center justify-between">
-                    <div className="w-8/12 space-y-3">
-                      <div className="flex items-center space-x-2">
-                        <h2 className=" text-16 font-bold tracking-[0.5%] text-[#1D1F2C]">
-                          {item.title}
-                        </h2>
-                      </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 w-[242px]">
                         <Image
                           src="/icons/calendar.svg"
                           height={19.5}
                           width={19.5}
                           alt="calender"
                         />
-                        <p className=" text-[#4A4C56] font-medium text-12">
+                        <p className=" text-[#4A4C56] font-medium text-16">
                           {item.date}
                         </p>
                       </div>
-                      <div className="flex items-center space-x-2">
+
+                      <div className="flex items-center space-x-2 w-[124px]">
                         <Image
                           src="/icons/watch.svg"
                           height={19.5}
                           width={19.5}
                           alt="clock"
                         />
-                        <p className="text-[#4A4C56] font-medium text-12">
+                        <p className="text-[#4A4C56] font-medium text-16">
                           {item.time}
                         </p>
                       </div>
-                      <div className=" inline-flex items-center bg-[#ECF4FD80] border border-[#ECF4FD] px-[16px] py-[6px] space-x-3 rounded-[30px] text-[#3F8FEE] ">
+
+                      <div className="flex items-center space-x-2 w-[290px]">
+                        <h2 className=" text-24 font-bold tracking-[0.5%] text-[#1D1F2C]">
+                          {item.title}
+                        </h2>
+                      </div>
+                      <div className="flex items-center bg-[#ECF4FD80] border border-[#ECF4FD] px-[16px] py-[6px] space-x-3 rounded-[30px] text-[#3F8FEE] w-[220px]">
                         <Image
                           src="/icons/like.svg"
                           height={19.5}
                           width={19.5}
                           alt="calender"
                         />
-                        <span className=" text-12"> &gt; {item.seats}</span>
+                        <span> &gt; {item.seats}</span>
                       </div>
-                    </div>
-                    <div className=" flex flex-col justify-evenly items-center space-y-8">
                       <div className="">
-                        <h1 className=" text-18 font-bold  text-[#3F8FEE]">
+                        <h1 className=" text-40 font-bold  text-[#3F8FEE]">
                           {item.price}
                         </h1>
                       </div>
                       <div className="">
                         <Button
-                          className=" border border-[#3F8FEE] rounded-[30px] h-[32px] min-w-[100px] bg-[#3F8FEE]  flex items-center justify-center font-sansat text-14 tracking-[0.5%] leading-[140%] hover:bg-[#3F8FEE] text-white "
+                          className=" border border-[#3F8FEE] rounded-[30px] h-[48px] min-w-[130px] bg-[#3F8FEE]  flex items-center justify-center font-sansat text-14 tracking-[0.5%] leading-[140%] hover:bg-[#3F8FEE] text-white "
                           onClick={() => handleSubmit(item)}
                         >
                           Book
                         </Button>
                       </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+
+              {/* mobile version */}
+              <div className=" w-full">
+                {riskOneSlots.map((item, index) => {
+                  return (
+                    <div
+                      className="block xl:hidden bg-[0px 4px 35px 0px #0000000A] bg-white border border-[#FFFFFF] py-[10px] px-[24px] rounded-[8px] mb-8"
+                      style={{ boxShadow: ' 0px 4px 35px 0px #0000001A' }}
+                      key={item._id || index}
+                    >
+                      <div className=" flex items-center justify-between">
+                        <div className="w-8/12 space-y-3">
+                          <div className="flex items-center space-x-2">
+                            <h2 className=" text-16 font-bold tracking-[0.5%] text-[#1D1F2C]">
+                              {item.title}
+                            </h2>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Image
+                              src="/icons/calendar.svg"
+                              height={19.5}
+                              width={19.5}
+                              alt="calender"
+                            />
+                            <p className=" text-[#4A4C56] font-medium text-12">
+                              {item.date}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Image
+                              src="/icons/watch.svg"
+                              height={19.5}
+                              width={19.5}
+                              alt="clock"
+                            />
+                            <p className="text-[#4A4C56] font-medium text-12">
+                              {item.time}
+                            </p>
+                          </div>
+                          <div className=" inline-flex items-center bg-[#ECF4FD80] border border-[#ECF4FD] px-[16px] py-[6px] space-x-3 rounded-[30px] text-[#3F8FEE] ">
+                            <Image
+                              src="/icons/like.svg"
+                              height={19.5}
+                              width={19.5}
+                              alt="calender"
+                            />
+                            <span className=" text-12"> &gt; {item.seats}</span>
+                          </div>
+                        </div>
+                        <div className=" flex flex-col justify-evenly items-center space-y-8">
+                          <div className="">
+                            <h1 className=" text-18 font-bold  text-[#3F8FEE]">
+                              {item.price}
+                            </h1>
+                          </div>
+                          <div className="">
+                            <Button
+                              className=" border border-[#3F8FEE] rounded-[30px] h-[32px] min-w-[100px] bg-[#3F8FEE]  flex items-center justify-center font-sansat text-14 tracking-[0.5%] leading-[140%] hover:bg-[#3F8FEE] text-white "
+                              onClick={() => handleSubmit(item)}
+                            >
+                              Book
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       </div>
       <div className=" bg-white py-[56px] xl:py-[120px] px-4 ">

@@ -2,12 +2,16 @@
 import Contact from '@/components/common/Contact';
 import { ProductDialog } from '@/components/dialog/ProductDialog';
 import { Button } from '@/components/ui/button';
+import { scheduleAPI, Schedule } from '@/lib/api';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaRegClock } from 'react-icons/fa';
 import { FaCheck } from 'react-icons/fa6';
 import { SlLike } from 'react-icons/sl';
+
 type HandledarkursItem = {
+  _id?: string;
+  scheduleId?: string;
   date: string;
   time: string;
   title: string;
@@ -15,60 +19,144 @@ type HandledarkursItem = {
   price: string;
 };
 
-const courseSlots: HandledarkursItem[] = [
-  {
-    date: '2024-03-20 Wednesday',
-    time: '17:00 - 20:15',
-    title: 'Handledarkurs [Svenska]',
-    seats: '5 seats available',
-    price: '299 kr',
-  },
-  {
-    date: '2024-03-24 Sunday',
-    time: '10:00 - 13:15',
-    title: 'Handledarkurs [Svenska]',
-    seats: '5 seats available',
-    price: '299 kr',
-  },
-  {
-    date: '2024-03-24 Sunday',
-    time: '10:00 - 13:15',
-    title: 'Handledarkurs [Svenska]',
-    seats: '5 seats available',
-    price: '299 kr',
-  },
-  {
-    date: '2024-03-20 Wednesday',
-    time: '17:00 - 20:15',
-    title: 'Handledarkurs [Svenska]',
-    seats: '5 seats available',
-    price: '299 kr',
-  },
-  {
-    date: '2024-03-20 Wednesday',
-    time: '17:00 - 20:15',
-    title: 'Handledarkurs [Svenska]',
-    seats: '5 seats available',
-    price: '299 kr',
-  },
-  {
-    date: '2024-03-20 Wednesday',
-    time: '17:00 - 20:15',
-    title: 'Handledarkurs [Svenska]',
-    seats: '5 seats available',
-    price: '299 kr',
-  },
-];
-
 export default function page() {
   const [handledarkursOpen, setHandledarkursOpen] = useState(false);
-  const [popupData, setPopupData] = useState<HandledarkursItem>(courseSlots[0]);
+  const [popupData, setPopupData] = useState<HandledarkursItem | null>(null);
+  const [courseSlots, setCourseSlots] = useState<HandledarkursItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch course schedules from API
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Search for "Handledarkurs" schedules
+        const response = await scheduleAPI.getByTitle('Handledarkurs');
+
+        if (response.success && response.data) {
+          // Transform API data to match component format
+          const transformedSlots: HandledarkursItem[] = response.data.map(
+            (schedule: Schedule) => {
+              // Format date with day name
+              const scheduleDate = new Date(schedule.date);
+              const formattedDate = scheduleDate.toLocaleDateString('sv-SE', {
+                weekday: 'long',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+              });
+
+              // Format time range
+              const timeRange = `${schedule.startTime} - ${schedule.endTime}`;
+
+              // Calculate available seats
+              const availableSeats =
+                schedule.availableSlots ||
+                schedule.maxStudents - schedule.currentBookings;
+              const seatsText =
+                availableSeats > 0
+                  ? `${availableSeats} seats available`
+                  : 'Fully booked';
+
+              return {
+                _id: schedule._id,
+                scheduleId: schedule.scheduleId,
+                date: formattedDate,
+                time: timeRange,
+                title: schedule.title,
+                seats: seatsText,
+                price: `${schedule.price} kr`,
+              };
+            }
+          );
+
+          setCourseSlots(transformedSlots);
+        } else {
+          // Fallback to static data if API fails or no data
+          setCourseSlots([
+            {
+              date: '2024-03-20 Wednesday',
+              time: '17:00 - 20:15',
+              title: 'Handledarkurs [Svenska]',
+              seats: '5 seats available',
+              price: '299 kr',
+            },
+            {
+              date: '2024-03-24 Sunday',
+              time: '10:00 - 13:15',
+              title: 'Handledarkurs [Svenska]',
+              seats: '5 seats available',
+              price: '299 kr',
+            },
+          ]);
+        }
+      } catch (err) {
+        console.error('Error fetching schedules:', err);
+        setError('Failed to load course schedules');
+        // Fallback to static data
+        setCourseSlots([
+          {
+            date: '2024-03-20 Wednesday',
+            time: '17:00 - 20:15',
+            title: 'Handledarkurs [Svenska]',
+            seats: '5 seats available',
+            price: '299 kr',
+          },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchedules();
+  }, []);
 
   const handleSubmit = (data: HandledarkursItem) => {
     setHandledarkursOpen(true);
     setPopupData(data);
     console.log(data);
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="bg-[#F7FAFF] py-[56px] md:py-[120px] px-4">
+        <div className="w-full xl:w-[1320px] mx-auto">
+          <h1 className="text-24 sm:text-56 font-bold text-[#1D1F2C] leading-[140%] text-center pb-5">
+            Handledarkurs Schedule and Prices
+          </h1>
+          <div className="text-center py-10">
+            <p className="text-16 text-[#4A4C56]">
+              Loading course schedules...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="bg-[#F7FAFF] py-[56px] md:py-[120px] px-4">
+        <div className="w-full xl:w-[1320px] mx-auto">
+          <h1 className="text-24 sm:text-56 font-bold text-[#1D1F2C] leading-[140%] text-center pb-5">
+            Handledarkurs Schedule and Prices
+          </h1>
+          <div className="text-center py-10">
+            <p className="text-16 text-red-500">{error}</p>
+            <p className="text-14 text-[#4A4C56] mt-2">
+              Showing default schedules below
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="bg-[#F7FAFF] py-[56px] md:py-[120px] px-4">
@@ -259,7 +347,7 @@ export default function page() {
                 </div>
                 <div className=" w-11/12 space-y-1">
                   <h3 className=" text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] font-semibold ">
-                    For the Instructor 
+                    For the Instructor
                   </h3>
                   <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
                     Update knowledge on current driving laws, learn effective
@@ -405,13 +493,13 @@ export default function page() {
               </strong>
               <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
                 Contact us to secure your place in our next Introduction Course.
-                Don’t wait – spaces fill up quickly!
+                Don't wait – spaces fill up quickly!
               </p>
             </div>
 
             <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
               For more information on supervision and practice driving, visit
-              Transportstyrelsen’s website.
+              Transportstyrelsen's website.
             </p>
 
             <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
@@ -422,11 +510,13 @@ export default function page() {
         </div>
       </div>
       <Contact />
-      <ProductDialog
-        open={handledarkursOpen}
-        onOpenChange={setHandledarkursOpen}
-        data={popupData}
-      />
+      {popupData && (
+        <ProductDialog
+          open={handledarkursOpen}
+          onOpenChange={setHandledarkursOpen}
+          data={popupData}
+        />
+      )}
     </>
   );
 }
