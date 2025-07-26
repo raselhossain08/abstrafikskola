@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Label } from '../ui/label';
+import { contactAPI, type ContactData } from '@/lib/api';
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -13,6 +14,9 @@ export default function ContactForm() {
     subject: '',
     message: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -23,21 +27,91 @@ export default function ContactForm() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(formData);
-    // here you can add API call or server action
+
+    // Validate form data
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.subject ||
+      !formData.message
+    ) {
+      setSubmitMessage('Please fill in all required fields.');
+      setMessageType('error');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitMessage('');
+    setMessageType('');
+
+    try {
+      const contactData: ContactData = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        subject: formData.subject.trim(),
+        message: formData.message.trim(),
+      };
+
+      const response = await contactAPI.create(contactData);
+
+      if (response.success) {
+        setSubmitMessage(
+          response.message ||
+            'Message sent successfully! We will get back to you soon.'
+        );
+        setMessageType('success');
+        // Reset form after successful submission
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: '',
+        });
+      } else {
+        setSubmitMessage(
+          response.message || 'Failed to send message. Please try again.'
+        );
+        setMessageType('error');
+      }
+    } catch (error) {
+      console.error('Contact form submission error:', error);
+      setSubmitMessage('Failed to send message. Please try again later.');
+      setMessageType('error');
+    } finally {
+      setIsSubmitting(false);
+
+      // Clear message after 5 seconds
+      setTimeout(() => {
+        setSubmitMessage('');
+        setMessageType('');
+      }, 5000);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit}>
       <div className="space-y-4">
+        {/* Success/Error Message */}
+        {submitMessage && (
+          <div
+            className={`p-3 rounded-md text-14 font-medium ${
+              messageType === 'success'
+                ? 'bg-green-100 text-green-600 border border-green-200'
+                : 'bg-red-100 text-red-600 border border-red-200'
+            }`}
+          >
+            {submitMessage}
+          </div>
+        )}
+
         <div>
           <Label
             htmlFor="name"
             className="block font-sansat text-[#1D1F2C] font-medium text-18 leading-[26px] mb-2"
           >
-            Full Name
+            Full Name *
           </Label>
           <Input
             name="name"
@@ -45,7 +119,9 @@ export default function ContactForm() {
             id="name"
             value={formData.name}
             onChange={handleChange}
-            className=" py-[15px] px-[16px] bg-white border border-[#E9E9EA80] h-[52px] text-16 text-[#777980] font-medium leading-[140%] shadow-none rounded-[6px]"
+            disabled={isSubmitting}
+            required
+            className=" py-[15px] px-[16px] bg-white border border-[#E9E9EA80] h-[52px] text-16 text-[#777980] font-medium leading-[140%] shadow-none rounded-[6px] disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
         </div>
         <div>
@@ -53,7 +129,7 @@ export default function ContactForm() {
             className="block font-sansat text-[#1D1F2C] font-medium text-18 leading-[26px] mb-2"
             htmlFor="email"
           >
-            Email
+            Email *
           </Label>
           <Input
             name="email"
@@ -62,7 +138,9 @@ export default function ContactForm() {
             value={formData.email}
             onChange={handleChange}
             type="email"
-            className=" py-[15px] px-[16px] bg-white border border-[#E9E9EA80] h-[52px] text-16 text-[#777980] font-medium leading-[140%] shadow-none rounded-[6px]"
+            disabled={isSubmitting}
+            required
+            className=" py-[15px] px-[16px] bg-white border border-[#E9E9EA80] h-[52px] text-16 text-[#777980] font-medium leading-[140%] shadow-none rounded-[6px] disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
         </div>
         <div>
@@ -70,7 +148,7 @@ export default function ContactForm() {
             className="block text-[#1D1F2C] font-medium text-18 leading-[26px] mb-2 font-sansat"
             htmlFor="subject"
           >
-            Subject
+            Subject *
           </Label>
           <Input
             name="subject"
@@ -78,15 +156,17 @@ export default function ContactForm() {
             placeholder="Please write the Subject"
             value={formData.subject}
             onChange={handleChange}
-            className=" py-[15px] px-[16px] bg-white border border-[#E9E9EA80] h-[52px] text-16 text-[#777980] font-medium leading-[140%] shadow-none rounded-[6px]"
+            disabled={isSubmitting}
+            required
+            className=" py-[15px] px-[16px] bg-white border border-[#E9E9EA80] h-[52px] text-16 text-[#777980] font-medium leading-[140%] shadow-none rounded-[6px] disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
         </div>
-        <div className=' mb-7'>
+        <div className=" mb-7">
           <Label
             className="block text-[#1D1F2C] font-medium text-18 leading-[26px] mb-2 font-sansat"
             htmlFor="message"
           >
-            Message
+            Message *
           </Label>
           <Textarea
             name="message"
@@ -94,14 +174,17 @@ export default function ContactForm() {
             value={formData.message}
             onChange={handleChange}
             id="message"
-            className=" py-[15px] px-[16px] bg-white border border-[#E9E9EA80]  text-16 text-[#777980] font-medium leading-[140%] rounded-[6px] h-[96px]"
+            disabled={isSubmitting}
+            required
+            className=" py-[15px] px-[16px] bg-white border border-[#E9E9EA80]  text-16 text-[#777980] font-medium leading-[140%] rounded-[6px] h-[96px] disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
         </div>
         <Button
           type="submit"
-          className="w-full h-[50px] rounded-[30px] py-[14px] px-[16px] bg-[#3F8FEE] hover:bg-[#3F8FEE]"
+          disabled={isSubmitting}
+          className="w-full h-[50px] rounded-[30px] py-[14px] px-[16px] bg-[#3F8FEE] hover:bg-[#3F8FEE] disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          Send
+          {isSubmitting ? 'Sending...' : 'Send'}
         </Button>
       </div>
     </form>

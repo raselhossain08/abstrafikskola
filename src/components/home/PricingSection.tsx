@@ -8,7 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { courseAPI, type Course } from '@/lib/api';
+import { courseAPI, scheduleAPI, type Course, type Schedule } from '@/lib/api';
 
 type ProductItem = {
   date: string;
@@ -18,6 +18,7 @@ type ProductItem = {
   price: string;
   description?: string;
   courseId?: string;
+  scheduleId?: string; // Add scheduleId to ProductItem
 };
 
 export default function PricingSection() {
@@ -28,7 +29,7 @@ export default function PricingSection() {
   const [productData, setProductData] = useState<ProductItem>({
     date: '2024-03-20 Wednesday',
     time: '17:00 - 20:15',
-    title: 'Handledarkurs [Svenska]',
+    title: 'Course Information',
     seats: '5 seats available',
     price: '299 kr',
     description:
@@ -40,21 +41,32 @@ export default function PricingSection() {
     const fetchCourses = async () => {
       try {
         setLoading(true);
+        setError(null);
+
         const response = await courseAPI.getAll({
           limit: 20, // Get more courses to show variety
           sortBy: 'createdAt',
           sortOrder: 'desc',
+          active: 'true', // Only get active courses
         });
 
         if (response.success && response.data) {
-          setCourses(response.data);
+          // Filter out courses with missing essential data
+          const validCourses = response.data.filter(
+            (course) =>
+              course.title &&
+              course.price !== undefined &&
+              course.price !== null
+          );
+          setCourses(validCourses);
+          console.log('Fetched courses:', validCourses); // Debug log
         } else {
           throw new Error(response.message || 'Failed to fetch courses');
         }
       } catch (err) {
         console.error('Error fetching courses:', err);
         setError(err instanceof Error ? err.message : 'Failed to load courses');
-        // Fallback to default courses if API fails
+        // Fallback to empty array to show fallback cards
         setCourses([]);
       } finally {
         setLoading(false);
@@ -65,13 +77,13 @@ export default function PricingSection() {
   }, []);
 
   // Transform backend course data to match PricingCard props
-  const transformCourseToCard = (course: Course) => ({
+  const transformCourseToCard = (course: Course, index: number) => ({
     title: course.title,
     price: `${course.price} kr`,
     details:
       course.description ||
       'Ready to embark on your journey to becoming a confident driver?',
-    active: false, // You can add logic to determine which course should be highlighted
+    active: index === 1, // Make second course active for visual variety
   });
 
   // Fallback static cards if no courses from backend
@@ -105,29 +117,116 @@ export default function PricingSection() {
 
   // Use backend courses if available, otherwise use fallback
   const cards =
-    courses.length > 0 ? courses.map(transformCourseToCard) : fallbackCards;
+    courses.length > 0
+      ? courses.map((course, index) => transformCourseToCard(course, index))
+      : fallbackCards;
 
-  const handleBookNow = (title: string) => {
-    // Find the course data for the clicked course
-    const selectedCourse = courses.find((course) => course.title === title);
+  const handleBookNow = async (title: string) => {
+    try {
+      // Find the course data for the clicked course from API data
+      const selectedCourse = courses.find((course) => course.title === title);
 
-    // Set the product data for the dialog
-    const dialogData: ProductItem = {
-      date: '2024-03-20 Wednesday', // You can make this dynamic based on course schedule
-      time: '17:00 - 20:15', // You can make this dynamic based on course schedule
-      title: title,
-      seats: '5 seats available', // You can make this dynamic based on course capacity
-      price: selectedCourse
-        ? `${selectedCourse.price} kr`
-        : getStaticPrice(title),
-      description:
-        selectedCourse?.description ||
-        'Ready to embark on your journey to becoming a confident driver?',
-      courseId: selectedCourse?.courseId, // Add courseId for schedule fetching
-    };
+      // If no course found in API data, check fallback cards
+      if (!selectedCourse && courses.length === 0) {
+        // For fallback cards, use static data
+        const dialogData: ProductItem = {
+          date: '2024-03-20 Wednesday',
+          time: '17:00 - 20:15',
+          title: title,
+          seats: '5 seats available',
+          price: getStaticPrice(title),
+          description:
+            'Ready to embark on your journey to becoming a confident driver?',
+          courseId: undefined,
+          scheduleId: undefined,
+        };
+        setProductData(dialogData);
+        setProductDialogOpen(true);
+        return;
+      }
 
-    setProductData(dialogData);
-    setProductDialogOpen(true);
+      // Fetch schedule data based on course title
+      let scheduleData: Schedule | null = null;
+      let dialogData: ProductItem;
+
+      try {
+        const scheduleResponse = await scheduleAPI.getByTitle(title);
+        if (
+          scheduleResponse.success &&
+          scheduleResponse.data &&
+          scheduleResponse.data.length > 0
+        ) {
+          // Use the first available schedule
+          scheduleData = scheduleResponse.data[0];
+
+          // Format date and time from schedule
+          const scheduleDate = new Date(scheduleData.date);
+          const formattedDate = scheduleDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            weekday: 'long',
+          });
+
+          const timeRange = `${scheduleData.startTime} - ${scheduleData.endTime}`;
+          const availableSeats = scheduleData.availableSlots;
+
+          dialogData = {
+            date: formattedDate,
+            time: timeRange,
+            title: selectedCourse?.title || title, // Use API course title
+            seats: `${availableSeats} seats available`,
+            price: `${scheduleData.price} kr`, // Use schedule price
+            description:
+              selectedCourse?.description ||
+              'Ready to embark on your journey to becoming a confident driver?', // Use API course description
+            courseId: selectedCourse?.courseId,
+            scheduleId: scheduleData.scheduleId, // Pass the schedule ID
+          };
+        } else {
+          // Fallback if no schedule found - use API course data
+          console.warn(`No schedule found for course: ${title}`);
+          dialogData = {
+            date: '2024-03-20 Wednesday',
+            time: '17:00 - 20:15',
+            title: selectedCourse?.title || title, // Use API course title
+            seats: '5 seats available',
+            price: selectedCourse
+              ? `${selectedCourse.price} kr`
+              : getStaticPrice(title), // Use API course price
+            description:
+              selectedCourse?.description ||
+              'Ready to embark on your journey to becoming a confident driver?', // Use API course description
+            courseId: selectedCourse?.courseId,
+            scheduleId: undefined, // No schedule ID available
+          };
+        }
+      } catch (scheduleError) {
+        console.error('Error fetching schedule:', scheduleError);
+        // Fallback to API course data if schedule fetch fails
+        dialogData = {
+          date: '2024-03-20 Wednesday',
+          time: '17:00 - 20:15',
+          title: selectedCourse?.title || title, // Use API course title
+          seats: '5 seats available',
+          price: selectedCourse
+            ? `${selectedCourse.price} kr`
+            : getStaticPrice(title), // Use API course price
+          description:
+            selectedCourse?.description ||
+            'Ready to embark on your journey to becoming a confident driver?', // Use API course description
+          courseId: selectedCourse?.courseId,
+          scheduleId: undefined, // No schedule ID available
+        };
+      }
+
+      setProductData(dialogData);
+      setProductDialogOpen(true);
+    } catch (error) {
+      console.error('Error in handleBookNow:', error);
+      // Show error message to user
+      alert('Failed to load course details. Please try again.');
+    }
   };
 
   // Helper function to get static price for fallback courses

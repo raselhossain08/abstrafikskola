@@ -53,6 +53,27 @@ export interface BookingResponse {
   status: string;
 }
 
+export interface SubscriptionData {
+  email: string;
+}
+
+export interface SubscriptionResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ContactData {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+export interface ContactResponse {
+  success: boolean;
+  message: string;
+}
+
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
@@ -158,6 +179,24 @@ class ApiClient {
       `/public/schedules/search/${encodeURIComponent(title)}`
     );
   }
+
+  async createSubscription(
+    subscriptionData: SubscriptionData
+  ): Promise<ApiResponse<SubscriptionResponse>> {
+    return this.request<SubscriptionResponse>('/subscription', {
+      method: 'POST',
+      body: JSON.stringify(subscriptionData),
+    });
+  }
+
+  async createContact(
+    contactData: ContactData
+  ): Promise<ApiResponse<ContactResponse>> {
+    return this.request<ContactResponse>('/contact', {
+      method: 'POST',
+      body: JSON.stringify(contactData),
+    });
+  }
 }
 
 // Export singleton instance
@@ -178,4 +217,13 @@ export const bookingAPI = {
 export const scheduleAPI = {
   getByCourseId: (courseId: string) => apiClient.getCourseSchedules(courseId),
   getByTitle: (title: string) => apiClient.getSchedulesByTitle(title),
+};
+
+export const subscriptionAPI = {
+  create: (subscriptionData: SubscriptionData) =>
+    apiClient.createSubscription(subscriptionData),
+};
+
+export const contactAPI = {
+  create: (contactData: ContactData) => apiClient.createContact(contactData),
 };

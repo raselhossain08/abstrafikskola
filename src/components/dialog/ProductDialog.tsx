@@ -77,6 +77,18 @@ export function ProductDialog({
     },
     validationSchema,
     onSubmit: async (values) => {
+      // Get valid schedule ID
+      const selectedScheduleId =
+        scheduleId || (schedules.length > 0 ? schedules[0].scheduleId : null);
+
+      // Validate that we have a valid schedule ID before proceeding
+      if (!selectedScheduleId) {
+        alert(
+          'Error: No valid schedule found for this course. Cannot proceed with booking.'
+        );
+        return;
+      }
+
       if (isConfirmed) {
         // Handle final submission
         setIsSubmitting(true);
@@ -84,11 +96,6 @@ export function ProductDialog({
         try {
           // Extract price number from price string (e.g., "299 kr" -> 299)
           const priceNumber = parseInt(price.replace(/[^0-9]/g, '')) || 0;
-
-          // Use direct scheduleId if available, otherwise use first from schedules
-          const selectedScheduleId =
-            scheduleId ||
-            (schedules.length > 0 ? schedules[0].scheduleId : null);
 
           const bookingData: BookingData = {
             firstName: values.firstName,
@@ -98,7 +105,7 @@ export function ProductDialog({
             personNumber: values.personNumber,
             courseTitle: title,
             coursePrice: priceNumber,
-            ...(selectedScheduleId && { scheduleId: selectedScheduleId }),
+            scheduleId: selectedScheduleId, // Always include scheduleId (required)
           };
 
           const response = await bookingAPI.create(bookingData);
@@ -156,6 +163,13 @@ export function ProductDialog({
 
     fetchSchedules();
   }, [title, open]);
+
+  // Helper function to check if we have a valid schedule
+  const hasValidSchedule = () => {
+    const selectedScheduleId =
+      scheduleId || (schedules.length > 0 ? schedules[0].scheduleId : null);
+    return !!selectedScheduleId;
+  };
   const handleEdit = () => {
     setIsConfirmed(false);
     setIsSuccess(false);
@@ -363,12 +377,13 @@ export function ProductDialog({
                         <p className="text-14 text-[#4A4C56]">
                           <strong>Email:</strong> {formik.values.email}
                         </p>
-                        {schedules.length > 0 && (
-                          <p className="text-14 text-[#4A4C56]">
-                            <strong>Schedule ID:</strong>{' '}
-                            {schedules[0].scheduleId}
-                          </p>
-                        )}
+                        <p className="text-14 text-[#4A4C56]">
+                          <strong>Schedule ID:</strong>{' '}
+                          {scheduleId ||
+                            (schedules.length > 0
+                              ? schedules[0].scheduleId
+                              : 'N/A')}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -502,12 +517,41 @@ export function ProductDialog({
                       )}
                     </div>
 
+                    {/* Schedule validation warning */}
+                    {!hasValidSchedule() && !loadingSchedules && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                        <p className="text-red-600 text-14">
+                          ⚠️ No valid schedule found for this course. Booking is
+                          not available at this time.
+                        </p>
+                      </div>
+                    )}
+
+                    {loadingSchedules && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                        <p className="text-blue-600 text-14">
+                          🔄 Loading schedule information...
+                        </p>
+                      </div>
+                    )}
+
                     <Button
                       type="submit"
-                      className="w-full mt-4 bg-[#3F8FEE] h-[48px] text-16 font-medium text-white py-2 rounded-full text-center"
-                      disabled={isSubmitting || !formik.isValid}
+                      className="w-full mt-4 bg-[#3F8FEE] h-[48px] text-16 font-medium text-white py-2 rounded-full text-center disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      disabled={
+                        isSubmitting ||
+                        !formik.isValid ||
+                        !hasValidSchedule() ||
+                        loadingSchedules
+                      }
                     >
-                      {isConfirmed ? 'Confirm' : 'Preview'}
+                      {loadingSchedules
+                        ? 'Loading...'
+                        : !hasValidSchedule()
+                          ? 'No Schedule Available'
+                          : isConfirmed
+                            ? 'Confirm'
+                            : 'Preview'}
                     </Button>
                   </form>
                 )}

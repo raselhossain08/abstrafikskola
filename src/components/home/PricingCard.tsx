@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import clsx from 'clsx';
+import { useState } from 'react';
 
 type PricingCardProps = {
   title: string;
@@ -7,7 +8,7 @@ type PricingCardProps = {
   details: string;
   active?: boolean;
   index?: number;
-  onBookNow?: (title: string) => void;
+  onBookNow?: (title: string) => void | Promise<void>;
 };
 
 export default function PricingCard({
@@ -18,6 +19,20 @@ export default function PricingCard({
   index,
   onBookNow,
 }: PricingCardProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleBookNow = async () => {
+    if (onBookNow) {
+      setIsLoading(true);
+      try {
+        await onBookNow(title);
+      } catch (error) {
+        console.error('Error in book now:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
   return (
     <Card
       className={clsx(
@@ -52,15 +67,16 @@ export default function PricingCard({
         </div>
         <div className="mt-4">
           <button
-            onClick={() => onBookNow?.(title)}
+            onClick={handleBookNow}
+            disabled={isLoading}
             className={clsx(
-              'font-raleway font-medium text-[16px] leading-[140%] border border-[#3F8FEE] px-4 py-[6px] rounded-full transition w-full',
+              'font-raleway font-medium text-[16px] leading-[140%] border border-[#3F8FEE] px-4 py-[6px] rounded-full transition w-full disabled:opacity-50 disabled:cursor-not-allowed',
               active
                 ? 'bg-white text-[#3F8FEE] hover:bg-gray-100'
                 : 'text-[#3F8FEE] hover:bg-blue-50'
             )}
           >
-            Book Now
+            {isLoading ? 'Loading...' : 'Book Now'}
           </button>
         </div>
       </CardContent>
