@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import clsx from 'clsx';
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type PricingCardProps = {
   title: string;
@@ -8,7 +8,7 @@ type PricingCardProps = {
   details: string;
   active?: boolean;
   index?: number;
-  onBookNow?: (title: string) => void | Promise<void>;
+  url?: string;
 };
 
 export default function PricingCard({
@@ -17,34 +17,27 @@ export default function PricingCard({
   details,
   active,
   index,
-  onBookNow,
+  url,
 }: PricingCardProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-  const handleBookNow = async () => {
-    if (onBookNow) {
-      setIsLoading(true);
-      try {
-        await onBookNow(title);
-      } catch (error) {
-        console.error('Error in book now:', error);
-      } finally {
-        setIsLoading(false);
-      }
+  const handleBookNow = () => {
+    if (url) {
+      router.push(url);
     }
   };
   return (
     <Card
       className={clsx(
-        'h-[290px] text-left px-1 py-8 border rounded-[16px] transition-all duration-200',
+        'md:max-h-[290px] text-left px-1 py-8 border rounded-[16px] transition-all duration-200',
         active
           ? 'bg-[#3F8FEE] text-white'
           : 'bg-white border-[#C3DCFA] text-[#2D66A9]',
         index === 2 ? ' col-span-2 md:col-span-1' : ''
       )}
     >
-      <CardContent className="flex flex-col justify-between h-full px-3 sm:px-6 py-0">
-        <div className="space-y-2 sm:space-y-4 flex-grow">
+      <CardContent className=" flex flex-col justify-between h-full px-3 sm:px-6">
+        <div className="space-y-2 sm:space-y-5">
           <h3 className="font-raleway font-semibold text-16 sm:text-[20px] leading-[26px]">
             {title}
           </h3>
@@ -58,27 +51,26 @@ export default function PricingCard({
           </p>
           <p
             className={clsx(
-              'font-raleway font-normal text-14 sm:text-[14px] ',
+              'font-raleway font-normal text-14 sm:text-[14px] leading-[140%] pb-4',
               active ? 'text-white/80' : 'text-[#4A4C56]'
             )}
           >
             {details}
           </p>
         </div>
-        <div className="mt-4">
-          <button
-            onClick={handleBookNow}
-            disabled={isLoading}
-            className={clsx(
-              'font-raleway font-medium text-[16px] leading-[140%] border border-[#3F8FEE] px-4 py-[6px] rounded-full transition w-full disabled:opacity-50 disabled:cursor-not-allowed',
-              active
-                ? 'bg-white text-[#3F8FEE] hover:bg-gray-100'
-                : 'text-[#3F8FEE] hover:bg-blue-50'
-            )}
-          >
-            {isLoading ? 'Loading...' : 'Book Now'}
-          </button>
-        </div>
+        <button
+          onClick={handleBookNow}
+          disabled={!url}
+          className={clsx(
+            'font-raleway font-medium text-[16px] leading-[140%] border border-[#3F8FEE] px-4 py-[6px] rounded-full transition w-full',
+            active
+              ? 'bg-white text-[#3F8FEE] hover:bg-gray-100'
+              : 'text-[#3F8FEE] hover:bg-blue-50',
+            !url && 'opacity-50 cursor-not-allowed'
+          )}
+        >
+          Book Now
+        </button>
       </CardContent>
     </Card>
   );
