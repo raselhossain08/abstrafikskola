@@ -15,7 +15,7 @@ export async function PATCH(request: NextRequest) {
 
     // Update user with backend
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/auth/update`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'}/api/auth/update`,
       {
         method: 'PATCH',
         headers: {

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     // Mock authentication - Replace with actual backend call
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/auth/login`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'}/api/auth/login`,
       {
         method: 'POST',
         headers: {

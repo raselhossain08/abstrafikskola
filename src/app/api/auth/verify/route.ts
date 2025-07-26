@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     // Verify token with backend
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/auth/verify`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'}/api/auth/verify`,
       {
         method: 'GET',
         headers: {

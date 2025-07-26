@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     // Mock registration - Replace with actual backend call
     const response = await fetch(
-      `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/auth/register`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'}/api/auth/register`,
       {
         method: 'POST',
         headers: {
