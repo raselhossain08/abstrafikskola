@@ -14,20 +14,20 @@ type Translations = {
 // Translation objects
 const translations: Record<Language, Translations> = {
   en: {
-    location: 'Dalagatan 1 L, 15133 Södertälje',
-    email: 'info@skärholmskola.se',
+    location: 'Dalgatan 11, 15133 Södertälje',
+    email: 'info@abstrafikskola.se',
     phone: '08 598 66666',
     whatsapp: '073 998 8241',
   },
   sv: {
     location: 'Dalagatan 1 L, 15133 Södertälje',
-    email: 'info@skärholmskola.se',
+    email: 'info@abstrafikskola.se',
     phone: '08 598 66666',
     whatsapp: '073 998 8241',
   },
   ar: {
     location: 'دالاغاتان 1 لتر، 15133 سودرتاليا',
-    email: 'info@skärholmskola.se',
+    email: 'info@abstrafikskola.se',
     phone: '08 598 66666',
     whatsapp: '073 998 8241',
   },
@@ -145,19 +145,6 @@ export default function TopHeader({
               />
             </Link>
             <Link
-              href="https://twitter.com"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Image
-                src="/icons/twitter.svg"
-                alt="twitter Icon"
-                width={24}
-                height={24}
-                className="w-[16px] h-[16px] md:w-[24px] md:h-[24px]"
-              />
-            </Link>
-            <Link
               href="https://instagram.com"
               target="_blank"
               rel="noopener noreferrer"
@@ -170,19 +157,7 @@ export default function TopHeader({
                 className="w-[16px] h-[16px] md:w-[24px] md:h-[24px]"
               />
             </Link>
-            <Link
-              href="https://linkedin.com"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Image
-                src="/icons/linkedin.svg"
-                alt="linkedin Icon"
-                width={24}
-                height={24}
-                className="w-[16px] h-[16px] md:w-[24px] md:h-[24px]"
-              />
-            </Link>
+
           </div>
         </div>
 

@@ -139,44 +139,62 @@ export default function Footer() {
             </h2>
             <ul className="space-y-3 text-16 font-raleway text-[#4A4C56]">
               <li>
-                <a href="#" className="hover:text-blue-600 transition">
+                <Link href="/" className="hover:text-blue-600 transition">
                   Home
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-blue-600 transition">
+                <Link
+                  href="/price-list"
+                  className="hover:text-blue-600 transition"
+                >
                   Price List
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-blue-600 transition">
+                <Link
+                  href="/handledarkurs"
+                  className="hover:text-blue-600 transition"
+                >
                   Handledarkurs
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-blue-600 transition">
+                <Link
+                  href="/riskettan"
+                  className="hover:text-blue-600 transition"
+                >
                   Riskettan
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-blue-600 transition">
+                <Link
+                  href="/halkbana"
+                  className="hover:text-blue-600 transition"
+                >
                   Halkbana
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-blue-600 transition">
+                <Link href="/taxi" className="hover:text-blue-600 transition">
                   Taxi
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-blue-600 transition">
+                <Link
+                  href="/info/about"
+                  className="hover:text-blue-600 transition"
+                >
                   About Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-blue-600 transition">
+                <Link
+                  href="/contact"
+                  className="hover:text-blue-600 transition"
+                >
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -201,7 +219,12 @@ export default function Footer() {
                   height={15}
                   width={15}
                 />
-                <span>info@abstrafikskola.se</span>
+                <Link
+                  href="mailto:info@abstrafikskola.se"
+                  className="hover:text-blue-600 transition"
+                >
+                  info@abstrafikskola.se
+                </Link>
               </li>
               <li className="flex items-center space-x-2 ">
                 <Image
@@ -210,7 +233,12 @@ export default function Footer() {
                   height={15}
                   width={15}
                 />
-                <span>08 550 66666</span>
+                <Link
+                  href="tel:0855066666"
+                  className="hover:text-blue-600 transition"
+                >
+                  08 550 66666
+                </Link>
               </li>
               <li className="flex items-center space-x-2 ">
                 <Image
@@ -219,7 +247,14 @@ export default function Footer() {
                   height={15}
                   width={15}
                 />
-                <span>073 998 8444</span>
+                <Link
+                  href="https://wa.me/46739988444"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-blue-600 transition"
+                >
+                  073 998 8444
+                </Link>
               </li>
             </ul>
           </div>

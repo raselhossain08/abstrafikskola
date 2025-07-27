@@ -35,8 +35,8 @@ export default function RiskettanPage() {
         setLoading(true);
         setError(null);
 
-        // Search for "Risk1" or "Riskettan" schedules
-        const response = await scheduleAPI.getByTitle('Risk1');
+        // Search for "Riskettan" schedules
+        const response = await scheduleAPI.getByTitle('Riskettan');
 
         if (response.success && response.data) {
           // Transform API data to match component format
@@ -79,7 +79,7 @@ export default function RiskettanPage() {
         } else {
           // No data found from API
           setRiskOneSlots([]);
-          console.log('No Risk1 courses found in database');
+          console.log('No Riskettan courses found in database');
         }
       } catch (err) {
         console.error('Error fetching schedules:', err);
@@ -152,10 +152,10 @@ export default function RiskettanPage() {
                 </svg>
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No Risk 1 Courses Available
+                No Riskettan Courses Available
               </h3>
               <p className="text-gray-600 mb-4">
-                There are currently no Risk 1 courses scheduled. Please check
+                There are currently no Riskettan courses scheduled. Please check
                 back later or contact us for more information.
               </p>
               <Button

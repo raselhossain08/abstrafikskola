@@ -34,15 +34,17 @@ const navigationTranslations: Record<Language, NavigationItem[]> = {
     { name: 'Handledarkurs', href: '/handledarkurs' },
     { name: 'Riskettan', href: '/riskettan' },
     { name: 'Halkbana', href: '/halkbana' },
+    { name: 'Risk1 + Risk2', href: '/r1-r2' },
     { name: 'Taxi', href: '/taxi' },
     {
       name: 'Info',
       href: '/info/about',
       dropdown: true,
       items: [
-        { name: 'About Us', href: '/info/about' },
-        { name: 'FAQ', href: '/info/faq' },
-        { name: 'Terms', href: '/info/terms' },
+        { name: 'About ABS Trafiksola', href: '/info/about' },
+        { name: 'ABS Team', href: '/info/team' },
+        { name: 'Swish/BG', href: '/info/swish' },
+        { name: 'Terms Of Purchase', href: '/info/terms' },
       ],
     },
     { name: 'Contact', href: '/contact' },
@@ -53,15 +55,17 @@ const navigationTranslations: Record<Language, NavigationItem[]> = {
     { name: 'Handledarkurs', href: '/handledarkurs' },
     { name: 'Riskettan', href: '/riskettan' },
     { name: 'Halkbana', href: '/halkbana' },
+    { name: 'Risk1 + Risk2', href: '/r1-r2' },
     { name: 'Taxi', href: '/taxi' },
     {
       name: 'Info',
-      href: '',
+      href: '/info/about',
       dropdown: true,
       items: [
-        { name: 'Om oss', href: '/info/about' },
-        { name: 'FAQ', href: '/info/faq' },
-        { name: 'Villkor', href: '/info/terms' },
+        { name: 'Om ABS Trafiksola', href: '/info/about' },
+        { name: 'ABS Team', href: '/info/team' },
+        { name: 'Swish/BG', href: '/info/swish' },
+        { name: 'Köpvillkor', href: '/info/terms' },
       ],
     },
     { name: 'Kontakt', href: '/contact' },
@@ -72,15 +76,17 @@ const navigationTranslations: Record<Language, NavigationItem[]> = {
     { name: 'دورة القيادة', href: '/handledarkurs' },
     { name: 'ريسكيتان', href: '/riskettan' },
     { name: 'هالكبانا', href: '/halkbana' },
+    { name: 'Risk1 + Risk2', href: '/r1-r2' },
     { name: 'تاكسي', href: '/taxi' },
     {
       name: 'معلومات',
       href: '/info/about',
       dropdown: true,
       items: [
-        { name: 'معلومات عنا', href: '/info/about' },
-        { name: 'الأسئلة الشائعة', href: '/info/faq' },
-        { name: 'الشروط', href: '/info/terms' },
+        { name: 'حول ABS Trafiksola', href: '/info/about' },
+        { name: 'فريق ABS', href: '/info/team' },
+        { name: 'Swish/BG', href: '/info/swish' },
+        { name: 'شروط الشراء', href: '/info/terms' },
       ],
     },
     { name: 'اتصل بنا', href: '/contact' },
@@ -132,6 +138,21 @@ export default function NavBar({
     );
   }, [language]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.dropdown-container')) {
+        setActiveDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const handleLanguageChange = (newLang: string) => {
     const languageObj = languages.find((l) => l.code === newLang);
     if (languageObj) {
@@ -171,20 +192,16 @@ export default function NavBar({
                 {navigationItems.map((item, index) => (
                   <li key={index} className="relative group">
                     {item.dropdown ? (
-                      <div
-                        onMouseEnter={() => handleDropdownToggle(index)}
-                        onMouseLeave={() => handleDropdownToggle(index)}
-                        className="relative"
-                      >
-                        <Link
-                          href={item.href}
+                      <div className="relative dropdown-container">
+                        <button
+                          onClick={() => handleDropdownToggle(index)}
                           className="flex items-center font-raleway font-medium space-x-1 text-16 leading-[1.4] tracking-[0.5%] transition-colors duration-200"
                         >
                           <span
                             className={`${
-                              pathname.startsWith(item.href)
+                              pathname.startsWith('/info')
                                 ? 'text-blue-500'
-                                : 'text-gray-700 group-hover:text-blue-500'
+                                : 'text-gray-700 hover:text-blue-500'
                             }`}
                           >
                             {item.name}
@@ -198,14 +215,15 @@ export default function NavBar({
                               activeDropdown === index ? 'rotate-180' : ''
                             }`}
                           />
-                        </Link>
+                        </button>
                         {activeDropdown === index && (
-                          <ul className="absolute bg-white shadow-lg mt-2 rounded-md p-2 space-y-2 min-w-[160px] z-10">
+                          <ul className="absolute bg-white shadow-lg mt-2 rounded-md p-2 space-y-2 min-w-[190px] z-50">
                             {item.items?.map((subItem, subIndex) => (
                               <li key={subIndex}>
                                 <Link
                                   href={subItem.href}
-                                  className="block px-3 py-2 font-raleway text-gray-700 hover:text-blue-500 hover:bg-gray-50 rounded transition-colors duration-200"
+                                  onClick={() => setActiveDropdown(null)}
+                                  className="text-14 block px-3 py-2 font-raleway text-gray-700 hover:text-blue-500 hover:bg-gray-50 rounded transition-colors duration-200"
                                 >
                                   {subItem.name}
                                 </Link>
@@ -252,16 +270,11 @@ export default function NavBar({
                     {navigationItems.map((item, index) => (
                       <li key={index} className="relative group">
                         {item.dropdown ? (
-                          <div
-                            onMouseEnter={() => handleDropdownToggle(index)}
-                            onMouseLeave={() => handleDropdownToggle(index)}
-                            className="relative"
-                          >
-                            <Link
-                              href={item.href}
-                              onClick={() => setIsMobile(false)}
+                          <div className="relative dropdown-container">
+                            <button
+                              onClick={() => handleDropdownToggle(index)}
                               className={`flex items-center space-x-1 font-raleway font-medium text-16 leading-[1.4] tracking-[0.5%] transition-colors duration-200 ${
-                                pathname === item.href
+                                pathname.startsWith('/info')
                                   ? 'text-custom-1'
                                   : 'text-white'
                               }`}
@@ -276,14 +289,17 @@ export default function NavBar({
                                   activeDropdown === index ? 'rotate-180' : ''
                                 }`}
                               />
-                            </Link>
+                            </button>
                             {activeDropdown === index && (
-                              <ul className="absolute bg-white shadow-lg mt-2 rounded-md p-2 space-y-2 min-w-[160px] z-10">
+                              <ul className="absolute bg-white shadow-lg mt-2 rounded-md p-2 space-y-2 min-w-[160px] z-50">
                                 {item.items?.map((subItem, subIndex) => (
                                   <li key={subIndex}>
                                     <Link
                                       href={subItem.href}
-                                      onClick={() => setIsMobile(false)}
+                                      onClick={() => {
+                                        setActiveDropdown(null);
+                                        setIsMobile(false);
+                                      }}
                                       className="block px-3 py-2 font-raleway text-gray-700 hover:text-blue-500 hover:bg-gray-50 rounded transition-colors duration-200"
                                     >
                                       {subItem.name}

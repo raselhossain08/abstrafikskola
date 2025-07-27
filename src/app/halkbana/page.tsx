@@ -167,10 +167,10 @@ export default function HalkbanaPage() {
         setLoading(true);
         setError(null);
 
-        // Search for "Halkbana" or "Risk2" schedules
+        // Search for "Halkbana" schedules using the API
         const response = await scheduleAPI.getByTitle('Halkbana');
 
-        if (response.success && response.data) {
+        if (response.success && response.data && response.data.length > 0) {
           // Transform API data to match component format
           const transformedSlots: HalkbanaItem[] = response.data.map(
             (schedule: Schedule) => {
@@ -194,9 +194,7 @@ export default function HalkbanaPage() {
               const timeRange = `${schedule.startTime} - ${schedule.endTime}`;
 
               // Calculate available seats
-              const availableSeats =
-                schedule.availableSlots ||
-                schedule.maxStudents - schedule.currentBookings;
+              const availableSeats = schedule.availableSlots;
               const seatsText =
                 availableSeats > 0
                   ? `${availableSeats} ${language === 'ar' ? 'مقاعد متاحة' : language === 'sv' ? 'platser tillgängliga' : 'seats available'}`
@@ -220,7 +218,7 @@ export default function HalkbanaPage() {
 
           setCourseSlots(transformedSlots);
         } else {
-          // Fallback to static data if API fails or no data
+          // Fallback to static data if API has no data
           setCourseSlots([
             {
               date:
@@ -270,13 +268,8 @@ export default function HalkbanaPage() {
         }
       } catch (err) {
         console.error('Error fetching schedules:', err);
-        setError(
-          language === 'ar'
-            ? 'فشل في تحميل جداول الدورات'
-            : language === 'sv'
-              ? 'Kunde inte ladda kursscheman'
-              : 'Failed to load course schedules'
-        );
+        setError(null); // Don't show error, just fall back to static data
+
         // Fallback to static data
         setCourseSlots([
           {

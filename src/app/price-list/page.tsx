@@ -4,6 +4,7 @@ import React from 'react';
 import { FaRegClock } from 'react-icons/fa6';
 import { pricingData } from '@/data/pricingData';
 import { FaPhoneAlt } from 'react-icons/fa';
+import Link from 'next/link';
 export default function page() {
   const categories = [...new Set(pricingData.map((item) => item.category))];
   return (
@@ -73,21 +74,37 @@ export default function page() {
                         <p className="text-16 leading-[140%] tracking-[0.5%] text-[#4A4C56]">
                           {item.description}
                         </p>
-                        <Button
-                          className=" border border-[#3F8FEE] rounded-[30px] h-[48px] min-w-[130px] bg-transparent  flex items-center justify-center font-sansat text-14 tracking-[0.5%] leading-[140%] hover:bg-[#3F8FEE] hover:text-white has-[span]:text-blue-600 
-                        "
-                        >
-                          {item.isNumber ? (
-                            <div className="flex items-center space-x-2">
-                              <FaPhoneAlt />
-                              <span>{item.btn}</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center space-x-2">
-                              <span>{item.btn}</span>
-                            </div>
-                          )}
-                        </Button>
+                        {/* Button logic for different course types */}
+                        {item.title === 'Handledarkurs' ? (
+                          <Link href="/handledarkurs">
+                            <Button className=" border border-[#3F8FEE] rounded-[30px] h-[48px] min-w-[130px] bg-transparent  flex items-center justify-center font-sansat text-14 tracking-[0.5%] leading-[140%] hover:bg-[#3F8FEE] hover:text-white has-[span]:text-blue-600">
+                              <div className="flex items-center space-x-2">
+                                <span>{item.btn}</span>
+                              </div>
+                            </Button>
+                          </Link>
+                        ) : item.title === 'Risk1 (Riskettan)' ? (
+                          <Link href="/riskettan">
+                            <Button className=" border border-[#3F8FEE] rounded-[30px] h-[48px] min-w-[130px] bg-transparent  flex items-center justify-center font-sansat text-14 tracking-[0.5%] leading-[140%] hover:bg-[#3F8FEE] hover:text-white has-[span]:text-blue-600">
+                              <div className="flex items-center space-x-2">
+                                <span>{item.btn}</span>
+                              </div>
+                            </Button>
+                          </Link>
+                        ) : (
+                          <Button className=" border border-[#3F8FEE] rounded-[30px] h-[48px] min-w-[130px] bg-transparent  flex items-center justify-center font-sansat text-14 tracking-[0.5%] leading-[140%] hover:bg-[#3F8FEE] hover:text-white has-[span]:text-blue-600">
+                            {item.isNumber ? (
+                              <div className="flex items-center space-x-2">
+                                <FaPhoneAlt />
+                                <span>{item.btn}</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center space-x-2">
+                                <span>{item.btn}</span>
+                              </div>
+                            )}
+                          </Button>
+                        )}
                       </div>
                     ))}
                 </div>
