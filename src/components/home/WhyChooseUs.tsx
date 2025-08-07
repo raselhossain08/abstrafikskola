@@ -3,6 +3,7 @@ import React, { ReactNode } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
 type Benefit = {
   icon: ReactNode;
   title: string;
@@ -14,9 +15,9 @@ const benefits: Benefit[] = [
   {
     icon: (
       <div>
-        <Image
+        <CloudinaryImage
           src="/icons/home/icon1.svg"
-          alt=""
+          alt="Experienced Teachers"
           width={59}
           height={43}
           className="w-[50px] h-auto"
@@ -31,9 +32,9 @@ const benefits: Benefit[] = [
   {
     icon: (
       <div>
-        <Image
+        <CloudinaryImage
           src="/icons/home/icon2.svg"
-          alt=""
+          alt="High Pass Rates"
           width={59}
           height={43}
           className="w-[59px] h-auto"
@@ -47,9 +48,9 @@ const benefits: Benefit[] = [
   {
     icon: (
       <div>
-        <Image
+        <CloudinaryImage
           src="/icons/home/icon3.svg"
-          alt=""
+          alt="Competitive Prices"
           width={59}
           height={43}
           className="w-[50px] h-auto"
@@ -63,10 +64,7 @@ const benefits: Benefit[] = [
   {
     icon: (
       <div>
-        <Image
-          src="/icons/home/icon4.svg"
-          alt=""
-          width={59}
+        <CloudinaryImage src="/icons/home/icon4.svg" alt="" width={59}
           height={43}
           className="w-[50px] h-auto"
         />
@@ -79,10 +77,7 @@ const benefits: Benefit[] = [
   {
     icon: (
       <div>
-        <Image
-          src="/icons/home/icon5.svg"
-          alt=""
-          width={59}
+        <CloudinaryImage src="/icons/home/icon5.svg" alt="" width={59}
           height={43}
           className="w-[50px] h-auto"
         />
@@ -95,10 +90,7 @@ const benefits: Benefit[] = [
   {
     icon: (
       <div>
-        <Image
-          src="/icons/home/icon6.svg"
-          alt=""
-          width={59}
+        <CloudinaryImage src="/icons/home/icon6.svg" alt="" width={59}
           height={43}
           className="w-[50px] h-auto"
         />
@@ -111,10 +103,7 @@ const benefits: Benefit[] = [
   {
     icon: (
       <div>
-        <Image
-          src="/icons/home/icon7.svg"
-          alt=""
-          width={59}
+        <CloudinaryImage src="/icons/home/icon7.svg" alt="" width={59}
           height={43}
           className="w-[50px] h-auto"
         />
@@ -126,10 +115,7 @@ const benefits: Benefit[] = [
   {
     icon: (
       <div>
-        <Image
-          src="/icons/home/icon8.svg"
-          alt=""
-          width={59}
+        <CloudinaryImage src="/icons/home/icon8.svg" alt="" width={59}
           height={43}
           className="w-[50px] h-auto"
         />

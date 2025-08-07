@@ -1,4 +1,5 @@
 import Contact from '@/components/common/Contact';
+import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
 import Image from 'next/image';
 import React from 'react';
 import { FaCheck } from 'react-icons/fa';
@@ -69,17 +70,11 @@ export default function page() {
             </div>
             <div className="w-full md:w-1/2 h-full">
               <div className="flex justify-end items-end h-full">
-                <Image
-                  src="/img/about-us/1.png"
-                  alt=""
-                  width={667}
+                <CloudinaryImage src="/img/about-us/1.png" alt="" width={667}
                   height={426}
                   className=" md:block hidden"
                 />
-                <Image
-                  src="/img/about-us/3.png"
-                  alt=""
-                  width={667}
+                <CloudinaryImage src="/img/about-us/3.png" alt="" width={667}
                   height={500}
                   className=" md:hidden  block mb-10"
                 />
@@ -141,17 +136,11 @@ export default function page() {
           <div className=" flex items-end md:flex-row flex-col">
             <div className="w-full md:w-1/2 h-full">
               <div className="flex  items-end h-full">
-                <Image
-                  src="/img/about-us/2.png"
-                  alt=""
-                  width={608}
+                <CloudinaryImage src="/img/about-us/2.png" alt="" width={608}
                   height={500}
                   className=" md:block hidden"
                 />
-                <Image
-                  src="/img/about-us/4.png"
-                  alt=""
-                  width={608}
+                <CloudinaryImage src="/img/about-us/4.png" alt="" width={608}
                   height={500}
                   className=" md:hidden block my-8"
                 />

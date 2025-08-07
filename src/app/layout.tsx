@@ -7,6 +7,7 @@ import Contact from '@/components/common/Contact';
 import Footer from '@/components/common/Footer';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { CloudinaryProvider } from '@/contexts/CloudinaryContext';
 import { ServerCookies } from '@/lib/cookies';
 
 // Load Raleway font with variable support
@@ -88,9 +89,11 @@ export default async function RootLayout({
       <body className="font-sansation antialiased">
         <AuthProvider>
           <LanguageProvider initialLanguage={initialLanguage}>
-            <Header />
-            <main>{children}</main>
-            <Footer />
+            <CloudinaryProvider>
+              <Header />
+              <main>{children}</main>
+              <Footer />
+            </CloudinaryProvider>
           </LanguageProvider>
         </AuthProvider>
       </body>

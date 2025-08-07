@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'; // If you're using shadcn
-import { cn } from '@/lib/utils'; // Optional utility for conditional classNames (shadcn)
+import { cn } from '@/lib/utils';
+ // Optional utility for conditional classNames (shadcn)
 import { ReactNode } from 'react';
 
 type Benefit = {

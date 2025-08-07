@@ -9,7 +9,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '../ui/carousel';
-import { useTranslation } from 'next-i18next';
 
 const staticHeroData = [
   {
@@ -40,17 +39,8 @@ const staticHeroData = [
 ];
 
 export default function HeroSection2() {
-  const { t } = useTranslation('home');
-
-  // Use translation data if available, otherwise fallback to static data
-  const translatedData = t('hero.features', { returnObjects: true });
-  const heroData = Array.isArray(translatedData)
-    ? (translatedData as Array<{
-        icon: string;
-        title: string;
-        text: string;
-      }>)
-    : staticHeroData;
+  // Use static data directly since we removed i18n
+  const heroData = staticHeroData;
 
   return (
     <div
@@ -61,16 +51,16 @@ export default function HeroSection2() {
         <div className="flex py-14 justify-center">
           <div className="w-full sm:w-[648px] flex flex-col items-center justify-center space-y-2">
             <h4 className="font-sansat font-light text-white text-12  sm:text-20 text-center tracking-[5px] uppercase">
-              {t('hero.welcome')}
+              Welcome To Our School
             </h4>
             <h1 className=" font-bold  text-28 sm:text-64  leading-[30px] sm:leading-[68px] tracking-[3px] sm:tracking-[5px] text-center text-white">
-              {t('hero.title')}
+              Learn to Drive with Confidence
             </h1>
             <h3 className="font-sansat font-semiBold text-14 sm:text-20 tracking-[20%] uppercase leading-[140%] text-white text-center pb-8">
-              {t('hero.subtitle')}
+              Professional Driving School in Södertälje
             </h3>
             <Button className=" bg-custom-3 w-[200px] h-[48px] rounded-[30px] font-raleway font-medium text-[18px] leading-[26px] tracking-normal text-white hover:bg-custom-3 hover:text-white mb-8">
-              {t('hero.cta')}
+              Book Now
             </Button>
             {/*  */}
             <div className=" inline-block relative  my-5">

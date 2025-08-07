@@ -7,6 +7,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
+import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { FaStar } from 'react-icons/fa6';
@@ -153,10 +154,7 @@ export default function StudentFeedback() {
                           {item.title}
                         </p>
                       </div>
-                      <Image
-                        src="/icons/google.svg"
-                        alt="Google review"
-                        width={32}
+                      <CloudinaryImage src="/icons/google.svg" alt="Google review" width={32}
                         height={32}
                         className="ml-auto w-[32px] h-[32px]"
                         aria-hidden="true"

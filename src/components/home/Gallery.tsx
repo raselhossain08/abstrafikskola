@@ -1,5 +1,6 @@
 'use client';
 
+import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaFacebookF, FaInstagram } from 'react-icons/fa6';
@@ -58,10 +59,7 @@ export default function Gallery() {
         <div className="   justify-between h-[950px] md:flex  hidden">
           <div className="w-[424px] flex flex-col justify-between">
             <div className="relative rounded-xl overflow-hidden group">
-              <Image
-                src="/img/gallery/1.png"
-                alt="Gallery"
-                width={424}
+              <CloudinaryImage src="/img/gallery/1.png" alt="Gallery" width={424}
                 height={625}
                 className=" h-[625px] object-cover"
               />
@@ -89,10 +87,7 @@ export default function Gallery() {
               </div>
             </div>
             <div className="relative rounded-xl overflow-hidden group">
-              <Image
-                src="/img/gallery/5.png"
-                alt="Gallery"
-                width={424}
+              <CloudinaryImage src="/img/gallery/5.png" alt="Gallery" width={424}
                 height={300}
                 className=" h-[300px] object-cover"
               />
@@ -122,10 +117,7 @@ export default function Gallery() {
           </div>
           <div className="w-[872px] flex flex-col justify-between">
             <div className="relative rounded-xl overflow-hidden group inline-block">
-              <Image
-                src="/img/gallery/2.png"
-                alt="Gallery"
-                width={872}
+              <CloudinaryImage src="/img/gallery/2.png" alt="Gallery" width={872}
                 height={300}
                 className="w-full h-[300px] object-cover"
               />
@@ -155,10 +147,7 @@ export default function Gallery() {
             <div className="flex justify-between">
               <div className="w-[424px] flex flex-col justify-between">
                 <div className="relative rounded-xl overflow-hidden group inline-block">
-                  <Image
-                    src="/img/gallery/3.png"
-                    alt="Gallery"
-                    width={424}
+                  <CloudinaryImage src="/img/gallery/3.png" alt="Gallery" width={424}
                     height={300}
                     className="w-full h-[300px] object-cover"
                   />
@@ -186,10 +175,7 @@ export default function Gallery() {
                   </div>
                 </div>
                 <div className="relative rounded-xl overflow-hidden group inline-block">
-                  <Image
-                    src="/img/gallery/6.png"
-                    alt="Gallery"
-                    width={872}
+                  <CloudinaryImage src="/img/gallery/6.png" alt="Gallery" width={872}
                     height={300}
                     className="w-full h-[300px] object-cover"
                   />
@@ -219,10 +205,7 @@ export default function Gallery() {
               </div>
               <div className="w-[424px]">
                 <div className="relative rounded-xl overflow-hidden group inline-block">
-                  <Image
-                    src="/img/gallery/4.png"
-                    alt="Gallery"
-                    width={424}
+                  <CloudinaryImage src="/img/gallery/4.png" alt="Gallery" width={424}
                     height={625}
                     className="w-full h-[625px] object-cover"
                   />
@@ -256,10 +239,7 @@ export default function Gallery() {
         {/* mobile */}
         <div className=" grid grid-cols-3 gap-5 md:hidden">
           <div className="relative  overflow-hidden group mb-0 pb-0">
-            <Image
-              src="/img/gallery/1.png"
-              alt="Gallery"
-              width={424}
+            <CloudinaryImage src="/img/gallery/1.png" alt="Gallery" width={424}
               height={625}
               className=" h-[625px] object-cover  object-center mb-0 pb-0"
             />
@@ -289,10 +269,7 @@ export default function Gallery() {
           <div className=" col-span-2">
             <div className="">
                 <div className="relative rounded-xl overflow-hidden group inline-block mb-5">
-                  <Image
-                    src="/img/gallery/3.png"
-                    alt="Gallery"
-                    width={424}
+                  <CloudinaryImage src="/img/gallery/3.png" alt="Gallery" width={424}
                     height={300}
                     className="w-full h-[300px] object-cover"
                   />
@@ -320,10 +297,7 @@ export default function Gallery() {
                   </div>
                 </div>
                 <div className="relative rounded-xl overflow-hidden group inline-block">
-                  <Image
-                    src="/img/gallery/6.png"
-                    alt="Gallery"
-                    width={872}
+                  <CloudinaryImage src="/img/gallery/6.png" alt="Gallery" width={872}
                     height={300}
                     className="w-full h-[300px] object-cover"
                   />

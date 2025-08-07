@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'; // shadcn badge
 import { CheckCircle } from 'lucide-react';
 import { FaCheck } from 'react-icons/fa6';
 import Contact from '@/components/common/Contact';
+import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
 
 export default function page() {
   return (
@@ -174,10 +175,7 @@ export default function page() {
             {/* Right Image */}
             <div className="w-full md:w-1/2 xl:w-[648px] pb-12 md:pb-0">
               <div className="h-[516px]  sm:h-[500px] p-3">
-                <Image
-                  src="/img/terms/1.png"
-                  alt="ABS Trafikskola"
-                  width={600}
+                <CloudinaryImage src="/img/terms/1.png" alt="ABS Trafikskola" width={600}
                   height={400}
                   className="rounded-[24px] w-full h-[516px] md:h-[500px] relative z-10"
                 />

@@ -5,6 +5,7 @@ import React from 'react';
 import { FaCalendarAlt, FaRegClock } from 'react-icons/fa';
 import { FaCheck } from 'react-icons/fa6';
 import { SlLike } from 'react-icons/sl';
+import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
 
 export default function page() {
   return (
@@ -25,7 +26,7 @@ export default function page() {
 
           <div className="flex items-center justify-between bg-[0px 4px 35px 0px #0000000A] bg-white border border-[#FFFFFF] py-[9px] px-[24px] rounded-[8px]">
             <div className="flex items-center space-x-2">
-              <Image
+              <CloudinaryImage
                 src="/icons/calendar.svg"
                 height={19.5}
                 width={19.5}
@@ -37,7 +38,7 @@ export default function page() {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Image
+              <CloudinaryImage
                 src="/icons/watch.svg"
                 height={19.5}
                 width={19.5}
@@ -54,7 +55,7 @@ export default function page() {
               </h2>
             </div>
             <div className="flex items-center bg-[#ECF4FD80] border border-[#ECF4FD] px-[16px] py-[6px] space-x-3 rounded-[30px] text-[#3F8FEE]">
-              <Image
+              <CloudinaryImage
                 src="/icons/like.svg"
                 height={19.5}
                 width={19.5}
@@ -129,14 +130,14 @@ export default function page() {
             <div className="w-[633px]">
               <div className="flex w-full justify-between">
                 <div className=" flex flex-col justify-between">
-                  <Image
+                  <CloudinaryImage
                     src="/img/product/1.png"
                     width={300}
                     height={200}
                     alt="p1"
                     className="w-[300px] h-[190px] rounded-[22px] object-cover"
                   />
-                  <Image
+                  <CloudinaryImage
                     src="/img/product/2.png"
                     width={300}
                     height={200}
@@ -145,7 +146,7 @@ export default function page() {
                   />
                 </div>
                 <div className="">
-                  <Image
+                  <CloudinaryImage
                     src="/img/product/3.png"
                     width={300}
                     height={200}
@@ -161,7 +162,7 @@ export default function page() {
             <div className="w-[633px]">
               <div className="flex w-full justify-between">
                 <div className="">
-                  <Image
+                  <CloudinaryImage
                     src="/img/product/4.png"
                     width={300}
                     height={200}
@@ -170,14 +171,14 @@ export default function page() {
                   />
                 </div>
                 <div className=" flex flex-col justify-between">
-                  <Image
+                  <CloudinaryImage
                     src="/img/product/1.png"
                     width={300}
                     height={200}
                     alt="p1"
                     className="w-[300px] h-[190px] rounded-[22px] object-cover"
                   />
-                  <Image
+                  <CloudinaryImage
                     src="/img/product/2.png"
                     width={300}
                     height={200}

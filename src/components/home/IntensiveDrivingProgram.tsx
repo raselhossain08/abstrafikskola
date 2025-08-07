@@ -1,3 +1,4 @@
+import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
 import Image from 'next/image';
 import { FaCheck } from 'react-icons/fa6';
 
@@ -134,10 +135,7 @@ export default function IntensiveDrivingProgram() {
           {/* Right Side Image */}
           <div className="flex justify-center w-full sm:w-4/12  xl:w-[485px]  mb-8 xl:mb-0">
             <div className="rounded-xl overflow-hidden shadow-md">
-              <Image
-                src="/img/home/abs-driving.png"
-                alt="ABS Trafikskola Students"
-                width={500}
+              <CloudinaryImage src="/img/home/abs-driving.png" alt="ABS Trafikskola Students" width={500}
                 height={500}
                 className="object-cover"
               />

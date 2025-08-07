@@ -16,100 +16,8 @@ import { IoCloseSharp } from 'react-icons/io5';
 import { usePathname, useRouter } from 'next/navigation';
 import { Login } from '../../dialog/Login';
 import { useLanguage, type Language } from '@/contexts/LanguageContext';
-
-interface NavigationItem {
-  name: string;
-  href: string;
-  dropdown?: boolean;
-  items?: {
-    name: string;
-    href: string;
-  }[];
-}
-
-const navigationTranslations: Record<Language, NavigationItem[]> = {
-  en: [
-    { name: 'Home', href: '/' },
-    { name: 'Price List', href: '/price-list' },
-    { name: 'Handledarkurs', href: '/handledarkurs' },
-    { name: 'Riskettan', href: '/riskettan' },
-    { name: 'Halkbana', href: '/halkbana' },
-    { name: 'Risk1 + Risk2', href: '/r1-r2' },
-    { name: 'Taxi', href: '/taxi' },
-    {
-      name: 'Info',
-      href: '/info/about',
-      dropdown: true,
-      items: [
-        { name: 'About ABS Trafiksola', href: '/info/about' },
-        { name: 'ABS Team', href: '/info/team' },
-        { name: 'Swish/BG', href: '/info/swish' },
-        { name: 'Terms Of Purchase', href: '/info/terms' },
-      ],
-    },
-    { name: 'Contact', href: '/contact' },
-  ],
-  sv: [
-    { name: 'Hem', href: '/' },
-    { name: 'Prislista', href: '/price-list' },
-    { name: 'Handledarkurs', href: '/handledarkurs' },
-    { name: 'Riskettan', href: '/riskettan' },
-    { name: 'Halkbana', href: '/halkbana' },
-    { name: 'Risk1 + Risk2', href: '/r1-r2' },
-    { name: 'Taxi', href: '/taxi' },
-    {
-      name: 'Info',
-      href: '/info/about',
-      dropdown: true,
-      items: [
-        { name: 'Om ABS Trafiksola', href: '/info/about' },
-        { name: 'ABS Team', href: '/info/team' },
-        { name: 'Swish/BG', href: '/info/swish' },
-        { name: 'Köpvillkor', href: '/info/terms' },
-      ],
-    },
-    { name: 'Kontakt', href: '/contact' },
-  ],
-  ar: [
-    { name: 'الرئيسية', href: '/' },
-    { name: 'قائمة الأسعار', href: '/price-list' },
-    { name: 'دورة القيادة', href: '/handledarkurs' },
-    { name: 'ريسكيتان', href: '/riskettan' },
-    { name: 'هالكبانا', href: '/halkbana' },
-    { name: 'Risk1 + Risk2', href: '/r1-r2' },
-    { name: 'تاكسي', href: '/taxi' },
-    {
-      name: 'معلومات',
-      href: '/info/about',
-      dropdown: true,
-      items: [
-        { name: 'حول ABS Trafiksola', href: '/info/about' },
-        { name: 'فريق ABS', href: '/info/team' },
-        { name: 'Swish/BG', href: '/info/swish' },
-        { name: 'شروط الشراء', href: '/info/terms' },
-      ],
-    },
-    { name: 'اتصل بنا', href: '/contact' },
-  ],
-};
-
-const languages = [
-  {
-    flag: 'https://cdn-icons-png.flaticon.com/512/197/197374.png',
-    name: 'English',
-    code: 'en',
-  },
-  {
-    flag: 'https://cdn-icons-png.flaticon.com/512/197/197564.png',
-    name: 'Swedish',
-    code: 'sv',
-  },
-  {
-    flag: 'https://cdn-icons-png.flaticon.com/512/323/323301.png',
-    name: 'Arabic',
-    code: 'ar',
-  },
-];
+import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
+import { useHeaderContent } from '@/hooks/useHeaderContent';
 
 interface NavBarProps {
   lang?: Language;
@@ -126,7 +34,52 @@ export default function NavBar({
   const pathname = usePathname();
   const router = useRouter();
   const [loginOpen, setLoginOpen] = useState(false);
-  const navigationItems = navigationTranslations[language];
+  const { headerContent, isLoading, error } = useHeaderContent();
+
+  // Use dynamic content from API or fallback to static
+  const navigationItems = headerContent?.navigation.menuItems || [];
+  const languages = headerContent?.languages || [
+    {
+      code: 'en',
+      name: 'English',
+      flag: 'https://cdn-icons-png.flaticon.com/512/197/197374.png',
+      direction: 'ltr' as const,
+      isDefault: false,
+    },
+    {
+      code: 'sv',
+      name: 'Swedish',
+      flag: 'https://cdn-icons-png.flaticon.com/512/197/197564.png',
+      direction: 'ltr' as const,
+      isDefault: true,
+    },
+    {
+      code: 'ar',
+      name: 'Arabic',
+      flag: 'https://cdn-icons-png.flaticon.com/512/323/323301.png',
+      direction: 'rtl' as const,
+      isDefault: false,
+    },
+  ];
+
+  // Get multilingual content based on current language
+  const getLocalizedText = (textObj: any) => {
+    if (typeof textObj === 'string') return textObj;
+    return textObj?.[language] || textObj?.en || textObj;
+  };
+
+  const loginButtonText =
+    getLocalizedText(headerContent?.loginButton) ||
+    (language === 'ar'
+      ? 'تسجيل الدخول'
+      : language === 'sv'
+        ? 'Logga in'
+        : 'Login');
+
+  // Keep layout consistent - no RTL for the main container
+  const isRTLContent = language === 'ar';
+  const textDirection = isRTLContent ? 'rtl' : 'ltr';
+
   const [selectedLanguage, setSelectedLanguage] = useState(
     languages.find((l) => l.code === language) || languages[0]
   );
@@ -171,13 +124,12 @@ export default function NavBar({
         className={`bg-white flex items-center h-[56px] lg:h-[96px] transition-all duration-300 ${
           isScrolled ? 'lg:h-[70px] shadow-md' : ''
         }`}
-        dir={language === 'ar' ? 'rtl' : 'ltr'}
       >
         <div className="w-full xl:w-[1320px] mx-auto px-4 xl:px-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <Link href="/">
-                <Image
+                <CloudinaryImage
                   src="/logo.svg"
                   alt="logo"
                   width={75}
@@ -190,8 +142,8 @@ export default function NavBar({
             <nav className="hidden xl:flex">
               <ul className="flex space-x-4 xl:space-x-8 items-center h-full">
                 {navigationItems.map((item, index) => (
-                  <li key={index} className="relative group">
-                    {item.dropdown ? (
+                  <li key={item.id} className="relative group">
+                    {item.hasDropdown ? (
                       <div className="relative dropdown-container">
                         <button
                           onClick={() => handleDropdownToggle(index)}
@@ -203,10 +155,11 @@ export default function NavBar({
                                 ? 'text-blue-500'
                                 : 'text-gray-700 hover:text-blue-500'
                             }`}
+                            dir={textDirection}
                           >
-                            {item.name}
+                            {getLocalizedText(item.name)}
                           </span>
-                          <Image
+                          <CloudinaryImage
                             src="/icons/arrow.svg"
                             alt="Dropdown Icon"
                             width={16}
@@ -218,14 +171,15 @@ export default function NavBar({
                         </button>
                         {activeDropdown === index && (
                           <ul className="absolute bg-white shadow-lg mt-2 rounded-md p-2 space-y-2 min-w-[190px] z-50">
-                            {item.items?.map((subItem, subIndex) => (
-                              <li key={subIndex}>
+                            {item.dropdownItems?.map((subItem, subIndex) => (
+                              <li key={subItem.id}>
                                 <Link
                                   href={subItem.href}
                                   onClick={() => setActiveDropdown(null)}
                                   className="text-14 block px-3 py-2 font-raleway text-gray-700 hover:text-blue-500 hover:bg-gray-50 rounded transition-colors duration-200"
+                                  dir={textDirection}
                                 >
-                                  {subItem.name}
+                                  {getLocalizedText(subItem.name)}
                                 </Link>
                               </li>
                             ))}
@@ -240,8 +194,9 @@ export default function NavBar({
                             ? 'text-blue-500'
                             : 'text-gray-700 hover:text-blue-500'
                         }`}
+                        dir={textDirection}
                       >
-                        {item.name}
+                        {getLocalizedText(item.name)}
                       </Link>
                     )}
                   </li>
@@ -268,8 +223,8 @@ export default function NavBar({
                 <nav className="flex w-full h-full">
                   <ul className="flex flex-col justify-center w-full h-full items-center space-y-5">
                     {navigationItems.map((item, index) => (
-                      <li key={index} className="relative group">
-                        {item.dropdown ? (
+                      <li key={item.id} className="relative group">
+                        {item.hasDropdown ? (
                           <div className="relative dropdown-container">
                             <button
                               onClick={() => handleDropdownToggle(index)}
@@ -279,8 +234,10 @@ export default function NavBar({
                                   : 'text-white'
                               }`}
                             >
-                              <span>{item.name}</span>
-                              <Image
+                              <span dir={textDirection}>
+                                {getLocalizedText(item.name)}
+                              </span>
+                              <CloudinaryImage
                                 src="/icons/arrow.svg"
                                 alt="Dropdown Icon"
                                 width={16}
@@ -292,20 +249,23 @@ export default function NavBar({
                             </button>
                             {activeDropdown === index && (
                               <ul className="absolute bg-white shadow-lg mt-2 rounded-md p-2 space-y-2 min-w-[160px] z-50">
-                                {item.items?.map((subItem, subIndex) => (
-                                  <li key={subIndex}>
-                                    <Link
-                                      href={subItem.href}
-                                      onClick={() => {
-                                        setActiveDropdown(null);
-                                        setIsMobile(false);
-                                      }}
-                                      className="block px-3 py-2 font-raleway text-gray-700 hover:text-blue-500 hover:bg-gray-50 rounded transition-colors duration-200"
-                                    >
-                                      {subItem.name}
-                                    </Link>
-                                  </li>
-                                ))}
+                                {item.dropdownItems?.map(
+                                  (subItem, subIndex) => (
+                                    <li key={subItem.id}>
+                                      <Link
+                                        href={subItem.href}
+                                        onClick={() => {
+                                          setActiveDropdown(null);
+                                          setIsMobile(false);
+                                        }}
+                                        className="block px-3 py-2 font-raleway text-gray-700 hover:text-blue-500 hover:bg-gray-50 rounded transition-colors duration-200"
+                                        dir={textDirection}
+                                      >
+                                        {getLocalizedText(subItem.name)}
+                                      </Link>
+                                    </li>
+                                  )
+                                )}
                               </ul>
                             )}
                           </div>
@@ -318,8 +278,9 @@ export default function NavBar({
                                 ? 'text-[#fa8282]'
                                 : 'text-white'
                             }`}
+                            dir={textDirection}
                           >
-                            {item.name}
+                            {getLocalizedText(item.name)}
                           </Link>
                         )}
                       </li>
@@ -328,8 +289,9 @@ export default function NavBar({
                       <Button
                         className="bg-white px-6  w-[120px] h-[48px] rounded-full font-raleway font-medium text-16 text-blue-600 hover:bg-white transition-colors duration-200 "
                         onClick={() => setLoginOpen(true)}
+                        dir={textDirection}
                       >
-                        Login
+                        {loginButtonText}
                       </Button>
                     </li>
                   </ul>
@@ -342,8 +304,9 @@ export default function NavBar({
               <Button
                 className="bg-blue-500 px-6  w-[120px] h-[48px] rounded-full font-raleway font-medium text-16 text-white hover:bg-blue-600 transition-colors duration-200 lg:block hidden"
                 onClick={() => setLoginOpen(true)}
+                dir={textDirection}
               >
-                Login
+                {loginButtonText}
               </Button>
 
               <DropdownMenu>
@@ -366,7 +329,7 @@ export default function NavBar({
                           {selectedLanguage.name}
                         </span>
                       </div>
-                      <Image
+                      <CloudinaryImage
                         src="/icons/arrow.svg"
                         alt="Dropdown Icon"
                         width={14}
@@ -407,7 +370,7 @@ export default function NavBar({
               {/* Menu Icon for Mobile */}
               <div className=" xl:hidden block">
                 <Button variant={'ghost'} onClick={() => setIsMobile(true)}>
-                  <Image
+                  <CloudinaryImage
                     src="/icons/menu.svg"
                     alt="Menu Icon"
                     width={24}

@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState } from 'react';
 import { subscriptionAPI, type SubscriptionData } from '@/lib/api';
+import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
 
 export default function Footer() {
   const [email, setEmail] = useState('');
@@ -64,10 +65,7 @@ export default function Footer() {
             {/* Logo */}
             <div className="flex items-center">
               <Link href="/">
-                <Image
-                  src="/logo.svg"
-                  alt="logo"
-                  width={75}
+                <CloudinaryImage src="/logo.svg" alt="logo" width={75}
                   height={35}
                   className="w-[75px] h-[35px]"
                 />
@@ -84,10 +82,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Image
-                  src="/icons/footer/facebook.svg"
-                  alt="facebook Icon"
-                  width={24}
+                <CloudinaryImage src="/icons/footer/facebook.svg" alt="facebook Icon" width={24}
                   height={24}
                   className="w-auto h-[16px] md:h-[24px]"
                 />
@@ -97,10 +92,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Image
-                  src="/icons/footer/x.svg"
-                  alt="twitter Icon"
-                  width={24}
+                <CloudinaryImage src="/icons/footer/x.svg" alt="twitter Icon" width={24}
                   height={24}
                   className="w-[16px] h-[16px] md:w-[24px] md:h-[24px]"
                 />
@@ -110,10 +102,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Image
-                  src="/icons/footer/instagram.svg"
-                  alt="instagram Icon"
-                  width={24}
+                <CloudinaryImage src="/icons/footer/instagram.svg" alt="instagram Icon" width={24}
                   height={24}
                   className="w-[16px] h-[16px] md:w-[24px] md:h-[24px]"
                 />
@@ -123,10 +112,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Image
-                  src="/icons/footer/linkedin.svg"
-                  alt="linkedin Icon"
-                  width={24}
+                <CloudinaryImage src="/icons/footer/linkedin.svg" alt="linkedin Icon" width={24}
                   height={24}
                   className="w-[16px] h-[16px] md:w-[24px] md:h-[24px]"
                 />
@@ -204,19 +190,13 @@ export default function Footer() {
             </h2>
             <ul className="space-y-3 text-16 font-raleway text-[#4A4C56]">
               <li className="flex items-center space-x-2 ">
-                <Image
-                  src="/icons/footer/location.svg"
-                  alt=""
-                  height={15}
+                <CloudinaryImage src="/icons/footer/location.svg" alt="" height={15}
                   width={15}
                 />
                 <span>Dolsgatan 1 1, 15133 Södertälje</span>
               </li>
               <li className="flex items-center space-x-2 ">
-                <Image
-                  src="/icons/footer/message.svg"
-                  alt=""
-                  height={15}
+                <CloudinaryImage src="/icons/footer/message.svg" alt="" height={15}
                   width={15}
                 />
                 <Link
@@ -227,10 +207,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li className="flex items-center space-x-2 ">
-                <Image
-                  src="/icons/footer/phone.svg"
-                  alt=""
-                  height={15}
+                <CloudinaryImage src="/icons/footer/phone.svg" alt="" height={15}
                   width={15}
                 />
                 <Link
@@ -241,10 +218,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li className="flex items-center space-x-2 ">
-                <Image
-                  src="/icons/footer/whatsapp.svg"
-                  alt=""
-                  height={15}
+                <CloudinaryImage src="/icons/footer/whatsapp.svg" alt="" height={15}
                   width={15}
                 />
                 <Link

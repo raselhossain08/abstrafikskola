@@ -8,6 +8,7 @@ import { FaCalendarAlt, FaRegClock } from 'react-icons/fa';
 import { FaCheck } from 'react-icons/fa6';
 import { SlLike } from 'react-icons/sl';
 import { scheduleAPI, type Schedule } from '@/lib/api';
+import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
 
 type ProductItem = {
   _id?: string;
@@ -178,7 +179,7 @@ export default function RiskettanPage() {
                       key={item._id || index}
                     >
                       <div className="flex items-center space-x-2 w-[242px]">
-                        <Image
+                        <CloudinaryImage
                           src="/icons/calendar.svg"
                           height={19.5}
                           width={19.5}
@@ -190,7 +191,7 @@ export default function RiskettanPage() {
                       </div>
 
                       <div className="flex items-center space-x-2 w-[124px]">
-                        <Image
+                        <CloudinaryImage
                           src="/icons/watch.svg"
                           height={19.5}
                           width={19.5}
@@ -207,7 +208,7 @@ export default function RiskettanPage() {
                         </h2>
                       </div>
                       <div className="flex items-center bg-[#ECF4FD80] border border-[#ECF4FD] px-[16px] py-[6px] space-x-3 rounded-[30px] text-[#3F8FEE] w-[220px]">
-                        <Image
+                        <CloudinaryImage
                           src="/icons/like.svg"
                           height={19.5}
                           width={19.5}
@@ -250,7 +251,7 @@ export default function RiskettanPage() {
                             </h2>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <Image
+                            <CloudinaryImage
                               src="/icons/calendar.svg"
                               height={19.5}
                               width={19.5}
@@ -261,7 +262,7 @@ export default function RiskettanPage() {
                             </p>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <Image
+                            <CloudinaryImage
                               src="/icons/watch.svg"
                               height={19.5}
                               width={19.5}
@@ -272,7 +273,7 @@ export default function RiskettanPage() {
                             </p>
                           </div>
                           <div className=" inline-flex items-center bg-[#ECF4FD80] border border-[#ECF4FD] px-[16px] py-[6px] space-x-3 rounded-[30px] text-[#3F8FEE] ">
-                            <Image
+                            <CloudinaryImage
                               src="/icons/like.svg"
                               height={19.5}
                               width={19.5}
@@ -356,14 +357,14 @@ export default function RiskettanPage() {
             <div className="w-full md:w-[633px]">
               <div className="flex w-full justify-between gap-8 md:gap-0">
                 <div className=" flex flex-col justify-between">
-                  <Image
+                  <CloudinaryImage
                     src="/img/product/1.png"
                     width={300}
                     height={200}
                     alt="p1"
                     className="w-[300px] h-[190px] rounded-[22px] object-cover"
                   />
-                  <Image
+                  <CloudinaryImage
                     src="/img/product/2.png"
                     width={300}
                     height={200}
@@ -372,7 +373,7 @@ export default function RiskettanPage() {
                   />
                 </div>
                 <div className="">
-                  <Image
+                  <CloudinaryImage
                     src="/img/product/3.png"
                     width={300}
                     height={200}
