@@ -8,8 +8,6 @@ import { useRef, useState } from 'react';
 import { IoEye } from 'react-icons/io5';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
-
 interface LoginProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -122,7 +120,7 @@ const LoginContent = ({
   return (
     <>
       <div className="flex justify-center items-center flex-col mb-5 text-center">
-        <CloudinaryImage src="/img/logo.svg" alt=" " height={101} width={218} />
+        <Image src="/img/logo.svg" alt=" " height={101} width={218} />
         <h1 className="text-[#1D1F2C] text-24 md:text-40 font-semibold">
           Welcome To
         </h1>
@@ -141,7 +139,7 @@ const LoginContent = ({
             </Label>
             <div className="relative">
               <div className="absolute top-0 left-0 h-full flex items-center justify-center px-3">
-                <CloudinaryImage src="/icons/login/Message.svg" alt="Message" width={20}
+                <Image src="/icons/login/Message.svg" alt="Message" width={20}
                   height={18}
                 />
               </div>
@@ -168,7 +166,7 @@ const LoginContent = ({
             </Label>
             <div className="relative">
               <div className="absolute top-0 left-0 h-full flex items-center justify-center px-3">
-                <CloudinaryImage src="/icons/login/Lock.svg" alt="Message" width={20}
+                <Image src="/icons/login/Lock.svg" alt="Message" width={20}
                   height={18}
                 />
               </div>
@@ -255,7 +253,7 @@ const VerificationContent = ({
   return (
     <>
       <div className="flex justify-center items-center flex-col mb-5 text-center">
-        <CloudinaryImage src="/img/logo.svg" alt=" " height={101} width={218} />
+        <Image src="/img/logo.svg" alt=" " height={101} width={218} />
         <h1 className="text-[#1D1F2C] text-24 md:text-40 font-semibold">
           Verification Code
         </h1>

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaFacebookF, FaInstagram, FaSpinner } from 'react-icons/fa6';

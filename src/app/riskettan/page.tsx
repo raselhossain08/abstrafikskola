@@ -8,8 +8,7 @@ import { FaCalendarAlt, FaRegClock } from 'react-icons/fa';
 import { FaCheck } from 'react-icons/fa6';
 import { SlLike } from 'react-icons/sl';
 import { scheduleAPI, type Schedule } from '@/lib/api';
-import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
-
+// Removed API import - using static data instead
 type ProductItem = {
   _id?: string;
   scheduleId?: string;
@@ -29,12 +28,59 @@ export default function RiskettanPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Static data for page content
+  const pageContent = {
+    pageContent: {
+      title: "Riskettan Schedule and Prices",
+      description: "Riskettan (Risk 1) training covers crucial aspects of road safety and traffic behavior, essential for obtaining your Swedish driving license. We offer flexible online schedules to fit your busy life, and competitive prices to ensure you get the best value. Enroll now and start your journey towards a safer driving experience.",
+      mainTitle: "Risk1 Course at ABS Traffic School Södertälje 🚧🚦",
+      subtitle: "Prepare for the challenges of the road with our Risk1 course!",
+      introText: "At ABS Trafikskola Södertälje, we offer a Risk1 course which is an important step in your driving education. This course is compulsory for anyone taking a car driving license and focuses on increasing awareness of risks in traffic."
+    },
+    whyRisk1: {
+      title: "Why Risk1?",
+      benefits: [
+        {
+          title: "Increased Safety",
+          description: "Learn to manage and understand risks on the road."
+        },
+        {
+          title: "Important Knowledge", 
+          description: "The course covers important topics such as alcohol, drugs, fatigue and how these affect driving."
+        }
+      ]
+    },
+    courseContent: {
+      title: "Course Content",
+      items: [
+        { title: "Interactive and engaging training on road safety." },
+        { title: "Discussions and practical exercises." }
+      ]
+    },
+    additionalInfo: [
+      {
+        title: "Course Length and Certification:",
+        description: "Risk training part 1 is approximately 3 hours long theoretical training, excluding breaks. After completing the course, we report directly to the Swedish Transport Agency online within 24 hours. Please note that no paper certificate is given to participants after the course."
+      },
+      {
+        title: "For More Information:",
+        description: "Visit The Swedish Transport Agency's website for further information on the content and requirements of the Risk1 course."
+      },
+      {
+        title: "Get Ready:",
+        description: "Get ready for a safer driving experience with our Risk1 course at ABS Trafikskola Södertälje."
+      }
+    ]
+  };
+
   // Fetch course schedules from API
   useEffect(() => {
     const fetchSchedules = async () => {
       try {
         setLoading(true);
         setError(null);
+
+        // Page content is now static - no need to fetch
 
         // Search for "Riskettan" schedules
         const response = await scheduleAPI.getByTitle('Riskettan');
@@ -104,15 +150,11 @@ export default function RiskettanPage() {
       <div className="bg-[#F7FAFF] py-[56px] md:py-[120px] px-4">
         <div className="w-full xl:w-[1320px] mx-auto">
           <h1 className="text-24 sm:text-56 font-bold  text-[#1D1F2C] leading-[140%] text-center pb-5">
-            Riskettan Schedule and Prices
+            {pageContent.pageContent.title}
           </h1>
           <div className="w-full sm:w-[872px] mx-auto pb-10">
             <p className=" text-16 leading-[140%] text-center font-normal text-[#4A4C56]">
-              Riskettan (Risk 1) training covers crucial aspects of road safety
-              and traffic behavior, essential for obtaining your Swedish driving
-              license. We offer flexible online schedules to fit your busy life,
-              and competitive prices to ensure you get the best value. Enroll
-              now and start your journey towards a safer driving experience.
+              {pageContent.pageContent.description}
             </p>
           </div>
 
@@ -179,7 +221,7 @@ export default function RiskettanPage() {
                       key={item._id || index}
                     >
                       <div className="flex items-center space-x-2 w-[242px]">
-                        <CloudinaryImage
+                        <Image
                           src="/icons/calendar.svg"
                           height={19.5}
                           width={19.5}
@@ -191,7 +233,7 @@ export default function RiskettanPage() {
                       </div>
 
                       <div className="flex items-center space-x-2 w-[124px]">
-                        <CloudinaryImage
+                        <Image
                           src="/icons/watch.svg"
                           height={19.5}
                           width={19.5}
@@ -208,7 +250,7 @@ export default function RiskettanPage() {
                         </h2>
                       </div>
                       <div className="flex items-center bg-[#ECF4FD80] border border-[#ECF4FD] px-[16px] py-[6px] space-x-3 rounded-[30px] text-[#3F8FEE] w-[220px]">
-                        <CloudinaryImage
+                        <Image
                           src="/icons/like.svg"
                           height={19.5}
                           width={19.5}
@@ -251,7 +293,7 @@ export default function RiskettanPage() {
                             </h2>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <CloudinaryImage
+                            <Image
                               src="/icons/calendar.svg"
                               height={19.5}
                               width={19.5}
@@ -262,7 +304,7 @@ export default function RiskettanPage() {
                             </p>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <CloudinaryImage
+                            <Image
                               src="/icons/watch.svg"
                               height={19.5}
                               width={19.5}
@@ -273,7 +315,7 @@ export default function RiskettanPage() {
                             </p>
                           </div>
                           <div className=" inline-flex items-center bg-[#ECF4FD80] border border-[#ECF4FD] px-[16px] py-[6px] space-x-3 rounded-[30px] text-[#3F8FEE] ">
-                            <CloudinaryImage
+                            <Image
                               src="/icons/like.svg"
                               height={19.5}
                               width={19.5}
@@ -309,62 +351,46 @@ export default function RiskettanPage() {
       <div className=" bg-white py-[56px] xl:py-[120px] px-4 ">
         <div className="w-full xl:w-[1320px] mx-auto">
           <h1 className="text-[24px] sm:text-35 font-[600]  text-[#1D1F2C]  pb-5 tracking-[0.5%]">
-            Risk1 Course at ABS Traffic School Södertälje 🚧🚦
+            {pageContent.pageContent.mainTitle}
           </h1>
           <p className="text-20 sm:text-30 font-[500]  text-[#1D1F2C] leading-[100%]  pb-3">
-            Prepare for the challenges of the road with our Risk1 course!
+            {pageContent.pageContent.subtitle}
           </p>
           <p className="text-16 font-[400]  text-[#000000] leading-[140%] tracking-[0.5%]   w-11/12 pb-10">
-            At ABS Trafikskola Södertälje, we offer a Risk1 course which is an
-            important step in your driving education. This course is compulsory
-            for anyone taking a car driving license and focuses on increasing
-            awareness of risks in traffic.
+            {pageContent.pageContent.introText}
           </p>
           <div className="flex justify-between items-center pb-12 flex-col-reverse md:flex-row">
             <div className="w-full md:w-[633px]">
               <h3 className="text-20 sm:text-32 font-medium  my-4">
-                Why Risk1?
+                {pageContent.whyRisk1.title}
               </h3>
-              <div className="flex space-x-4 items-start mb-4">
-                <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
-                  <FaCheck />
+              {pageContent.whyRisk1.benefits.map((benefit, index) => (
+                <div key={index} className="flex space-x-4 items-start mb-4">
+                  <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
+                    <FaCheck />
+                  </div>
+                  <div className=" w-11/12 space-y-1">
+                    <h3 className="text-16 font-bold sm:text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] sm:font-semibold ">
+                      {benefit.title}
+                    </h3>
+                    <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
+                      {benefit.description}
+                    </p>
+                  </div>
                 </div>
-                <div className=" w-11/12 space-y-1">
-                  <h3 className="text-16 font-bold sm:text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] sm:font-semibold ">
-                    Increased Safety
-                  </h3>
-                  <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
-                    Learn to manage and understand risks on the road.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex space-x-4 items-start mb-2">
-                <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
-                  <FaCheck />
-                </div>
-                <div className=" w-11/12 space-y-1">
-                  <h3 className=" text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] font-semibold ">
-                    Important Knowledge
-                  </h3>
-                  <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
-                    The course covers important topics such as alcohol, drugs,
-                    fatigue and how these affect driving.
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
             <div className="w-full md:w-[633px]">
               <div className="flex w-full justify-between gap-8 md:gap-0">
                 <div className=" flex flex-col justify-between">
-                  <CloudinaryImage
+                  <Image
                     src="/img/product/1.png"
                     width={300}
                     height={200}
                     alt="p1"
                     className="w-[300px] h-[190px] rounded-[22px] object-cover"
                   />
-                  <CloudinaryImage
+                  <Image
                     src="/img/product/2.png"
                     width={300}
                     height={200}
@@ -373,7 +399,7 @@ export default function RiskettanPage() {
                   />
                 </div>
                 <div className="">
-                  <CloudinaryImage
+                  <Image
                     src="/img/product/3.png"
                     width={300}
                     height={200}
@@ -386,45 +412,28 @@ export default function RiskettanPage() {
           </div>
 
           <h2 className="text-20 sm:text-32 font-medium mb-3 md:mb-6 text-[#1D1F2C]">
-            Course Content
+            {pageContent.courseContent.title}
           </h2>
           <ul className="space-y-2 text-16 md:text-18 font-medium text-[#4A4C56] mb-8">
-            <li className="flex items-center ">
-              <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
-              <span>Interactive and engaging training on road safety.</span>
-            </li>
-            <li className="flex items-center">
-              <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
-              <span>Discussions and practical exercises.</span>
-            </li>
+            {pageContent.courseContent.items.map((item, index) => (
+              <li key={index} className="flex items-center ">
+                <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
+                <span>{item.title}</span>
+              </li>
+            ))}
           </ul>
 
           <div className="space-y-4 ">
-            <div>
-              <strong className="block text-[#000000] mb-1 text-16 md:text-18 font-bold leading-[26px]">
-                Course Length and Certification:
-              </strong>
-              <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
-                Risk training part 1 is approximately 3 hours long theoretical
-                training, excluding breaks. After completing the course, we
-                report directly to the Swedish Transport Agency online within 24
-                hours. Please note that no paper certificate is given to
-                participants after the course.
-              </p>
-            </div>
-
-            <div>
-              <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
-                For More Information: Visit The Swedish Transport Agency's
-                websitefor further information on the content and requirements
-                of the Risk1 course.
-              </p>
-            </div>
-
-            <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
-              Get ready for a safer driving experience with our Risk1 course at
-              ABS Trafikskola Södertälje.
-            </p>
+            {pageContent.additionalInfo.map((info, index) => (
+              <div key={index}>
+                <strong className="block text-[#000000] mb-1 text-16 md:text-18 font-bold leading-[26px]">
+                  {info.title}
+                </strong>
+                <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
+                  {info.description}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

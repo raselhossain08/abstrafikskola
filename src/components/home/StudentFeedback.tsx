@@ -7,10 +7,10 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { FaStar } from 'react-icons/fa6';
+import { studentFeedbackService, type StudentFeedbackData, type Feedback as ApiFeedback } from '@/services/studentFeedbackService';
 
 interface Feedback {
   name: string;
@@ -21,94 +21,70 @@ interface Feedback {
   id: string; // Added unique identifier
 }
 
-const feedbacks: Feedback[] = [
-  {
-    id: '1',
-    name: 'Sarah K',
-    title: 'Risk2 online Student',
-    image: '/img/profile/1.png',
-    rating: 5,
-    content:
-      'I passed my driving test on the first try thanks to DriveWise! The instructors were so patient and knowledgeable.',
-  },
-  {
-    id: '2',
-    name: 'John D',
-    title: 'Student online Course',
-    image: '/img/profile/2.png',
-    rating: 5,
-    content:
-      'Highly recommend DriveWise for anyone learning to drive. They make the process easy and stress-free!',
-  },
-  {
-    id: '3',
-    name: 'Sarah Johnson',
-    title: 'Student',
-    image: '/img/profile/3.png',
-    rating: 5,
-    content:
-      'I passed my driving test on the first try thanks to DriveWise! The instructors were so patient and knowledgeable.',
-  },
-  {
-    id: '4',
-    name: 'Michael T',
-    title: 'Beginner Driver',
-    image: '/img/profile/4.png',
-    rating: 5,
-    content:
-      'The online course materials were incredibly helpful and easy to understand.',
-  },
-  {
-    id: '5',
-    name: 'Emma S',
-    title: 'International Student',
-    image: '/img/profile/5.png',
-    rating: 5,
-    content:
-      'As an international student, I appreciated the multilingual support from the instructors.',
-  },
-  {
-    id: '6',
-    name: 'David L',
-    title: 'Refresher Course',
-    image: '/img/profile/6.png',
-    rating: 5,
-    content:
-      'Great refresher course after not driving for many years. Very professional instructors.',
-  },
-];
-
 export default function StudentFeedback() {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
+  const [feedbackData, setFeedbackData] = useState<StudentFeedbackData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch feedback data from API
+  useEffect(() => {
+    const fetchFeedbackData = async () => {
+      try {
+        setLoading(true);
+        const data = await studentFeedbackService.getStudentFeedback();
+        setFeedbackData(data);
+      } catch (error) {
+        console.error('Error fetching student feedback:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeedbackData();
+  }, []);
 
   useEffect(() => {
     if (!api) return;
 
+    const feedbacks = feedbackData?.feedbacks || [];
     setCount(api.scrollSnapList().length);
     setCurrent(api.selectedScrollSnap());
 
     api.on('select', () => {
       setCurrent(api.selectedScrollSnap());
     });
-  }, [api]);
+  }, [api, feedbackData]);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <section className="py-16 px-4 bg-white text-center student-feedback">
+        <div className="w-full xl:w-[1320px] mx-auto">
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <span className="ml-3 text-lg text-gray-600">Loading...</span>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const feedbacks = feedbackData?.feedbacks || [];
 
   return (
     <section className="py-16 px-4 bg-white text-center student-feedback">
       <div className="w-full xl:w-[1320px] mx-auto">
         <h2 className="text-24 sm:text-[48px] font-bold mb-4 text-[#1D1F2C]">
-          What Our Students Are Saying
+          {feedbackData?.title || "What Our Students Are Saying"}
         </h2>
         <div className="w-full md:w-[648px] mx-auto pb-12">
           <p className="text-18 sm:text-[24px] text-[#1D1F2C] mb-2 leading-[140%] font-bold tracking-[0.05%]">
-            The Best Trafikskola in Stockholm!
+            {feedbackData?.subtitle || "The Best Trafikskola in Stockholm!"}
           </p>
           <p className="text-[16px] text-[#1D1F2C] mb-2 leading-[20px] md:leading-[140%] font-normal tracking-[0.05%] text-center">
-            Discover the top-rated driving school in Stockholm, renowned for its
-            exceptional atmosphere, effective teaching methods, and multilingual
-            trainers. Instructors are highly skilled and professional-
-            <strong>Anik Akanda</strong>
+            {feedbackData?.description || "Discover the top-rated driving school in Stockholm, renowned for its exceptional atmosphere, effective teaching methods, and multilingual trainers. Instructors are highly skilled and professional- Anik Akanda"}
           </p>
         </div>
 
@@ -121,9 +97,9 @@ export default function StudentFeedback() {
             setApi={setApi}
           >
             <CarouselContent>
-              {feedbacks.map((item) => (
+              {feedbacks.map((item, index) => (
                 <CarouselItem
-                  key={item.id}
+                  key={item._id || index}
                   className="md:basis-1/2 lg:basis-1/3"
                 >
                   <div
@@ -154,7 +130,7 @@ export default function StudentFeedback() {
                           {item.title}
                         </p>
                       </div>
-                      <CloudinaryImage src="/icons/google.svg" alt="Google review" width={32}
+                      <Image src="/icons/google.svg" alt="Google review" width={32}
                         height={32}
                         className="ml-auto w-[32px] h-[32px]"
                         aria-hidden="true"

@@ -7,7 +7,6 @@ import Contact from '@/components/common/Contact';
 import Footer from '@/components/common/Footer';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { CloudinaryProvider } from '@/contexts/CloudinaryContext';
 import { ClientOnly } from '@/components/common/ClientOnly';
 
 // Load Raleway font with variable support
@@ -90,11 +89,9 @@ export default function RootLayout({
         <ClientOnly>
           <AuthProvider>
             <LanguageProvider initialLanguage={initialLanguage}>
-              <CloudinaryProvider>
-                <Header />
-                <main>{children}</main>
-                <Footer />
-              </CloudinaryProvider>
+              <Header />
+              <main>{children}</main>
+              <Footer />
             </LanguageProvider>
           </AuthProvider>
         </ClientOnly>

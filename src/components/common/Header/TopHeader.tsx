@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import React from 'react';
+import Image from 'next/image';
 import { type Language } from '@/contexts/LanguageContext';
-import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
 import { useHeaderContent } from '@/hooks/useHeaderContent';
 
 interface TopHeaderProps {
@@ -34,7 +34,7 @@ export default function TopHeader({
         <div className="flex w-full justify-between items-center">
           {/* Location */}
           <div className="items-center space-x-1 lg:flex hidden">
-            <CloudinaryImage
+            <Image
               src="/icons/location.svg"
               alt="Location Icon"
               width={24}
@@ -50,7 +50,7 @@ export default function TopHeader({
 
           <div className="flex items-center space-x-2 lg:space-x-8">
             <div className="md:hidden flex items-center space-x-1">
-              <CloudinaryImage
+              <Image
                 src="/icons/location.svg"
                 alt="Location Icon"
                 width={24}
@@ -60,7 +60,7 @@ export default function TopHeader({
             </div>
             {/* Email */}
             <div className="flex items-center space-x-1">
-              <CloudinaryImage
+              <Image
                 src="/icons/message.svg"
                 alt="Email Icon"
                 width={24}
@@ -76,7 +76,7 @@ export default function TopHeader({
             </div>
             {/* Phone */}
             <div className="flex items-center space-x-1">
-              <CloudinaryImage
+              <Image
                 src="/icons/phone.svg"
                 alt="Phone Icon"
                 width={24}
@@ -92,7 +92,7 @@ export default function TopHeader({
             </div>
             {/* WhatsApp */}
             <div className="flex items-center space-x-1">
-              <CloudinaryImage
+              <Image
                 src="/icons/whatsapp.svg"
                 alt="WhatsApp Icon"
                 width={24}
@@ -118,7 +118,7 @@ export default function TopHeader({
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <CloudinaryImage
+                <Image
                   src="/icons/facebook.svg"
                   alt="Facebook Icon"
                   width={24}
@@ -133,7 +133,7 @@ export default function TopHeader({
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <CloudinaryImage
+                <Image
                   src="/icons/instagram.svg"
                   alt="Instagram Icon"
                   width={24}

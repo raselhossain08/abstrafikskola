@@ -3,11 +3,10 @@ import Contact from '@/components/common/Contact';
 import { ProductDialog } from '@/components/dialog/ProductDialog';
 import { Button } from '@/components/ui/button';
 import { scheduleAPI, type Schedule } from '@/lib/api';
+import { handledarkursContentService, HandledarkursContent } from '@/services/handledarkursContentService';
 import Image from 'next/image';
 import React, { useState, useEffect } from 'react';
 import { FaCheck } from 'react-icons/fa6';
-import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
-
 type HandledarkursItem = {
   scheduleId: string;
   date: string;
@@ -34,6 +33,36 @@ export default function page() {
   const [popupData, setPopupData] = useState<HandledarkursItem | null>(null);
   const [courseSlots, setCourseSlots] = useState<HandledarkursItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // State for handledarkurs content
+  const [handledarkursContent, setHandledarkursContent] = useState<HandledarkursContent | null>(null);
+  const [contentLoading, setContentLoading] = useState(true);
+  const [contentError, setContentError] = useState<string | null>(null);
+
+  // Fetch handledarkurs content from API
+  useEffect(() => {
+    const fetchHandledarkursContent = async () => {
+      try {
+        setContentLoading(true);
+        setContentError(null);
+        
+        const content = await handledarkursContentService.getHandledarkursContent();
+        
+        if (content) {
+          setHandledarkursContent(content);
+        } else {
+          setContentError('Failed to load content');
+        }
+      } catch (err) {
+        console.error('Error fetching handledarkurs content:', err);
+        setContentError('Failed to load content');
+      } finally {
+        setContentLoading(false);
+      }
+    };
+
+    fetchHandledarkursContent();
+  }, []);
 
   useEffect(() => {
     fetchHandledarkursCourses();
@@ -100,19 +129,48 @@ export default function page() {
     console.log(data);
   };
 
+  // Translation helper function (defaulting to English)
+  const t = (content: any) => {
+    if (typeof content === 'object' && content.en) {
+      return content.en;
+    }
+    return content;
+  };
+
+  // Show loading state
+  if (contentLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-lg">Loading...</span>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (contentError || !handledarkursContent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Error loading content</p>
+          <Button onClick={() => window.location.reload()} variant="outline">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="bg-[#F7FAFF] py-[56px] md:py-[120px] px-4">
         <div className="w-full xl:w-[1320px] mx-auto">
           <h1 className="text-24 sm:text-56 font-bold  text-[#1D1F2C] leading-[140%] text-center pb-5">
-            Handledarkurs Schedule and Prices
+            {t(handledarkursContent.hero.title)}
           </h1>
           <div className="w-full sm:w-[872px] mx-auto pb-10">
             <p className=" text-16 leading-[140%] text-center font-normal text-[#4A4C56]">
-              Prepare for private driving lessons with our Handledarkurs. This
-              mandatory introductory course sets the foundation for safe
-              driving. Check out our upcoming schedule and prices, and book your
-              session online
+              {t(handledarkursContent.hero.description)}
             </p>
           </div>
 
@@ -159,7 +217,7 @@ export default function page() {
                     key={index}
                   >
                     <div className="flex items-center space-x-2 w-[242px]">
-                      <CloudinaryImage
+                      <Image
                         src="/icons/calendar.svg"
                         height={19.5}
                         width={19.5}
@@ -171,7 +229,7 @@ export default function page() {
                     </div>
 
                     <div className="flex items-center space-x-2 w-[124px]">
-                      <CloudinaryImage
+                      <Image
                         src="/icons/watch.svg"
                         height={19.5}
                         width={19.5}
@@ -188,7 +246,7 @@ export default function page() {
                       </h2>
                     </div>
                     <div className="flex items-center bg-[#ECF4FD80] border border-[#ECF4FD] px-[16px] py-[6px] space-x-3 rounded-[30px] text-[#3F8FEE] w-[220px]">
-                      <CloudinaryImage
+                      <Image
                         src="/icons/like.svg"
                         height={19.5}
                         width={19.5}
@@ -233,7 +291,7 @@ export default function page() {
                           </h2>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <CloudinaryImage
+                          <Image
                             src="/icons/calendar.svg"
                             height={19.5}
                             width={19.5}
@@ -244,7 +302,7 @@ export default function page() {
                           </p>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <CloudinaryImage
+                          <Image
                             src="/icons/watch.svg"
                             height={19.5}
                             width={19.5}
@@ -255,7 +313,7 @@ export default function page() {
                           </p>
                         </div>
                         <div className=" inline-flex items-center bg-[#ECF4FD80] border border-[#ECF4FD] px-[16px] py-[6px] space-x-3 rounded-[30px] text-[#3F8FEE] ">
-                          <CloudinaryImage
+                          <Image
                             src="/icons/like.svg"
                             height={19.5}
                             width={19.5}
@@ -290,36 +348,34 @@ export default function page() {
       <div className=" bg-white py-[56px] xl:py-[120px] px-4 ">
         <div className="w-full xl:w-[1320px] mx-auto">
           <h1 className="text-[24px] sm:text-35 font-[600]  text-[#1D1F2C]  pb-5 tracking-[0.5%]">
-            Welcome to the Introduction Course at ABS Trafikskola Södertälje
-            🚗🚦
+            {t(handledarkursContent.course.welcomeTitle)}
           </h1>
           <p className="text-20 sm:text-30 font-[500]  text-[#1D1F2C] leading-[100%]  pb-3">
-            Start your journey towards a driving license with us! 🌟
+            {t(handledarkursContent.course.subtitle)}
           </p>
           <p className="text-16 font-[400]  text-[#000000] leading-[140%] tracking-[0.5%]   w-11/12 pb-10">
-            At ABS Trafikskola Södertälje, we offer an Introduction Course that
-            is not only a legal requirement for private driving practice but
-            also lays a solid foundation for safe and responsible driving.
+            {t(handledarkursContent.course.description)}
           </p>
           <div className="flex justify-between items-center pb-12 flex-col-reverse md:flex-row">
             <div className="w-full md:w-[633px]">
               <h3 className="text-20 sm:text-32 font-medium  my-4">
-                Why is the Introduction Course Important?
+                {t(handledarkursContent.course.whyImportantTitle)}
               </h3>
-              <div className="flex space-x-4 items-start mb-4">
-                <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
-                  <FaCheck />
+              {handledarkursContent.course.benefits.map((benefit, index) => (
+                <div key={index} className="flex space-x-4 items-start mb-4">
+                  <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
+                    <FaCheck />
+                  </div>
+                  <div className=" w-11/12 space-y-1">
+                    <h3 className="text-16 font-bold sm:text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] sm:font-semibold ">
+                      {t(benefit.title)}
+                    </h3>
+                    <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
+                      {t(benefit.description)}
+                    </p>
+                  </div>
                 </div>
-                <div className=" w-11/12 space-y-1">
-                  <h3 className="text-16 font-bold sm:text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] sm:font-semibold ">
-                    For the Student
-                  </h3>
-                  <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
-                    Understand basic traffic rules, increase awareness of risks
-                    on the road, and prepare for real-world driving.
-                  </p>
-                </div>
-              </div>
+              ))}
 
               <div className="flex space-x-4 items-start mb-2">
                 <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
@@ -340,29 +396,28 @@ export default function page() {
             <div className="w-full md:w-[633px]">
               <div className="flex w-full justify-between gap-8 md:gap-0">
                 <div className=" flex flex-col justify-between">
-                  <CloudinaryImage
-                    src="/img/product/1.png"
-                    width={300}
-                    height={200}
-                    alt="p1"
-                    className="w-[300px] h-[190px] rounded-[22px] object-cover"
-                  />
-                  <CloudinaryImage
-                    src="/img/product/2.png"
-                    width={300}
-                    height={200}
-                    alt="p1"
-                    className="w-[300px] h-[190px] rounded-[22px] object-cover"
-                  />
+                  {handledarkursContent.course.images.slice(0, 2).map((image, index) => (
+                    <Image
+                      key={index}
+                      src={image.src}
+                      width={image.width}
+                      height={image.height}
+                      alt={image.alt}
+                      className="w-[300px] h-[190px] rounded-[22px] object-cover"
+                    />
+                  ))}
                 </div>
                 <div className="">
-                  <CloudinaryImage
-                    src="/img/product/3.png"
-                    width={300}
-                    height={200}
-                    alt="p1"
-                    className="w-[300px] h-[407px] rounded-[22px] object-cover"
-                  />
+                  {handledarkursContent.course.images.slice(2, 3).map((image, index) => (
+                    <Image
+                      key={index + 2}
+                      src={image.src}
+                      width={image.width}
+                      height={image.height}
+                      alt={image.alt}
+                      className="w-[300px] h-[407px] rounded-[22px] object-cover"
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -372,87 +427,63 @@ export default function page() {
             <div className="w-full md:w-[633px]">
               <div className="flex w-full justify-between gap-8 md:gap-0">
                 <div className="">
-                  <CloudinaryImage
-                    src="/img/product/4.png"
-                    width={300}
-                    height={200}
-                    alt="p1"
-                    className="w-[300px] h-[407px] rounded-[22px] object-cover"
-                  />
+                  {handledarkursContent.course.images.slice(3, 4).map((image, index) => (
+                    <Image
+                      key={index + 3}
+                      src={image.src}
+                      width={image.width}
+                      height={image.height}
+                      alt={image.alt}
+                      className="w-[300px] h-[407px] rounded-[22px] object-cover"
+                    />
+                  ))}
                 </div>
                 <div className=" flex flex-col justify-between">
-                  <CloudinaryImage
-                    src="/img/product/1.png"
-                    width={300}
-                    height={200}
-                    alt="p1"
-                    className="w-[300px] h-[190px] rounded-[22px] object-cover"
-                  />
-                  <CloudinaryImage
-                    src="/img/product/2.png"
-                    width={300}
-                    height={200}
-                    alt="p1"
-                    className="w-[300px] h-[190px] rounded-[22px] object-cover"
-                  />
+                  {handledarkursContent.course.images.slice(0, 2).map((image, index) => (
+                    <Image
+                      key={index}
+                      src={image.src}
+                      width={image.width}
+                      height={image.height}
+                      alt={image.alt}
+                      className="w-[300px] h-[190px] rounded-[22px] object-cover"
+                    />
+                  ))}
                 </div>
               </div>
             </div>
             <div className="w-full md:w-[633px]">
               <h3 className=" text-32 font-medium  my-4">
-                What Our Course Offers:
+                {t(handledarkursContent.course.whatOffersTitle)}
               </h3>
-              <div className="flex space-x-4 items-start mb-4">
-                <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
-                  <FaCheck />
+              {handledarkursContent.course.features.map((feature, index) => (
+                <div key={index} className="flex space-x-4 items-start mb-4">
+                  <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
+                    <FaCheck />
+                  </div>
+                  <div className=" w-11/12 space-y-1">
+                    <h3 className=" text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] font-semibold ">
+                      {t(feature.title)}
+                    </h3>
+                    <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
+                      {t(feature.description)}
+                    </p>
+                  </div>
                 </div>
-                <div className=" w-11/12 space-y-1">
-                  <h3 className=" text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] font-semibold ">
-                    Experienced Instructors
-                  </h3>
-                  <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
-                    Our teachers are experts at making learning both fun and
-                    effective.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex space-x-4 items-start mb-2">
-                <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
-                  <FaCheck />
-                </div>
-                <div className=" w-11/12 space-y-1">
-                  <h3 className=" text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] font-semibold ">
-                    Modern Education
-                  </h3>
-                  <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
-                    We use the latest technology and teaching materials.
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
           <h2 className="text-20 sm:text-32 font-medium mb-3 md:mb-6 text-[#1D1F2C]">
-            Course Content
+            {t(handledarkursContent.course.courseContent.title)}
           </h2>
           <ul className="space-y-2 text-16 md:text-18 font-bold text-[#4A4C56] mb-8">
-            <li className="flex items-center ">
-              <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
-              <span>Basic Traffic Rules</span>
-            </li>
-            <li className="flex items-center">
-              <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
-              <span>Risk Awareness</span>
-            </li>
-            <li className="flex items-center">
-              <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
-              <span>Practical Driving Tips</span>
-            </li>
-            <li className="flex items-center">
-              <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
-              <span>First Aid and Emergency Preparedness</span>
-            </li>
+            {handledarkursContent.course.courseContent.items.map((item, index) => (
+              <li key={index} className="flex items-center ">
+                <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
+                <span>{t(item)}</span>
+              </li>
+            ))}
           </ul>
 
           <div className="space-y-4 ">
@@ -461,9 +492,7 @@ export default function page() {
                 Who Should Participate?
               </strong>
               <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
-                Anyone planning to learn to drive privately - both students and
-                their private instructors. The course is crucial to ensure a
-                safe and informed driving experience for all involved.
+                {t(handledarkursContent.course.additionalInfo[0])}
               </p>
             </div>
 

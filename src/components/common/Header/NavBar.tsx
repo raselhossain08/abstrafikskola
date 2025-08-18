@@ -16,7 +16,6 @@ import { IoCloseSharp } from 'react-icons/io5';
 import { usePathname, useRouter } from 'next/navigation';
 import { Login } from '../../dialog/Login';
 import { useLanguage, type Language } from '@/contexts/LanguageContext';
-import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
 import { useHeaderContent } from '@/hooks/useHeaderContent';
 
 interface NavBarProps {
@@ -74,7 +73,9 @@ export default function NavBar({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (activeDropdown !== null) {
+      const target = event.target as HTMLElement;
+      // Check if click is outside any dropdown
+      if (!target.closest('.dropdown-container')) {
         setActiveDropdown(null);
       }
     };
@@ -117,6 +118,22 @@ export default function NavBar({
     setActiveDropdown(null); // Close any open dropdowns
   };
 
+  const handleSubmenuClick = (href: string, event?: React.MouseEvent) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
+    console.log('Submenu clicked:', href); // Debug log
+    setActiveDropdown(null);
+    
+    // Use router.push for navigation with a small delay to ensure dropdown closes
+    setTimeout(() => {
+      console.log('Navigating to:', href); // Debug log
+      router.push(href);
+    }, 100);
+  };
+
   // Don't render if essential data is not loaded yet
   if (!headerContent || navigationItems.length === 0 || !selectedLanguage) {
     return (
@@ -150,7 +167,7 @@ export default function NavBar({
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <Link href="/">
-                <CloudinaryImage
+                <Image
                   src="/img/logo.svg"
                   alt="Company Logo"
                   width={75}
@@ -180,7 +197,7 @@ export default function NavBar({
                           >
                             {getLocalizedText(item.name)}
                           </span>
-                          <CloudinaryImage
+                          <Image
                             src="/icons/arrow.svg"
                             alt="Dropdown Icon"
                             width={16}
@@ -194,14 +211,13 @@ export default function NavBar({
                           <ul className="absolute bg-white shadow-lg mt-2 rounded-md p-2 space-y-2 min-w-[190px] z-50">
                             {item.dropdownItems?.map((subItem, subIndex) => (
                               <li key={subItem.id}>
-                                <Link
-                                  href={subItem.href}
-                                  onClick={() => setActiveDropdown(null)}
-                                  className="text-14 block px-3 py-2 font-raleway text-gray-700 hover:text-blue-500 hover:bg-gray-50 rounded transition-colors duration-200"
+                                <button
+                                  onClick={() => handleSubmenuClick(subItem.href)}
+                                  className="text-14 w-full text-left px-3 py-2 font-raleway text-gray-700 hover:text-blue-500 hover:bg-gray-50 rounded transition-colors duration-200"
                                   dir={textDirection}
                                 >
                                   {getLocalizedText(subItem.name)}
-                                </Link>
+                                </button>
                               </li>
                             ))}
                           </ul>
@@ -261,7 +277,7 @@ export default function NavBar({
                               <span dir={textDirection}>
                                 {getLocalizedText(item.name)}
                               </span>
-                              <CloudinaryImage
+                              <Image
                                 src="/icons/arrow.svg"
                                 alt="Dropdown Icon"
                                 width={16}
@@ -277,17 +293,17 @@ export default function NavBar({
                                   {item.dropdownItems?.map(
                                     (subItem, subIndex) => (
                                       <div key={subItem.id}>
-                                        <Link
-                                          href={subItem.href}
+                                        <button
                                           onClick={() => {
                                             setActiveDropdown(null);
                                             setIsMobile(false);
+                                            handleSubmenuClick(subItem.href);
                                           }}
-                                          className="block px-3 py-2 font-raleway text-white/90 hover:text-white hover:bg-white/10 rounded transition-colors duration-200 text-center text-14"
+                                          className="w-full px-3 py-2 font-raleway text-white/90 hover:text-white hover:bg-white/10 rounded transition-colors duration-200 text-center text-14"
                                           dir={textDirection}
                                         >
                                           {getLocalizedText(subItem.name)}
-                                        </Link>
+                                        </button>
                                       </div>
                                     )
                                   )}
@@ -358,7 +374,7 @@ export default function NavBar({
                           {getLocalizedText(selectedLanguage.name)}
                         </span>
                       </div>
-                      <CloudinaryImage
+                      <Image
                         src="/icons/arrow.svg"
                         alt="Dropdown Icon"
                         width={14}
@@ -404,7 +420,7 @@ export default function NavBar({
                   className="p-2 hover:bg-gray-100 transition-colors"
                   aria-label="Open mobile menu"
                 >
-                  <CloudinaryImage
+                  <Image
                     src="/icons/menu.svg"
                     alt="Menu Icon"
                     width={24}

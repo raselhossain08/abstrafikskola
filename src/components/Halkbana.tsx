@@ -2,8 +2,6 @@ import React from 'react';
 import { Button } from './ui/button';
 import Image from 'next/image';
 import { FaCheck } from 'react-icons/fa6';
-import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
-
 export default function Habana() {
   return (
     <div>
@@ -99,14 +97,14 @@ export default function Habana() {
             <div className="w-[633px]">
               <div className="flex w-full justify-between">
                 <div className=" flex flex-col justify-between">
-                  <CloudinaryImage
+                  <Image
                     src="/img/product/1.png"
                     width={300}
                     height={200}
                     alt="p1"
                     className="w-[300px] h-[190px] rounded-[22px] object-cover"
                   />
-                  <CloudinaryImage
+                  <Image
                     src="/img/product/2.png"
                     width={300}
                     height={200}
@@ -115,7 +113,7 @@ export default function Habana() {
                   />
                 </div>
                 <div className="">
-                  <CloudinaryImage
+                  <Image
                     src="/img/product/3.png"
                     width={300}
                     height={200}

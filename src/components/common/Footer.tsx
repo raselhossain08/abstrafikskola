@@ -1,15 +1,32 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { subscriptionAPI, type SubscriptionData } from '@/lib/api';
-import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
+import { fetchFooterData, FooterData } from '@/services/footerService';
 
 export default function Footer() {
+  const [footerData, setFooterData] = useState<FooterData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await fetchFooterData();
+        setFooterData(data);
+      } catch (error) {
+        console.error('Error loading footer data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,187 +74,112 @@ export default function Footer() {
       }, 5000);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="bg-custom-6">
+        <div className="container mx-auto px-4 lg:px-0">
+          <div className="flex justify-center py-10">
+            <div className="text-center">Loading...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!footerData) {
+    return null;
+  }
+
+  // Sort arrays by order
+  const sortedSocialLinks = [...footerData.socialLinks].sort((a, b) => a.order - b.order);
+  const sortedCompanyLinks = [...footerData.companySection.links].sort((a, b) => a.order - b.order);
+  const sortedContacts = [...footerData.contactsSection.contacts].sort((a, b) => a.order - b.order);
+
   return (
-    <div className="bg-custom-6">
+    <div className={footerData.backgroundColor}>
       <div className="container mx-auto px-4 lg:px-0">
         <div className="flex justify-between py-10 md:flex-row flex-col">
           <div className="w-[310px]">
             {/* Logo */}
             <div className="flex items-center">
               <Link href="/">
-                <CloudinaryImage src="/logo.svg" alt="logo" width={75}
-                  height={35}
-                  className="w-[75px] h-[35px]"
+                <Image 
+                  src={footerData.logo.src} 
+                  alt={footerData.logo.alt} 
+                  width={footerData.logo.width}
+                  height={footerData.logo.height}
+                  className={`w-[${footerData.logo.width}px] h-[${footerData.logo.height}px]`}
                 />
               </Link>
             </div>
-            <p className=" font-raleway font-[400] text-16 text-[#4A4C56] pt-5 pb-5 md:pb-10">
-              Unlock the road with Södertälje’s top Driving school – confidence
-              and competitive prices guaranteed!
+            <p className="font-raleway font-[400] text-16 text-[#4A4C56] pt-5 pb-5 md:pb-10">
+              {footerData.description}
             </p>
             {/* Social Icons */}
             <div className="flex items-center space-x-6 pb-8 md:pb-0">
-              <Link
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <CloudinaryImage src="/icons/footer/facebook.svg" alt="facebook Icon" width={24}
-                  height={24}
-                  className="w-auto h-[16px] md:h-[24px]"
-                />
-              </Link>
-              <Link
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <CloudinaryImage src="/icons/footer/x.svg" alt="twitter Icon" width={24}
-                  height={24}
-                  className="w-[16px] h-[16px] md:w-[24px] md:h-[24px]"
-                />
-              </Link>
-              <Link
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <CloudinaryImage src="/icons/footer/instagram.svg" alt="instagram Icon" width={24}
-                  height={24}
-                  className="w-[16px] h-[16px] md:w-[24px] md:h-[24px]"
-                />
-              </Link>
-              <Link
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <CloudinaryImage src="/icons/footer/linkedin.svg" alt="linkedin Icon" width={24}
-                  height={24}
-                  className="w-[16px] h-[16px] md:w-[24px] md:h-[24px]"
-                />
-              </Link>
+              {sortedSocialLinks.map((social) => (
+                <Link
+                  key={social._id}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Image 
+                    src={social.icon} 
+                    alt={social.alt} 
+                    width={24}
+                    height={24}
+                    className="w-auto h-[16px] md:h-[24px]"
+                  />
+                </Link>
+              ))}
             </div>
           </div>
           <div className="w-[111px] pb-8 md:pb-0">
-            <h2 className="text-24 font-raleway  font-[500] text-[#1D1F2C] mb-3 md:mb-5">
-              Company
+            <h2 className="text-24 font-raleway font-[500] text-[#1D1F2C] mb-3 md:mb-5">
+              {footerData.companySection.title}
             </h2>
             <ul className="space-y-3 text-16 font-raleway text-[#4A4C56]">
-              <li>
-                <Link href="/" className="hover:text-blue-600 transition">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/price-list"
-                  className="hover:text-blue-600 transition"
-                >
-                  Price List
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/handledarkurs"
-                  className="hover:text-blue-600 transition"
-                >
-                  Handledarkurs
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/riskettan"
-                  className="hover:text-blue-600 transition"
-                >
-                  Riskettan
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/halkbana"
-                  className="hover:text-blue-600 transition"
-                >
-                  Halkbana
-                </Link>
-              </li>
-              <li>
-                <Link href="/taxi" className="hover:text-blue-600 transition">
-                  Taxi
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/info/about"
-                  className="hover:text-blue-600 transition"
-                >
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/contact"
-                  className="hover:text-blue-600 transition"
-                >
-                  Contact
-                </Link>
-              </li>
+              {sortedCompanyLinks.map((link) => (
+                <li key={link._id}>
+                  <Link href={link.url} className="hover:text-blue-600 transition">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           <div className="w-[250px] pb-8 md:pb-0">
-            <h2 className="text-24 font-raleway  font-[500] text-[#1D1F2C] mb-3 md:mb-5">
-              Contacts
+            <h2 className="text-24 font-raleway font-[500] text-[#1D1F2C] mb-3 md:mb-5">
+              {footerData.contactsSection.title}
             </h2>
             <ul className="space-y-3 text-16 font-raleway text-[#4A4C56]">
-              <li className="flex items-center space-x-2 ">
-                <CloudinaryImage src="/icons/footer/location.svg" alt="" height={15}
-                  width={15}
-                />
-                <span>Dolsgatan 1 1, 15133 Södertälje</span>
-              </li>
-              <li className="flex items-center space-x-2 ">
-                <CloudinaryImage src="/icons/footer/message.svg" alt="" height={15}
-                  width={15}
-                />
-                <Link
-                  href="mailto:info@abstrafikskola.se"
-                  className="hover:text-blue-600 transition"
-                >
-                  info@abstrafikskola.se
-                </Link>
-              </li>
-              <li className="flex items-center space-x-2 ">
-                <CloudinaryImage src="/icons/footer/phone.svg" alt="" height={15}
-                  width={15}
-                />
-                <Link
-                  href="tel:0855066666"
-                  className="hover:text-blue-600 transition"
-                >
-                  08 550 66666
-                </Link>
-              </li>
-              <li className="flex items-center space-x-2 ">
-                <CloudinaryImage src="/icons/footer/whatsapp.svg" alt="" height={15}
-                  width={15}
-                />
-                <Link
-                  href="https://wa.me/46739988444"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-blue-600 transition"
-                >
-                  073 998 8444
-                </Link>
-              </li>
+              {sortedContacts.map((contact) => (
+                <li key={contact._id} className="flex items-center space-x-2">
+                  <Image src={contact.icon} alt="" height={15} width={15} />
+                  {contact.link ? (
+                    <Link
+                      href={contact.link}
+                      target={contact.type === 'whatsapp' ? "_blank" : undefined}
+                      rel={contact.type === 'whatsapp' ? "noopener noreferrer" : undefined}
+                      className="hover:text-blue-600 transition"
+                    >
+                      {contact.value}
+                    </Link>
+                  ) : (
+                    <span>{contact.value}</span>
+                  )}
+                </li>
+              ))}
             </ul>
           </div>
           <div className="md:w-[303px]">
-            <h2 className="text-24 font-raleway  font-[500] text-[#1D1F2C] mb-3 md:mb-5">
-              Subscribe
+            <h2 className="text-24 font-raleway font-[500] text-[#1D1F2C] mb-3 md:mb-5">
+              {footerData.subscribeSection.title}
             </h2>
             <p className="text-16 font-raleway text-[#4A4C56] mb-3 md:mb-4">
-              Get Latest update and offers
+              {footerData.subscribeSection.subtitle}
             </p>
 
             {/* Success/Error Message */}
@@ -261,7 +203,7 @@ export default function Footer() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter email address"
+                placeholder={footerData.subscribeSection.placeholder}
                 required
                 disabled={isSubmitting}
                 className="flex-grow px-4 py-2 outline-none w-[303px] h-[48px] text-16 font-raleway disabled:bg-gray-100 disabled:cursor-not-allowed"
@@ -271,15 +213,15 @@ export default function Footer() {
                 disabled={isSubmitting}
                 className="bg-blue-500 text-white text-14 font-raleway font-medium px-[16px] py-[6px] rounded-full hover:bg-blue-600 transition relative right-3 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Subscribing...' : 'Subscribe'}
+                {isSubmitting ? 'Subscribing...' : footerData.subscribeSection.buttonText}
               </button>
             </form>
           </div>
         </div>
-        <div className=" flex items-center justify-center py-5">
-          <p className="text-center font-raleway text-14 text-blue-500 ">
-            2024, All Rights Reserved — Developed by
-            <span className="font-semibold"> Rasel Hossain</span>
+        <div className="flex items-center justify-center py-5">
+          <p className="text-center font-raleway text-14 text-blue-500">
+            {footerData.footerBottom.text}
+            <span className="font-semibold"> {footerData.footerBottom.developerName}</span>
           </p>
         </div>
       </div>

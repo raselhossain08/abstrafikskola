@@ -14,8 +14,6 @@ import {
   type BookingData,
   type Schedule,
 } from '@/lib/api';
-import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
-
 interface ProductItem {
   date: string;
   time: string;
@@ -194,7 +192,7 @@ export function ProductDialog({
       <DialogContent className="md:max-w-[80%] overflow-y-auto max-h-[100vh] xl:max-w-[1320px] md:px-[32px] py-[100px] bg-white">
         <div className="w-full h-full relative">
           <div className="flex items-center mb-5">
-            <CloudinaryImage src="/logo.svg" alt="" width={75} height={35} />
+            <Image src="/logo.svg" alt="" width={75} height={35} />
             <p>Booking Information</p>
           </div>
           {/* Desktop version */}
@@ -203,7 +201,7 @@ export function ProductDialog({
             style={{ boxShadow: '0px 4px 35px 0px #0000001A' }}
           >
             <div className="flex items-center space-x-2">
-              <CloudinaryImage
+              <Image
                 src="/icons/calendar.svg"
                 height={19.5}
                 width={19.5}
@@ -213,7 +211,7 @@ export function ProductDialog({
             </div>
 
             <div className="flex items-center space-x-2">
-              <CloudinaryImage
+              <Image
                 src="/icons/watch.svg"
                 height={19.5}
                 width={19.5}
@@ -240,7 +238,7 @@ export function ProductDialog({
             )}
 
             <div className="flex items-center bg-[#ECF4FD80] border border-[#ECF4FD] px-[16px] py-[6px] space-x-3 rounded-[30px] text-[#3F8FEE]">
-              <CloudinaryImage
+              <Image
                 src="/icons/like.svg"
                 height={19.5}
                 width={19.5}
@@ -291,7 +289,7 @@ export function ProductDialog({
                   </div>
                 )}
                 <div className="flex items-center space-x-2">
-                  <CloudinaryImage
+                  <Image
                     src="/icons/calendar.svg"
                     height={19.5}
                     width={19.5}
@@ -300,7 +298,7 @@ export function ProductDialog({
                   <p className="text-[#4A4C56] font-medium text-12">{date}</p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <CloudinaryImage
+                  <Image
                     src="/icons/watch.svg"
                     height={19.5}
                     width={19.5}
@@ -309,7 +307,7 @@ export function ProductDialog({
                   <p className="text-[#4A4C56] font-medium text-12">{time}</p>
                 </div>
                 <div className="inline-flex items-center bg-[#ECF4FD80] border border-[#ECF4FD] px-[16px] py-[6px] space-x-3 rounded-[30px] text-[#3F8FEE]">
-                  <CloudinaryImage
+                  <Image
                     src="/icons/like.svg"
                     height={19.5}
                     width={19.5}
@@ -336,7 +334,7 @@ export function ProductDialog({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mt-8">
             <div>
-              <CloudinaryImage src="/img/1.png" alt="" width={596} height={413} />
+              <Image src="/img/1.png" alt="" width={596} height={413} />
             </div>
             <div>
               <div className="bg-[#F7FAFF] border border-[#ECF4FD] p-6 rounded-[16px]">

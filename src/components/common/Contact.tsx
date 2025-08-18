@@ -1,24 +1,59 @@
-import React from 'react';
+'use client';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import Link from 'next/link';
+import { fetchContactSectionData, ContactSectionData } from '@/services/contactSectionService';
 
 export default function Contact() {
+  const [contactData, setContactData] = useState<ContactSectionData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await fetchContactSectionData();
+        setContactData(data);
+      } catch (error) {
+        console.error('Error loading contact section data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="h-[400px] md:h-[600px] flex items-center justify-center">
+        <div className="text-center">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!contactData) {
+    return null;
+  }
+
   return (
     <div
       style={{
-        backgroundImage: 'url(/img/contact/contact-bg.png)',
+        backgroundImage: `url(${contactData.backgroundImage})`,
         backgroundSize: 'cover',
       }}
-      className="h-[400px] md:h-[600px] flex items-center justify-center"
+      className={`${contactData.containerHeight.mobile} ${contactData.containerHeight.desktop} flex items-center justify-center`}
     >
       <div className="container h-full px-4 lg:px-0">
         <div className="flex items-center justify-center h-full flex-col">
-          <h3 className="font-raleway font-bold text-24 md:text-[40px] leading-[31px] md:leading-[42px] tracking-normal text-center text-white mb-3">
-            Book Your First Driving <br /> Lesson And Contact Us
-          </h3>
-          <Link href="/contact">
-            <Button className="bg-custom-3 hover:bg-custom-3 w-[200px] h-[48px] rounded-[30px] font-raleway font-medium text-[18px] leading-[26px] tracking-normal text-white mt-4 cursor-pointer">
-              Contact us
+          <h3 
+            className={`font-raleway ${contactData.textStyles.fontWeight} ${contactData.textStyles.fontSize.mobile} ${contactData.textStyles.fontSize.desktop} leading-[31px] md:leading-[42px] tracking-normal ${contactData.textStyles.textAlign} ${contactData.textStyles.titleColor} ${contactData.textStyles.marginBottom}`}
+            dangerouslySetInnerHTML={{ __html: contactData.title.replace(/\n/g, '<br />') }}
+          />
+          <Link href={contactData.buttonLink}>
+            <Button 
+              className={`${contactData.buttonStyle.backgroundColor} ${contactData.buttonStyle.hoverColor} ${contactData.buttonStyle.width} ${contactData.buttonStyle.height} ${contactData.buttonStyle.borderRadius} font-raleway font-medium text-[18px] leading-[26px] tracking-normal text-white mt-4 cursor-pointer`}
+            >
+              {contactData.buttonText}
             </Button>
           </Link>
         </div>

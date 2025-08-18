@@ -8,8 +8,9 @@ import { FaCalendarAlt, FaRegClock } from 'react-icons/fa';
 import { FaCheck } from 'react-icons/fa6';
 import { SlLike } from 'react-icons/sl';
 import { scheduleAPI, risk1Risk2API, type Schedule } from '@/lib/api';
-import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
-type HandledarkursItem = {
+import { risk1Risk2ContentService, type Risk1Risk2ContentData } from '@/services/risk1Risk2ContentService';
+
+type Risk1Risk2Item = {
   _id?: string;
   scheduleId?: string;
   date: string;
@@ -33,14 +34,29 @@ type HandledarkursItem = {
 
 export default function page() {
   const [handledarkursOpen, setHandledarkursOpen] = useState(false);
-  const [popupData, setPopupData] = useState<HandledarkursItem | null>(null);
-  const [courseSlots, setCourseSlots] = useState<HandledarkursItem[]>([]);
+  const [popupData, setPopupData] = useState<Risk1Risk2Item | null>(null);
+  const [courseSlots, setCourseSlots] = useState<Risk1Risk2Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pageContent, setPageContent] = useState<Risk1Risk2ContentData | null>(null);
+  const [contentLoading, setContentLoading] = useState(true);
 
   useEffect(() => {
     fetchRiskCourses();
+    fetchPageContent();
   }, []);
+
+  const fetchPageContent = async () => {
+    try {
+      setContentLoading(true);
+      const content = await risk1Risk2ContentService.getRisk1Risk2Content();
+      setPageContent(content);
+    } catch (error) {
+      console.error('Failed to fetch page content:', error);
+    } finally {
+      setContentLoading(false);
+    }
+  };
 
   const fetchRiskCourses = async () => {
     try {
@@ -90,7 +106,7 @@ export default function page() {
         console.log('Combined API failed, trying individual calls...');
         
         const risk1Response = await scheduleAPI.getByTitle('Riskettan');
-        let allCourses: HandledarkursItem[] = [];
+        let allCourses: Risk1Risk2Item[] = [];
 
         if (risk1Response.success && risk1Response.data) {
           const risk1Courses = risk1Response.data.map((schedule: Schedule) => {
@@ -139,7 +155,7 @@ export default function page() {
     }
   };
 
-  const handleSubmit = (data: HandledarkursItem) => {
+  const handleSubmit = (data: Risk1Risk2Item) => {
     setHandledarkursOpen(true);
     setPopupData(data);
     console.log(data);
@@ -149,14 +165,14 @@ export default function page() {
       <div className="bg-[#F7FAFF] py-[56px] md:py-[120px] px-4">
         <div className="w-full xl:w-[1320px] mx-auto">
           <h1 className="text-24 sm:text-56 font-bold  text-[#1D1F2C] leading-[140%] text-center pb-5">
-            Risk1 + Risk2 Schedule and Prices
+            {contentLoading ? 'Risk1 + Risk2 Schedule and Prices' : pageContent?.sectionTitle}
           </h1>
           <div className="w-full sm:w-[872px] mx-auto pb-10">
             <p className=" text-16 leading-[140%] text-center font-normal text-[#4A4C56]">
-              Complete your risk education with our Risk1 and Risk2 courses.
-              These mandatory courses cover essential traffic safety knowledge
-              for all new drivers. Check out our upcoming schedule and prices,
-              and book your sessions online.
+              {contentLoading 
+                ? 'Complete your risk education with our Risk1 and Risk2 courses. These mandatory courses cover essential traffic safety knowledge for all new drivers. Check out our upcoming schedule and prices, and book your sessions online.'
+                : pageContent?.sectionDescription
+              }
             </p>
           </div>
 
@@ -221,7 +237,7 @@ export default function page() {
                     key={item._id || index}
                   >
                     <div className="flex items-center space-x-2 w-[242px]">
-                      <CloudinaryImage
+                      <Image
                         src="/icons/calendar.svg"
                         height={19.5}
                         width={19.5}
@@ -233,7 +249,7 @@ export default function page() {
                     </div>
 
                     <div className="flex items-center space-x-2 w-[124px]">
-                      <CloudinaryImage
+                      <Image
                         src="/icons/watch.svg"
                         height={19.5}
                         width={19.5}
@@ -250,7 +266,7 @@ export default function page() {
                       </h2>
                     </div>
                     <div className="flex items-center bg-[#ECF4FD80] border border-[#ECF4FD] px-[16px] py-[6px] space-x-3 rounded-[30px] text-[#3F8FEE] w-[220px]">
-                      <CloudinaryImage
+                      <Image
                         src="/icons/like.svg"
                         height={19.5}
                         width={19.5}
@@ -295,7 +311,7 @@ export default function page() {
                           </h2>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <CloudinaryImage
+                          <Image
                             src="/icons/calendar.svg"
                             height={19.5}
                             width={19.5}
@@ -306,7 +322,7 @@ export default function page() {
                           </p>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <CloudinaryImage
+                          <Image
                             src="/icons/watch.svg"
                             height={19.5}
                             width={19.5}
@@ -317,7 +333,7 @@ export default function page() {
                           </p>
                         </div>
                         <div className=" inline-flex items-center bg-[#ECF4FD80] border border-[#ECF4FD] px-[16px] py-[6px] space-x-3 rounded-[30px] text-[#3F8FEE] ">
-                          <CloudinaryImage
+                          <Image
                             src="/icons/like.svg"
                             height={19.5}
                             width={19.5}
@@ -366,23 +382,39 @@ export default function page() {
           <div className="flex justify-between items-center pb-12 flex-col-reverse md:flex-row">
             <div className="w-full md:w-[633px]">
               <h3 className="text-20 sm:text-32 font-medium  my-4">
-                Why are Risk1 + Risk2 Important?
+                {pageContent?.whyImportant?.title || 'Why are Risk1 + Risk2 Important?'}
               </h3>
-              <div className="flex space-x-4 items-start mb-4">
-                <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
-                  <FaCheck />
+              {pageContent?.whyImportant?.sections?.map((section, index) => (
+                <div key={index} className="flex space-x-4 items-start mb-4">
+                  <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
+                    <FaCheck />
+                  </div>
+                  <div className=" w-11/12 space-y-1">
+                    <h3 className="text-16 font-bold sm:text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] sm:font-semibold ">
+                      {section.title}
+                    </h3>
+                    <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
+                      {section.description}
+                    </p>
+                  </div>
                 </div>
-                <div className=" w-11/12 space-y-1">
-                  <h3 className="text-16 font-bold sm:text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] sm:font-semibold ">
-                    Risk1 Course
-                  </h3>
-                  <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
-                    Covers alcohol, drugs, fatigue and how these affect driving
-                    ability. Essential foundation for understanding traffic
-                    risks.
-                  </p>
+              )) || (
+                <div className="flex space-x-4 items-start mb-4">
+                  <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
+                    <FaCheck />
+                  </div>
+                  <div className=" w-11/12 space-y-1">
+                    <h3 className="text-16 font-bold sm:text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] sm:font-semibold ">
+                      Risk1 Course
+                    </h3>
+                    <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
+                      Covers alcohol, drugs, fatigue and how these affect driving
+                      ability. Essential foundation for understanding traffic
+                      risks.
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex space-x-4 items-start mb-2">
                 <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
@@ -403,14 +435,14 @@ export default function page() {
             <div className="w-full md:w-[633px]">
               <div className="flex w-full justify-between gap-8 md:gap-0">
                 <div className=" flex flex-col justify-between">
-                  <CloudinaryImage
+                  <Image
                     src="/img/product/1.png"
                     width={300}
                     height={200}
                     alt="p1"
                     className="w-[300px] h-[190px] rounded-[22px] object-cover"
                   />
-                  <CloudinaryImage
+                  <Image
                     src="/img/product/2.png"
                     width={300}
                     height={200}
@@ -419,7 +451,7 @@ export default function page() {
                   />
                 </div>
                 <div className="">
-                  <CloudinaryImage
+                  <Image
                     src="/img/product/3.png"
                     width={300}
                     height={200}
@@ -435,7 +467,7 @@ export default function page() {
             <div className="w-full md:w-[633px]">
               <div className="flex w-full justify-between gap-8 md:gap-0">
                 <div className="">
-                  <CloudinaryImage
+                  <Image
                     src="/img/product/4.png"
                     width={300}
                     height={200}
@@ -444,14 +476,14 @@ export default function page() {
                   />
                 </div>
                 <div className=" flex flex-col justify-between">
-                  <CloudinaryImage
+                  <Image
                     src="/img/product/1.png"
                     width={300}
                     height={200}
                     alt="p1"
                     className="w-[300px] h-[190px] rounded-[22px] object-cover"
                   />
-                  <CloudinaryImage
+                  <Image
                     src="/img/product/2.png"
                     width={300}
                     height={200}
@@ -463,72 +495,110 @@ export default function page() {
             </div>
             <div className="w-full md:w-[633px]">
               <h3 className=" text-32 font-medium  my-4">
-                What Our Course Offers:
+                {pageContent?.courseOffers?.title || 'What Our Course Offers:'}
               </h3>
-              <div className="flex space-x-4 items-start mb-4">
-                <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
-                  <FaCheck />
+              {pageContent?.courseOffers?.features?.map((feature, index) => (
+                <div key={index} className="flex space-x-4 items-start mb-4">
+                  <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
+                    <FaCheck />
+                  </div>
+                  <div className=" w-11/12 space-y-1">
+                    <h3 className=" text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] font-semibold ">
+                      {feature.title}
+                    </h3>
+                    <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
+                      {feature.description}
+                    </p>
+                  </div>
                 </div>
-                <div className=" w-11/12 space-y-1">
-                  <h3 className=" text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] font-semibold ">
-                    Experienced Instructors
-                  </h3>
-                  <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
-                    Our teachers are experts at making learning both fun and
-                    effective.
-                  </p>
-                </div>
-              </div>
+              )) || (
+                <>
+                  <div className="flex space-x-4 items-start mb-4">
+                    <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
+                      <FaCheck />
+                    </div>
+                    <div className=" w-11/12 space-y-1">
+                      <h3 className=" text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] font-semibold ">
+                        Experienced Instructors
+                      </h3>
+                      <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
+                        Our teachers are experts at making learning both fun and
+                        effective.
+                      </p>
+                    </div>
+                  </div>
 
-              <div className="flex space-x-4 items-start mb-2">
-                <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
-                  <FaCheck />
-                </div>
-                <div className=" w-11/12 space-y-1">
-                  <h3 className=" text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] font-semibold ">
-                    Modern Education
-                  </h3>
-                  <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
-                    We use the latest technology and teaching materials.
-                  </p>
-                </div>
-              </div>
+                  <div className="flex space-x-4 items-start mb-2">
+                    <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
+                      <FaCheck />
+                    </div>
+                    <div className=" w-11/12 space-y-1">
+                      <h3 className=" text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] font-semibold ">
+                        Modern Education
+                      </h3>
+                      <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
+                        We use the latest technology and teaching materials.
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
           <h2 className="text-20 sm:text-32 font-medium mb-3 md:mb-6 text-[#1D1F2C]">
-            Course Content
+            {pageContent?.courseContent?.title || 'Course Content'}
           </h2>
           <ul className="space-y-2 text-16 md:text-18 font-bold text-[#4A4C56] mb-8">
-            <li className="flex items-center ">
-              <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
-              <span>Basic Traffic Rules</span>
-            </li>
-            <li className="flex items-center">
-              <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
-              <span>Risk Awareness</span>
-            </li>
-            <li className="flex items-center">
-              <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
-              <span>Practical Driving Tips</span>
-            </li>
-            <li className="flex items-center">
-              <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
-              <span>First Aid and Emergency Preparedness</span>
-            </li>
+            {pageContent?.courseContent?.items?.map((item, index) => (
+              <li key={index} className="flex items-center ">
+                <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
+                <span>{item.title}</span>
+              </li>
+            )) || (
+              <>
+                <li className="flex items-center ">
+                  <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
+                  <span>Basic Traffic Rules</span>
+                </li>
+                <li className="flex items-center">
+                  <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
+                  <span>Risk Awareness</span>
+                </li>
+                <li className="flex items-center">
+                  <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
+                  <span>Practical Driving Tips</span>
+                </li>
+                <li className="flex items-center">
+                  <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
+                  <span>First Aid and Emergency Preparedness</span>
+                </li>
+              </>
+            )}
           </ul>
 
           <div className="space-y-4 ">
-            <div>
-              <strong className="block text-[#000000] mb-1 text-16 md:text-18 font-bold leading-[26px]">
-                Who Should Participate?
-              </strong>
-              <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
-                Anyone planning to learn to drive privately - both students and
-                their private instructors. The course is crucial to ensure a
-                safe and informed driving experience for all involved.
-              </p>
-            </div>
+            {pageContent?.additionalInfo?.map((section, index) => (
+              <div key={index}>
+                <strong className="block text-[#000000] mb-1 text-16 md:text-18 font-bold leading-[26px]">
+                  {section.title}
+                </strong>
+                <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
+                  {section.description}
+                </p>
+              </div>
+            )) || (
+              <div>
+                <strong className="block text-[#000000] mb-1 text-16 md:text-18 font-bold leading-[26px]">
+                  Who Should Participate?
+                </strong>
+                <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
+                  Anyone planning to learn to drive privately - both students and
+                  their private instructors. The course is crucial to ensure a
+                  safe and informed driving experience for all involved.
+                </p>
+              </div>
+            )}
 
             <div>
               <strong className="block text-[#000000] mb-1 text-18 font-bold leading-[26px]">
