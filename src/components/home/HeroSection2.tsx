@@ -13,152 +13,128 @@ import {
 } from '../ui/carousel';
 import { useLanguage, type Language } from '@/contexts/LanguageContext';
 
+// Hero Feature Interface matching API structure
 interface HeroFeature {
+  _id?: string;
   icon: string;
   title: string;
-  text: string;
+  description: string;
 }
 
-interface HeroContent {
-  welcome: string;
-  title: string;
-  subtitle: string;
-  cta: string;
+// Hero Section Interface matching API structure
+interface HeroSection {
+  backgroundImage: string;
+  effectImages: string[];
+  header: {
+    welcomeText: string;
+    mainTitle: string;
+    subtitle: string;
+  };
+  ctaButton: {
+    text: string;
+  };
+  dividerImage: string;
   features: HeroFeature[];
 }
 
-const heroTranslations: Record<Language, HeroContent> = {
-  en: {
-    welcome: 'Welcome to ABS Trafikskola',
-    title: 'Learn to Drive with Confidence',
-    subtitle: 'Your Journey to Safe Driving Starts Here',
-    cta: 'Book Your Lesson',
-    features: [
-      {
-        icon: '/img/hero/icon1.svg',
-        title: 'Drive Now, Pay Later!',
-        text: 'Drive now, pay later with the help of Resurs Bank - interest-free instalment payments for up to 24 months.',
-      },
-      {
-        icon: '/img/hero/icon2.svg',
-        title: 'Top-Notch Instructors!',
-        text: 'Best teachers in the branch who are passionate and skilled about their jobs.',
-      },
-      {
-        icon: '/img/hero/icon3.svg',
-        title: 'Same Car as Trafikverket!',
-        text: 'Practice in the similar types of new car you will use for your driving test - Just like Trafikverket Forarprov!',
-      },
-      {
-        icon: '/img/hero/icon4.svg',
-        title: 'Help with Exam Bookings!',
-        text: 'Assistance in finding exam booking slots for those who successfully complete all driving stages.',
-      },
-      {
-        icon: '/img/hero/icon5.svg',
-        title: 'Open on Weekends!',
-        text: 'Flexible weekend hours to fit your busy schedule.',
-      },
-    ],
-  },
-  sv: {
-    welcome: 'Valkommen till ABS Trafikskola',
-    title: 'Lar dig kora med sjalvfortroende',
-    subtitle: 'Din resa till saker korning borjar har',
-    cta: 'Boka din lektion',
-    features: [
-      {
-        icon: '/img/hero/icon1.svg',
-        title: 'Kor nu, betala senare!',
-        text: 'Kor nu, betala senare med hjalp av Resurs Bank - rantefria avbetalningar i upp till 24 manader.',
-      },
-      {
-        icon: '/img/hero/icon2.svg',
-        title: 'Forstklassiga instruktorer!',
-        text: 'Basta lararna i branschen som ar passionerade och skickliga pa sina jobb.',
-      },
-      {
-        icon: '/img/hero/icon3.svg',
-        title: 'Samma bil som Trafikverket!',
-        text: 'Ova i liknande typer av nya bilar som du kommer att anvanda for ditt korprov - precis som Trafikverket Forarprov!',
-      },
-      {
-        icon: '/img/hero/icon4.svg',
-        title: 'Hjalp med provbokningar!',
-        text: 'Hjalp med att hitta provbokningstider for dem som framgangsrikt slutfor alla korningssteg.',
-      },
-      {
-        icon: '/img/hero/icon5.svg',
-        title: 'Oppet pa helger!',
-        text: 'Flexibla helgtimmar for att passa ditt hektiska schema.',
-      },
-    ],
-  },
-  ar: {
-    welcome: 'مرحباً بكم في ABS Trafikskola',
-    title: 'تعلم القيادة بثقة',
-    subtitle: 'رحلتك نحو القيادة الآمنة تبدأ هنا',
-    cta: 'احجز درسك',
-    features: [
-      {
-        icon: '/img/hero/icon1.svg',
-        title: 'قد الآن، ادفع لاحقاً!',
-        text: 'قد الآن، ادفع لاحقاً بمساعدة بنك Resurs - أقساط بدون فوائد لمدة تصل إلى 24 شهراً.',
-      },
-      {
-        icon: '/img/hero/icon2.svg',
-        title: 'مدربين من الدرجة الأولى!',
-        text: 'أفضل المعلمين في المجال الذين لديهم شغف ومهارة في وظائفهم.',
-      },
-      {
-        icon: '/img/hero/icon3.svg',
-        title: 'نفس السيارة المستخدمة في Trafikverket!',
-        text: 'تدرب في نفس نوع السيارة الجديدة التي ستستخدمها في اختبار القيادة - تماماً مثل Trafikverket Förarprov!',
-      },
-      {
-        icon: '/img/hero/icon4.svg',
-        title: 'مساعدة في حجز الامتحانات!',
-        text: 'مساعدة في العثور على مواعيد حجز الامتحانات لأولئك الذين يكملون بنجاح جميع مراحل القيادة.',
-      },
-      {
-        icon: '/img/hero/icon5.svg',
-        title: 'مفتوح في عطلات نهاية الأسبوع!',
-        text: 'ساعات مرنة في عطلة نهاية الأسبوع لتناسب جدولك المزدحم.',
-      },
-    ],
-  },
-};
+interface ApiResponse {
+  success: boolean;
+  data?: {
+    heroSection: HeroSection;
+    views: number;
+    isActive: boolean;
+  };
+  message?: string;
+}
 
 export default function HeroSection2() {
   const { language } = useLanguage();
+  const [heroData, setHeroData] = useState<HeroSection | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const content = heroTranslations[language];
-  const heroData = content.features;
+  // Fetch home content from API
+  useEffect(() => {
+    const fetchHomeContent = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+        const response = await fetch(`${API_BASE_URL}/home-content`);
+        const data: ApiResponse = await response.json();
+        
+        if (data.success && data.data) {
+          setHeroData(data.data.heroSection);
+        } else {
+          setError('Failed to load content');
+          console.error('API Error:', data.message);
+        }
+      } catch (err) {
+        setError('Failed to connect to server');
+        console.error('Fetch Error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHomeContent();
+  }, []);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="relative w-full bg-gray-100 px-4 xl:px-0 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-custom-3 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !heroData) {
+    return (
+      <div className="relative w-full bg-gray-100 px-4 xl:px-0 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl text-red-500 mb-4">⚠️</div>
+          <p className="text-lg text-gray-600 mb-4">{error || 'No content available'}</p>
+          <Button 
+            onClick={() => window.location.reload()}
+            className="bg-custom-3 hover:bg-custom-3/90"
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
       className="relative w-full bg-white px-4 xl:px-0 bg-no-repeat bg-cover"
-      style={{ backgroundImage: 'url(/img/hero/2.png)' }}
+      style={{ backgroundImage: `url(${heroData.backgroundImage})` }}
       dir={language === 'ar' ? 'rtl' : 'ltr'}
     >
       <div className="w-full xl:w-[1320px] mx-auto relative z-10 pb-10">
         <div className="flex py-14 justify-center">
           <div className="w-full sm:w-[648px] flex flex-col items-center justify-center space-y-2">
             <h4 className="font-sansat font-light text-white text-12 sm:text-20 text-center tracking-[5px] uppercase">
-              {content.welcome}
+              {heroData.header.welcomeText}
             </h4>
             <h1 className="font-bold text-28 sm:text-64 leading-[30px] sm:leading-[68px] tracking-[3px] sm:tracking-[5px] text-center text-white">
-              {content.title}
+              {heroData.header.mainTitle}
             </h1>
             <h3 className="font-sansat font-semiBold text-14 sm:text-20 tracking-[20%] uppercase leading-[140%] text-white text-center pb-8">
-              {content.subtitle}
+              {heroData.header.subtitle}
             </h3>
             <Button className="bg-custom-3 w-[200px] h-[48px] rounded-[30px] font-raleway font-medium text-[18px] leading-[26px] tracking-normal text-white hover:bg-custom-3 hover:text-white mb-8">
-              {content.cta}
+              {heroData.ctaButton.text}
             </Button>
             <div className="inline-block relative my-5">
               <Image
-                src={'/img/hero/icon7.svg'}
+                src={heroData.dividerImage}
                 alt="Hero Image"
                 width={518}
                 height={151}
@@ -166,9 +142,11 @@ export default function HeroSection2() {
             </div>
           </div>
         </div>
+        
+        {/* Desktop Features Grid */}
         <div className="xl:grid grid-cols-5 gap-5 mt-8 pb-20 hidden">
-          {heroData.map((feature: HeroFeature, index: number) => (
-            <Card key={index} className="border border-[#FFFFFF80] shadow-none">
+          {heroData.features.map((feature: HeroFeature, index: number) => (
+            <Card key={feature._id || index} className="border border-[#FFFFFF80] shadow-none">
               <CardHeader className="w-full flex justify-center items-center">
                 <div className="flex border border-[#070707] rounded-full w-[50px] h-[50px] items-center justify-center">
                   <Image
@@ -185,12 +163,14 @@ export default function HeroSection2() {
                   {feature.title}
                 </h2>
                 <p className="font-raleway text-12 leading-relaxed text-center text-gray-700">
-                  {feature.text}
+                  {feature.description}
                 </p>
               </CardContent>
             </Card>
           ))}
         </div>
+        
+        {/* Mobile Carousel */}
         <Carousel
           opts={{
             align: 'center',
@@ -198,9 +178,9 @@ export default function HeroSection2() {
           className="w-full xl:hidden"
         >
           <CarouselContent>
-            {heroData.map((feature: HeroFeature, index: number) => (
+            {heroData.features.map((feature: HeroFeature, index: number) => (
               <CarouselItem
-                key={index}
+                key={feature._id || index}
                 className="basis-2/3 sm:basis-4/12 md:basis-3/12"
               >
                 <Card className="border border-[#FFFFFF80] shadow-none h-[244px]">
@@ -220,7 +200,7 @@ export default function HeroSection2() {
                       {feature.title}
                     </h2>
                     <p className="font-raleway text-12 leading-relaxed text-center text-gray-700">
-                      {feature.text}
+                      {feature.description}
                     </p>
                   </CardContent>
                 </Card>
@@ -229,21 +209,17 @@ export default function HeroSection2() {
           </CarouselContent>
         </Carousel>
       </div>
-      {/* effects */}
-      <div className="absolute top-0 left-0">
-        <img
-          src="/effects/1.png"
-          alt="Hero Background"
-          className="w-full h-full object-cover opacity-20"
-        />
-      </div>
-      <div className="absolute top-0 left-0 flex justify-center">
-        <img
-          src="/effects/2.png"
-          alt="Hero Background"
-          className="w-full h-full object-cover opacity-20"
-        />
-      </div>
+      
+      {/* Effect Images from API */}
+      {heroData.effectImages.map((effectImg, index) => (
+        <div key={index} className={`absolute top-0 left-0 ${index === 1 ? 'flex justify-center' : ''}`}>
+          <img
+            src={effectImg}
+            alt={`Hero Background Effect ${index + 1}`}
+            className="w-full h-full object-cover opacity-20"
+          />
+        </div>
+      ))}
     </div>
   );
 }

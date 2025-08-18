@@ -28,39 +28,25 @@ export default function NavBar({
   lang = 'en',
   isScrolled = false,
 }: NavBarProps) {
+  // All hooks must be declared before any conditional returns
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<any>(null);
+  
   const { language, setLanguage } = useLanguage();
   const pathname = usePathname();
   const router = useRouter();
-  const [loginOpen, setLoginOpen] = useState(false);
   const { headerContent, isLoading, error } = useHeaderContent();
 
-  // Use dynamic content from API or fallback to static
-  const navigationItems = headerContent?.navigation.menuItems || [];
-  const languages = headerContent?.languages || [
-    {
-      code: 'en',
-      name: 'English',
-      flag: 'https://cdn-icons-png.flaticon.com/512/197/197374.png',
-      direction: 'ltr' as const,
-      isDefault: false,
-    },
-    {
-      code: 'sv',
-      name: 'Swedish',
-      flag: 'https://cdn-icons-png.flaticon.com/512/197/197564.png',
-      direction: 'ltr' as const,
-      isDefault: true,
-    },
-    {
-      code: 'ar',
-      name: 'Arabic',
-      flag: 'https://cdn-icons-png.flaticon.com/512/323/323301.png',
-      direction: 'rtl' as const,
-      isDefault: false,
-    },
-  ];
+  // Extract data from headerContent safely
+  const navigationItems = headerContent?.navigation?.menuItems || [];
+  const languages = headerContent?.languages || [];
+  const loginButton = headerContent?.loginButton || { en: 'Login', sv: 'Logga in', ar: 'تسجيل الدخول' };
+
+  // Keep layout consistent - no RTL for the main container
+  const isRTLContent = language === 'ar';
+  const textDirection = isRTLContent ? 'rtl' : 'ltr';
 
   // Get multilingual content based on current language
   const getLocalizedText = (textObj: any) => {
@@ -76,26 +62,19 @@ export default function NavBar({
         ? 'Logga in'
         : 'Login');
 
-  // Keep layout consistent - no RTL for the main container
-  const isRTLContent = language === 'ar';
-  const textDirection = isRTLContent ? 'rtl' : 'ltr';
-
-  const [selectedLanguage, setSelectedLanguage] = useState(
-    languages.find((l) => l.code === language) || languages[0]
-  );
-
-  // Update selected language when context language changes
+  // Initialize selectedLanguage after languages are loaded
   useEffect(() => {
-    setSelectedLanguage(
-      languages.find((l) => l.code === language) || languages[0]
-    );
-  }, [language]);
+    if (languages.length > 0) {
+      setSelectedLanguage(
+        languages.find((l) => l.code === language) || languages[0]
+      );
+    }
+  }, [languages, language]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (!target.closest('.dropdown-container')) {
+      if (activeDropdown !== null) {
         setActiveDropdown(null);
       }
     };
@@ -104,8 +83,23 @@ export default function NavBar({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [activeDropdown]);
 
+  // Handle mobile menu and close dropdowns when mobile menu opens
+  useEffect(() => {
+    if (isMobile) {
+      document.body.style.overflow = 'hidden';
+      setActiveDropdown(null); // Close any open dropdowns when mobile menu opens
+    } else {
+      document.body.style.overflow = 'unset';
+      setActiveDropdown(null); // Close any open dropdowns when mobile menu closes
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobile]);
+
+  // Handler functions
   const handleLanguageChange = (newLang: string) => {
     const languageObj = languages.find((l) => l.code === newLang);
     if (languageObj) {
@@ -118,8 +112,35 @@ export default function NavBar({
     setActiveDropdown(activeDropdown === index ? null : index);
   };
 
+  const handleMobileMenuToggle = () => {
+    setIsMobile(!isMobile);
+    setActiveDropdown(null); // Close any open dropdowns
+  };
+
+  // Don't render if essential data is not loaded yet
+  if (!headerContent || navigationItems.length === 0 || !selectedLanguage) {
+    return (
+      <div className={`h-16 flex items-center justify-center ${
+        isScrolled ? 'bg-white shadow-md' : 'bg-white'
+      }`}>
+        <div className="text-gray-500 text-sm">Loading navigation...</div>
+      </div>
+    );
+  }
+
   return (
     <>
+      {/* Mobile menu backdrop */}
+      {isMobile && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 xl:hidden"
+          onClick={() => {
+            setIsMobile(false);
+            setActiveDropdown(null);
+          }}
+        />
+      )}
+      
       <div
         className={`bg-white flex items-center h-[56px] lg:h-[96px] transition-all duration-300 ${
           isScrolled ? 'lg:h-[70px] shadow-md' : ''
@@ -130,8 +151,8 @@ export default function NavBar({
             <div className="flex items-center">
               <Link href="/">
                 <CloudinaryImage
-                  src="/logo.svg"
-                  alt="logo"
+                  src="/img/logo.svg"
+                  alt="Company Logo"
                   width={75}
                   height={35}
                   className="w-[75px] h-[35px]"
@@ -206,29 +227,32 @@ export default function NavBar({
 
             {/* mobile menu */}
             <div
-              className="fixed top-0 left-0 bg-[#0063D5] h-full w-full z-30 p-5 md:hidden overflow-hidden"
-              style={{
-                transform: isMobile ? 'translateX(0)' : 'translateX(-100%)',
-                transition: 'transform 0.3s ease-in-out',
-              }}
+              className={`fixed top-0 left-0 bg-[#0063D5] h-full w-full z-50 p-5 xl:hidden overflow-hidden transition-transform duration-300 ease-in-out ${
+                isMobile ? 'translate-x-0' : '-translate-x-full'
+              }`}
             >
               <div className="relative w-full h-full">
                 <Button
-                  className="bg-white text absolute top-0 right-0"
-                  variant={'link'}
-                  onClick={() => setIsMobile(false)}
+                  className="bg-white text-gray-700 absolute top-0 right-0 hover:bg-gray-100"
+                  variant={'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setIsMobile(false);
+                    setActiveDropdown(null);
+                  }}
+                  aria-label="Close mobile menu"
                 >
-                  <IoCloseSharp />
+                  <IoCloseSharp className="w-5 h-5" />
                 </Button>
-                <nav className="flex w-full h-full">
-                  <ul className="flex flex-col justify-center w-full h-full items-center space-y-5">
+                <nav className="flex w-full h-full overflow-y-auto">
+                  <div className="flex flex-col justify-start w-full h-full items-center space-y-5 py-16">
                     {navigationItems.map((item, index) => (
-                      <li key={item.id} className="relative group">
+                      <div key={item.id} className="w-full max-w-xs">
                         {item.hasDropdown ? (
-                          <div className="relative dropdown-container">
+                          <div className="w-full">
                             <button
                               onClick={() => handleDropdownToggle(index)}
-                              className={`flex items-center space-x-1 font-raleway font-medium text-16 leading-[1.4] tracking-[0.5%] transition-colors duration-200 ${
+                              className={`flex items-center justify-center space-x-1 font-raleway font-medium text-16 leading-[1.4] tracking-[0.5%] transition-colors duration-200 w-full ${
                                 pathname.startsWith('/info')
                                   ? 'text-custom-1'
                                   : 'text-white'
@@ -248,32 +272,34 @@ export default function NavBar({
                               />
                             </button>
                             {activeDropdown === index && (
-                              <ul className="absolute bg-white shadow-lg mt-2 rounded-md p-2 space-y-2 min-w-[160px] z-50">
-                                {item.dropdownItems?.map(
-                                  (subItem, subIndex) => (
-                                    <li key={subItem.id}>
-                                      <Link
-                                        href={subItem.href}
-                                        onClick={() => {
-                                          setActiveDropdown(null);
-                                          setIsMobile(false);
-                                        }}
-                                        className="block px-3 py-2 font-raleway text-gray-700 hover:text-blue-500 hover:bg-gray-50 rounded transition-colors duration-200"
-                                        dir={textDirection}
-                                      >
-                                        {getLocalizedText(subItem.name)}
-                                      </Link>
-                                    </li>
-                                  )
-                                )}
-                              </ul>
+                              <div className="mt-3 w-full animate-in slide-in-from-top-2 duration-200">
+                                <div className="bg-white/10 backdrop-blur-sm rounded-md p-2 space-y-2 border border-white/20">
+                                  {item.dropdownItems?.map(
+                                    (subItem, subIndex) => (
+                                      <div key={subItem.id}>
+                                        <Link
+                                          href={subItem.href}
+                                          onClick={() => {
+                                            setActiveDropdown(null);
+                                            setIsMobile(false);
+                                          }}
+                                          className="block px-3 py-2 font-raleway text-white/90 hover:text-white hover:bg-white/10 rounded transition-colors duration-200 text-center text-14"
+                                          dir={textDirection}
+                                        >
+                                          {getLocalizedText(subItem.name)}
+                                        </Link>
+                                      </div>
+                                    )
+                                  )}
+                                </div>
+                              </div>
                             )}
                           </div>
                         ) : (
                           <Link
                             href={item.href}
                             onClick={() => setIsMobile(false)}
-                            className={`font-raleway font-medium text-18 leading-[1.4] tracking-[0.5%] transition-colors duration-200 ${
+                            className={`font-raleway font-medium text-18 leading-[1.4] tracking-[0.5%] transition-colors duration-200 block text-center ${
                               pathname === item.href
                                 ? 'text-[#fa8282]'
                                 : 'text-white'
@@ -283,18 +309,21 @@ export default function NavBar({
                             {getLocalizedText(item.name)}
                           </Link>
                         )}
-                      </li>
+                      </div>
                     ))}
-                    <li>
+                    <div className="w-full max-w-xs pt-4">
                       <Button
-                        className="bg-white px-6  w-[120px] h-[48px] rounded-full font-raleway font-medium text-16 text-blue-600 hover:bg-white transition-colors duration-200 "
-                        onClick={() => setLoginOpen(true)}
+                        className="bg-white px-6 w-full h-[48px] rounded-full font-raleway font-medium text-16 text-blue-600 hover:bg-gray-100 transition-colors duration-200"
+                        onClick={() => {
+                          setLoginOpen(true);
+                          setIsMobile(false);
+                        }}
                         dir={textDirection}
                       >
                         {loginButtonText}
                       </Button>
-                    </li>
-                  </ul>
+                    </div>
+                  </div>
                 </nav>
               </div>
             </div>
@@ -318,15 +347,15 @@ export default function NavBar({
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center lg:space-x-2">
                         <Image
-                          src={selectedLanguage.flag}
+                          src={typeof selectedLanguage.flag === 'string' ? selectedLanguage.flag : selectedLanguage.flag?.url || '/icons/default-flag.svg'}
                           height={24}
                           width={24}
-                          alt={`${selectedLanguage.name} Flag`}
+                          alt={`${getLocalizedText(selectedLanguage.name)} Flag`}
                           className="rounded-full w-[16px] h-[16px] lg:w-[24px] lg:h-[24px]"
                           unoptimized
                         />
                         <span className="lg:block hidden">
-                          {selectedLanguage.name}
+                          {getLocalizedText(selectedLanguage.name)}
                         </span>
                       </div>
                       <CloudinaryImage
@@ -353,14 +382,14 @@ export default function NavBar({
                         className="flex items-center space-x-2"
                       >
                         <Image
-                          src={language.flag}
+                          src={typeof language.flag === 'string' ? language.flag : language.flag?.url || '/icons/default-flag.svg'}
                           height={20}
                           width={20}
-                          alt={`${language.name} Flag`}
+                          alt={`${getLocalizedText(language.name)} Flag`}
                           className="rounded-full"
                           unoptimized
                         />
-                        <span>{language.name}</span>
+                        <span>{getLocalizedText(language.name)}</span>
                       </DropdownMenuRadioItem>
                     ))}
                   </DropdownMenuRadioGroup>
@@ -368,8 +397,13 @@ export default function NavBar({
               </DropdownMenu>
 
               {/* Menu Icon for Mobile */}
-              <div className=" xl:hidden block">
-                <Button variant={'ghost'} onClick={() => setIsMobile(true)}>
+              <div className="xl:hidden block">
+                <Button 
+                  variant={'ghost'} 
+                  onClick={handleMobileMenuToggle}
+                  className="p-2 hover:bg-gray-100 transition-colors"
+                  aria-label="Open mobile menu"
+                >
                   <CloudinaryImage
                     src="/icons/menu.svg"
                     alt="Menu Icon"

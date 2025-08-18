@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaRegClock } from 'react-icons/fa';
 import { FaCheck } from 'react-icons/fa6';
 import { SlLike } from 'react-icons/sl';
-import { scheduleAPI, type Schedule } from '@/lib/api';
+import { scheduleAPI, risk1Risk2API, type Schedule } from '@/lib/api';
 import { CloudinaryImage } from '@/hooks/useCloudinaryImages';
 type HandledarkursItem = {
   _id?: string;
@@ -47,17 +47,12 @@ export default function page() {
       setLoading(true);
       setError(null);
 
-      // Search for Risk1 (Riskettan) courses
-      const risk1Response = await scheduleAPI.getByTitle('Riskettan');
+      // Use the new Risk1Risk2 API service
+      const response = await risk1Risk2API.getCombinedCourses();
 
-      // TODO: Add Risk2 search when Risk2 courses are added to database
-      // const risk2Response = await scheduleAPI.getByTitle('Risk2');
-
-      let allCourses: HandledarkursItem[] = [];
-
-      if (risk1Response.success && risk1Response.data) {
-        // Transform Risk1 data
-        const risk1Courses = risk1Response.data.map((schedule: Schedule) => {
+      if (response.success && response.data && response.data.length > 0) {
+        // Transform data for display
+        const transformedCourses = response.data.map((schedule: any) => {
           const scheduleDate = new Date(schedule.date);
           const formattedDate = scheduleDate.toLocaleDateString('en-US', {
             weekday: 'long',
@@ -83,16 +78,58 @@ export default function page() {
             status: schedule.isAvailable,
             course: {
               title: schedule.title,
-              category: 'Riskettan',
+              category: schedule.courseType === 'risk1' ? 'Riskettan' : 'Halkbana',
               language: 'Svenska',
             },
           };
         });
 
-        allCourses = [...allCourses, ...risk1Courses];
-      }
+        setCourseSlots(transformedCourses);
+      } else {
+        // Fallback: try individual API calls if combined service fails
+        console.log('Combined API failed, trying individual calls...');
+        
+        const risk1Response = await scheduleAPI.getByTitle('Riskettan');
+        let allCourses: HandledarkursItem[] = [];
 
-      setCourseSlots(allCourses);
+        if (risk1Response.success && risk1Response.data) {
+          const risk1Courses = risk1Response.data.map((schedule: Schedule) => {
+            const scheduleDate = new Date(schedule.date);
+            const formattedDate = scheduleDate.toLocaleDateString('en-US', {
+              weekday: 'long', 
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            });
+
+            return {
+              _id: schedule._id,
+              scheduleId: schedule.scheduleId,
+              date: formattedDate,
+              time: `${schedule.startTime} - ${schedule.endTime}`,
+              title: schedule.title,
+              seats: `${schedule.availableSlots} seats available`,
+              price: `${schedule.price} kr`,
+              maxStudents: schedule.maxStudents,
+              currentBookings: schedule.currentBookings,
+              startTime: schedule.startTime,
+              endTime: schedule.endTime,
+              venue: schedule.venue,
+              instructor: schedule.instructor,
+              status: schedule.isAvailable,
+              course: {
+                title: schedule.title,
+                category: 'Riskettan',
+                language: 'Svenska',
+              },
+            };
+          });
+
+          allCourses = [...allCourses, ...risk1Courses];
+        }
+
+        setCourseSlots(allCourses);
+      }
     } catch (err) {
       console.error('Error fetching courses:', err);
       setError('Failed to load courses');

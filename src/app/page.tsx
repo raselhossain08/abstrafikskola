@@ -1,7 +1,7 @@
 'use client';
 
 import Contact from '@/components/common/Contact';
-import Gallery from '@/components/home/Gallery';
+import GalleryWrapper from '@/components/home/GalleryWrapper';
 import HeroSection from '@/components/home/HeroSection';
 import HeroSection2 from '@/components/home/HeroSection2';
 import IntensiveDrivingProgram from '@/components/home/IntensiveDrivingProgram';
@@ -18,7 +18,7 @@ export default function Home() {
       <IntensiveDrivingProgram />
       <WhyChooseUs />
       <StudentFeedback />
-      <Gallery />
+      <GalleryWrapper />
       <Contact />
     </div>
   );

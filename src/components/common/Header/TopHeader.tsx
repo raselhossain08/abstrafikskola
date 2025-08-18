@@ -15,33 +15,20 @@ export default function TopHeader({
 }: TopHeaderProps) {
   const { headerContent, isLoading, error } = useHeaderContent();
 
-  // Use API data or fallback to static data
-  const contact = headerContent?.topHeader.contact || {
-    location:
-      lang === 'ar'
-        ? 'دالاغاتان 1 لتر، 15133 سودرتاليا'
-        : lang === 'sv'
-          ? 'Dalagatan 1 L, 15133 Södertälje'
-          : 'Dalgatan 11, 15133 Södertälje',
-    email: 'info@abstrafikskola.se',
-    phone: '08 598 66666',
-    whatsapp: '073 998 8241',
-  };
+  // Only use API data - no static fallbacks
+  const contact = headerContent?.topHeader?.contact;
+  const socialMedia = headerContent?.topHeader?.socialMedia;
 
-  const socialMedia = headerContent?.topHeader.socialMedia || {
-    facebook: 'https://facebook.com',
-    instagram: 'https://instagram.com',
-  };
-
-  const direction =
-    headerContent?.meta.direction || (lang === 'ar' ? 'rtl' : 'ltr');
+  // Don't render if data is not loaded yet or if there's an error
+  if (isLoading || error || !contact || !socialMedia) {
+    return null;
+  }
 
   return (
     <div
       className={`bg-error-red-500 py-[8px] md:py-[20px] md:max-h-[64px] transition-all duration-300 ${
         isScrolled ? 'md:py-[8px] md:max-h-[40px]' : ''
       }`}
-      dir={direction}
     >
       <div className="w-full xl:w-[1320px] mx-auto px-5 xl:px-0">
         <div className="flex w-full justify-between items-center">
@@ -55,7 +42,9 @@ export default function TopHeader({
               className="w-[24px] h-[24px]"
             />
             <span className="font-normal text-base leading-[140%] tracking-[0.5%] text-16 text-white md:block hidden">
-              {contact.location}
+              {typeof contact.location === 'string' 
+                ? contact.location 
+                : (contact.location as any)?.[lang] || (contact.location as any)?.en || 'Location not available'}
             </span>
           </div>
 
@@ -73,7 +62,7 @@ export default function TopHeader({
             <div className="flex items-center space-x-1">
               <CloudinaryImage
                 src="/icons/message.svg"
-                alt="message Icon"
+                alt="Email Icon"
                 width={24}
                 height={24}
                 className="w-[16px] h-[16px] md:w-[24px] md:h-[24px]"
@@ -89,7 +78,7 @@ export default function TopHeader({
             <div className="flex items-center space-x-1">
               <CloudinaryImage
                 src="/icons/phone.svg"
-                alt="phone Icon"
+                alt="Phone Icon"
                 width={24}
                 height={24}
                 className="w-[16px] h-[16px] md:w-[24px] md:h-[24px]"
@@ -105,7 +94,7 @@ export default function TopHeader({
             <div className="flex items-center space-x-1">
               <CloudinaryImage
                 src="/icons/whatsapp.svg"
-                alt="whatsapp Icon"
+                alt="WhatsApp Icon"
                 width={24}
                 height={24}
                 className="w-[16px] h-[16px] md:w-[24px] md:h-[24px]"
@@ -123,32 +112,36 @@ export default function TopHeader({
 
           {/* Social Icons */}
           <div className="flex items-center space-x-3 text-base">
-            <Link
-              href={socialMedia.facebook}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <CloudinaryImage
-                src="/icons/facebook.svg"
-                alt="facebook Icon"
-                width={24}
-                height={24}
-                className="w-auto h-[16px] md:h-[24px]"
-              />
-            </Link>
-            <Link
-              href={socialMedia.instagram}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <CloudinaryImage
-                src="/icons/instagram.svg"
-                alt="instagram Icon"
-                width={24}
-                height={24}
-                className="w-[16px] h-[16px] md:w-[24px] md:h-[24px]"
-              />
-            </Link>
+            {socialMedia.facebook && (
+              <Link
+                href={typeof socialMedia.facebook === 'string' ? socialMedia.facebook : socialMedia.facebook.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <CloudinaryImage
+                  src="/icons/facebook.svg"
+                  alt="Facebook Icon"
+                  width={24}
+                  height={24}
+                  className="w-auto h-[16px] md:h-[24px]"
+                />
+              </Link>
+            )}
+            {socialMedia.instagram && (
+              <Link
+                href={typeof socialMedia.instagram === 'string' ? socialMedia.instagram : socialMedia.instagram.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <CloudinaryImage
+                  src="/icons/instagram.svg"
+                  alt="Instagram Icon"
+                  width={24}
+                  height={24}
+                  className="w-[16px] h-[16px] md:w-[24px] md:h-[24px]"
+                />
+              </Link>
+            )}
           </div>
         </div>
 

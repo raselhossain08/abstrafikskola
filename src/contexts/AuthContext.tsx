@@ -43,6 +43,9 @@ interface RegisterData {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// API Base URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -82,7 +85,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const token = getAuthCookie('auth_token');
         if (token) {
           // Validate token with backend
-          const response = await fetch('/api/auth/verify', {
+          const response = await fetch(`${API_BASE_URL}/auth/verify`, {
             method: 'GET',
             headers: {
               Authorization: `Bearer ${token}`,
@@ -117,7 +120,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ): Promise<{ success: boolean; message?: string }> => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -150,7 +153,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ): Promise<{ success: boolean; message?: string }> => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -190,7 +193,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { success: false, message: 'Not authenticated' };
       }
 
-      const response = await fetch('/api/auth/update', {
+      const response = await fetch(`${API_BASE_URL}/auth/update`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -221,7 +224,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     removeAuthCookie('refresh_token');
 
     // Optional: Call logout endpoint to invalidate server-side session
-    fetch('/api/auth/logout', {
+    fetch(`${API_BASE_URL}/auth/logout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

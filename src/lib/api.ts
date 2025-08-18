@@ -1,6 +1,6 @@
 // API configuration and types
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api';
+  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
 
 export interface Course {
   _id: string;
@@ -226,4 +226,154 @@ export const subscriptionAPI = {
 
 export const contactAPI = {
   create: (contactData: ContactData) => apiClient.createContact(contactData),
+};
+
+// Risk1Risk2 combined package API
+export const risk1Risk2API = {
+  // Get combined Risk1 + Risk2 courses
+  getCombinedCourses: async () => {
+    try {
+      // Fetch both Risk1 and Risk2 schedules
+      const [risk1Response, risk2Response] = await Promise.all([
+        scheduleAPI.getByTitle('Riskettan'),
+        scheduleAPI.getByTitle('Halkbana')
+      ]);
+
+      let allCourses: any[] = [];
+
+      // Add Risk1 courses if available
+      if (risk1Response.success && risk1Response.data) {
+        const risk1Courses = risk1Response.data.map((schedule: Schedule) => ({
+          ...schedule,
+          courseType: 'risk1',
+          packageType: 'individual'
+        }));
+        allCourses = [...allCourses, ...risk1Courses];
+      }
+
+      // Add Risk2 courses if available  
+      if (risk2Response.success && risk2Response.data) {
+        const risk2Courses = risk2Response.data.map((schedule: Schedule) => ({
+          ...schedule,
+          courseType: 'risk2', 
+          packageType: 'individual'
+        }));
+        allCourses = [...allCourses, ...risk2Courses];
+      }
+
+      // Sort by date
+      allCourses.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateA.getTime() - dateB.getTime();
+      });
+
+      return {
+        success: true,
+        data: allCourses,
+        message: 'Combined courses fetched successfully'
+      };
+    } catch (error) {
+      console.error('Error fetching combined courses:', error);
+      return {
+        success: false,
+        data: null,
+        message: 'Failed to fetch combined courses'
+      };
+    }
+  },
+
+  // Get package pricing information
+  getPackagePricing: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/public/risk1-risk2/pricing`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error fetching package pricing:', error);
+      return {
+        success: false,
+        data: {
+          risk1Price: 1800,
+          risk2Price: 2200, 
+          packagePrice: 3800,
+          discount: 5,
+          savings: 200
+        },
+        message: 'Using default pricing'
+      };
+    }
+  },
+
+  // Book a Risk1+Risk2 package
+  bookPackage: async (bookingData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    mobile: string;
+    personNumber: string;
+    packageType: 'risk1-risk2';
+    preferredDates?: {
+      risk1Date?: string;
+      risk2Date?: string;
+    };
+    notes?: string;
+  }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/public/risk1-risk2/book`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookingData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error booking package:', error);
+      return {
+        success: false,
+        message: 'Failed to book package. Please try again.'
+      };
+    }
+  },
+
+  // Get available package deals
+  getAvailablePackages: async (filters?: {
+    dateFrom?: string;
+    dateTo?: string;
+    language?: string;
+  }) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters?.dateFrom) queryParams.append('dateFrom', filters.dateFrom);
+      if (filters?.dateTo) queryParams.append('dateTo', filters.dateTo);
+      if (filters?.language) queryParams.append('language', filters.language);
+
+      const response = await fetch(
+        `${API_BASE_URL}/public/risk1-risk2/availability?${queryParams}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error fetching available packages:', error);
+      // Fallback to combined courses
+      return risk1Risk2API.getCombinedCourses();
+    }
+  }
 };

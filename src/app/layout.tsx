@@ -8,7 +8,7 @@ import Footer from '@/components/common/Footer';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { CloudinaryProvider } from '@/contexts/CloudinaryContext';
-import { ServerCookies } from '@/lib/cookies';
+import { ClientOnly } from '@/components/common/ClientOnly';
 
 // Load Raleway font with variable support
 const raleway = Raleway({
@@ -73,29 +73,31 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Get initial language from server-side cookies
-  const initialLanguage = await ServerCookies.getLanguage();
+  // Default language - will be detected client-side by LanguageProvider
+  const initialLanguage = 'en';
 
   return (
     <html
       lang={initialLanguage}
       className={`${raleway.variable} ${sansation.variable}`}
     >
-      <body className="font-sansation antialiased">
-        <AuthProvider>
-          <LanguageProvider initialLanguage={initialLanguage}>
-            <CloudinaryProvider>
-              <Header />
-              <main>{children}</main>
-              <Footer />
-            </CloudinaryProvider>
-          </LanguageProvider>
-        </AuthProvider>
+      <body className="font-sansation antialiased" suppressHydrationWarning>
+        <ClientOnly>
+          <AuthProvider>
+            <LanguageProvider initialLanguage={initialLanguage}>
+              <CloudinaryProvider>
+                <Header />
+                <main>{children}</main>
+                <Footer />
+              </CloudinaryProvider>
+            </LanguageProvider>
+          </AuthProvider>
+        </ClientOnly>
       </body>
     </html>
   );

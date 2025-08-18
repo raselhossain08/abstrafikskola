@@ -1,18 +1,41 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useLanguage, type Language } from '@/contexts/LanguageContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { headerApi } from '@/lib/headerApi';
+
+export interface IconData {
+  url: string;
+  publicId: string;
+  alt: string;
+}
+
+export interface ContactIcon {
+  phone: IconData;
+  email: IconData;
+  location: IconData;
+  whatsapp: IconData;
+}
 
 export interface HeaderContactInfo {
   location: string;
   email: string;
   phone: string;
   whatsapp: string;
+  icons: ContactIcon;
+}
+
+export interface SocialMediaItem {
+  url: string;
+  icon: IconData;
 }
 
 export interface HeaderSocialMedia {
-  facebook: string;
-  instagram: string;
+  facebook: SocialMediaItem;
+  instagram: SocialMediaItem;
+  twitter?: SocialMediaItem;
+  linkedin?: SocialMediaItem;
+  youtube?: SocialMediaItem;
 }
 
 export interface HeaderTopHeader {
@@ -20,10 +43,28 @@ export interface HeaderTopHeader {
   socialMedia: HeaderSocialMedia;
 }
 
+export interface NavigationIcon {
+  url: string;
+  publicId: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  component?: string;
+}
+
+export interface Logo {
+  url: string;
+  publicId: string;
+  alt: string;
+  width: number;
+  height: number;
+}
+
 export interface HeaderDropdownItem {
   id: string;
   name: string;
   href: string;
+  icon: IconData;
 }
 
 export interface HeaderMenuItem {
@@ -31,17 +72,22 @@ export interface HeaderMenuItem {
   name: string;
   href: string;
   hasDropdown: boolean;
+  icon: IconData;
   dropdownItems: HeaderDropdownItem[];
 }
 
 export interface HeaderNavigation {
+  logo: Logo;
+  hamburger: NavigationIcon;
+  close: NavigationIcon;
+  dropdown: NavigationIcon;
   menuItems: HeaderMenuItem[];
 }
 
 export interface HeaderLanguage {
   code: string;
   name: string;
-  flag: string;
+  flag: IconData;
   direction: 'ltr' | 'rtl';
   isDefault: boolean;
 }
@@ -64,9 +110,6 @@ export interface UseHeaderContentReturn {
   refetch: () => Promise<void>;
 }
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
-
 export const useHeaderContent = (): UseHeaderContentReturn => {
   const { language } = useLanguage();
   const [headerContent, setHeaderContent] = useState<HeaderContent | null>(
@@ -75,35 +118,168 @@ export const useHeaderContent = (): UseHeaderContentReturn => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Transform API response to component-friendly format - Updated for new backend format
+  const transformApiResponse = (apiData: any): HeaderContent => {
+    // Handle the new backend response structure
+    const data = apiData.data || apiData; // Handle both response.data and direct data formats
+    
+    return {
+      topHeader: {
+        contact: {
+          location: data.contact?.find((item: any) => item.type === 'location')?.text || '',
+          email: data.contact?.find((item: any) => item.type === 'email')?.text || '',
+          phone: data.contact?.find((item: any) => item.type === 'phone')?.text || '',
+          whatsapp: data.contact?.find((item: any) => item.type === 'whatsapp')?.text || '',
+          icons: {
+            location: {
+              url: data.contact?.find((item: any) => item.type === 'location')?.icon || '',
+              publicId: '',
+              alt: 'Location Icon',
+            },
+            email: {
+              url: data.contact?.find((item: any) => item.type === 'email')?.icon || '',
+              publicId: '',
+              alt: 'Email Icon',
+            },
+            phone: {
+              url: data.contact?.find((item: any) => item.type === 'phone')?.icon || '',
+              publicId: '',
+              alt: 'Phone Icon',
+            },
+            whatsapp: {
+              url: data.contact?.find((item: any) => item.type === 'whatsapp')?.icon || '',
+              publicId: '',
+              alt: 'WhatsApp Icon',
+            },
+          },
+        },
+        socialMedia: {
+          facebook: {
+            url: data.social?.find((item: any) => item.platform === 'facebook')?.text || '',
+            icon: {
+              url: data.social?.find((item: any) => item.platform === 'facebook')?.icon || '',
+              publicId: '',
+              alt: 'Facebook Icon',
+            },
+          },
+          instagram: {
+            url: data.social?.find((item: any) => item.platform === 'instagram')?.text || '',
+            icon: {
+              url: data.social?.find((item: any) => item.platform === 'instagram')?.icon || '',
+              publicId: '',
+              alt: 'Instagram Icon',
+            },
+          },
+          twitter: {
+            url: data.social?.find((item: any) => item.platform === 'twitter')?.text || '',
+            icon: {
+              url: data.social?.find((item: any) => item.platform === 'twitter')?.icon || '',
+              publicId: '',
+              alt: 'Twitter Icon',
+            },
+          },
+          linkedin: {
+            url: data.social?.find((item: any) => item.platform === 'linkedin')?.text || '',
+            icon: {
+              url: data.social?.find((item: any) => item.platform === 'linkedin')?.icon || '',
+              publicId: '',
+              alt: 'LinkedIn Icon',
+            },
+          },
+        },
+      },
+      navigation: {
+        logo: {
+          url: data.logo?.image?.url || '/logo.svg',
+          publicId: '',
+          alt: data.logo?.image?.alt || 'Company Logo',
+          width: data.logo?.image?.width || 75,
+          height: data.logo?.image?.height || 35,
+        },
+        hamburger: {
+          url: data.icons?.menu?.url || '/icons/menu.svg',
+          publicId: '',
+          alt: data.icons?.menu?.alt || 'Menu Icon',
+          width: data.icons?.menu?.width || 24,
+          height: data.icons?.menu?.height || 24,
+        },
+        close: {
+          url: data.icons?.close?.url || '/icons/close.svg',
+          publicId: '',
+          alt: data.icons?.close?.alt || 'Close Icon',
+          component: data.icons?.close?.component || 'IoCloseSharp',
+        },
+        dropdown: {
+          url: data.icons?.arrow?.url || '/icons/arrow.svg',
+          publicId: '',
+          alt: data.icons?.arrow?.alt || 'Dropdown Arrow',
+          width: data.icons?.arrow?.width || 16,
+          height: data.icons?.arrow?.height || 16,
+        },
+        menuItems: (data.navigation || []).map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          href: item.href,
+          hasDropdown: item.dropdown || false,
+          icon: {
+            url: item.icon?.url || '',
+            publicId: '',
+            alt: 'Menu Icon',
+          },
+          dropdownItems: (item.items || []).map((subItem: any) => ({
+            id: subItem.id,
+            name: subItem.name,
+            href: subItem.href,
+            icon: {
+              url: subItem.icon?.url || '',
+              publicId: '',
+              alt: 'Menu Icon',
+            },
+          })),
+        })),
+      },
+      languages: (data.languages || []).map((lang: any) => ({
+        code: lang.code,
+        name: lang.name,
+        flag: {
+          url: lang.flag,
+          publicId: '',
+          alt: `${lang.name} Flag`,
+        },
+        direction: lang.direction || 'ltr',
+        isDefault: lang.isDefault || false,
+      })),
+      loginButton: data.buttons?.login?.text || 'Login',
+      meta: {
+        version: '1.0',
+        direction: 'ltr',
+      },
+    };
+  };
+
   const fetchHeaderContent = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(
-        `${BACKEND_URL}/api/header-content?lang=${language}`
-      );
+      // Use headerApi to fetch active header content
+      const response = await headerApi.getActiveHeader(language);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.success && data.data) {
-        setHeaderContent(data.data);
+      if (response.success && response.data) {
+        const transformedData = transformApiResponse(response.data);
+        setHeaderContent(transformedData);
         console.log(`✅ Header content loaded for language: ${language}`);
       } else {
-        throw new Error('Invalid response format from header content API');
+        throw new Error(response.message || 'Failed to load header content from API');
       }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to fetch header content';
       setError(errorMessage);
       console.error('❌ Error fetching header content:', errorMessage);
-
-      // Set fallback static content if API fails
-      setHeaderContent(getFallbackHeaderContent(language));
+      
+      // Don't set fallback - components will handle no data state
+      setHeaderContent(null);
     } finally {
       setIsLoading(false);
     }
@@ -123,281 +299,5 @@ export const useHeaderContent = (): UseHeaderContentReturn => {
     isLoading,
     error,
     refetch,
-  };
-};
-
-// Fallback static content (same as current static data)
-const getFallbackHeaderContent = (lang: Language): HeaderContent => {
-  const fallbackTranslations = {
-    en: {
-      location: 'Dalgatan 11, 15133 Södertälje',
-      loginButton: 'Login',
-      menuItems: [
-        {
-          id: 'home',
-          name: 'Home',
-          href: '/',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'price-list',
-          name: 'Price List',
-          href: '/price-list',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'handledarkurs',
-          name: 'Handledarkurs',
-          href: '/handledarkurs',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'riskettan',
-          name: 'Riskettan',
-          href: '/riskettan',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'halkbana',
-          name: 'Halkbana',
-          href: '/halkbana',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'r1-r2',
-          name: 'Risk1 + Risk2',
-          href: '/r1-r2',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'taxi',
-          name: 'Taxi',
-          href: '/taxi',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'info',
-          name: 'Info',
-          href: '/info/about',
-          hasDropdown: true,
-          dropdownItems: [
-            { id: 'about', name: 'About ABS Trafiksola', href: '/info/about' },
-            { id: 'team', name: 'ABS Team', href: '/info/team' },
-            { id: 'swish', name: 'Swish/BG', href: '/info/swish' },
-            { id: 'terms', name: 'Terms Of Purchase', href: '/info/terms' },
-          ],
-        },
-        {
-          id: 'contact',
-          name: 'Contact',
-          href: '/contact',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-      ],
-    },
-    sv: {
-      location: 'Dalagatan 1 L, 15133 Södertälje',
-      loginButton: 'Logga in',
-      menuItems: [
-        {
-          id: 'home',
-          name: 'Hem',
-          href: '/',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'price-list',
-          name: 'Prislista',
-          href: '/price-list',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'handledarkurs',
-          name: 'Handledarkurs',
-          href: '/handledarkurs',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'riskettan',
-          name: 'Riskettan',
-          href: '/riskettan',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'halkbana',
-          name: 'Halkbana',
-          href: '/halkbana',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'r1-r2',
-          name: 'Risk1 + Risk2',
-          href: '/r1-r2',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'taxi',
-          name: 'Taxi',
-          href: '/taxi',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'info',
-          name: 'Info',
-          href: '/info/about',
-          hasDropdown: true,
-          dropdownItems: [
-            { id: 'about', name: 'Om ABS Trafiksola', href: '/info/about' },
-            { id: 'team', name: 'ABS Team', href: '/info/team' },
-            { id: 'swish', name: 'Swish/BG', href: '/info/swish' },
-            { id: 'terms', name: 'Köpvillkor', href: '/info/terms' },
-          ],
-        },
-        {
-          id: 'contact',
-          name: 'Kontakt',
-          href: '/contact',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-      ],
-    },
-    ar: {
-      location: 'دالاغاتان 1 لتر، 15133 سودرتاليا',
-      loginButton: 'تسجيل الدخول',
-      menuItems: [
-        {
-          id: 'home',
-          name: 'الرئيسية',
-          href: '/',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'price-list',
-          name: 'قائمة الأسعار',
-          href: '/price-list',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'handledarkurs',
-          name: 'دورة القيادة',
-          href: '/handledarkurs',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'riskettan',
-          name: 'ريسكيتان',
-          href: '/riskettan',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'halkbana',
-          name: 'هالكبانا',
-          href: '/halkbana',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'r1-r2',
-          name: 'Risk1 + Risk2',
-          href: '/r1-r2',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'taxi',
-          name: 'تاكسي',
-          href: '/taxi',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-        {
-          id: 'info',
-          name: 'معلومات',
-          href: '/info/about',
-          hasDropdown: true,
-          dropdownItems: [
-            { id: 'about', name: 'حول ABS Trafiksola', href: '/info/about' },
-            { id: 'team', name: 'فريق ABS', href: '/info/team' },
-            { id: 'swish', name: 'Swish/BG', href: '/info/swish' },
-            { id: 'terms', name: 'شروط الشراء', href: '/info/terms' },
-          ],
-        },
-        {
-          id: 'contact',
-          name: 'اتصل بنا',
-          href: '/contact',
-          hasDropdown: false,
-          dropdownItems: [],
-        },
-      ],
-    },
-  };
-
-  const t = fallbackTranslations[lang];
-
-  return {
-    topHeader: {
-      contact: {
-        location: t.location,
-        email: 'info@abstrafikskola.se',
-        phone: '08 598 66666',
-        whatsapp: '073 998 8241',
-      },
-      socialMedia: {
-        facebook: 'https://facebook.com',
-        instagram: 'https://instagram.com',
-      },
-    },
-    navigation: {
-      menuItems: t.menuItems,
-    },
-    languages: [
-      {
-        code: 'en',
-        name: 'English',
-        flag: 'https://cdn-icons-png.flaticon.com/512/197/197374.png',
-        direction: 'ltr',
-        isDefault: false,
-      },
-      {
-        code: 'sv',
-        name: 'Swedish',
-        flag: 'https://cdn-icons-png.flaticon.com/512/197/197564.png',
-        direction: 'ltr',
-        isDefault: true,
-      },
-      {
-        code: 'ar',
-        name: 'Arabic',
-        flag: 'https://cdn-icons-png.flaticon.com/512/323/323301.png',
-        direction: 'rtl',
-        isDefault: false,
-      },
-    ],
-    loginButton: t.loginButton,
-    meta: {
-      version: '1.0',
-      direction: lang === 'ar' ? 'rtl' : 'ltr',
-    },
   };
 };

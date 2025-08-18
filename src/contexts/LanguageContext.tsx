@@ -20,6 +20,9 @@ const LanguageContext = createContext<LanguageContextType | undefined>(
   undefined
 );
 
+// API Base URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+
 interface LanguageProviderProps {
   children: ReactNode;
   initialLanguage?: Language;
@@ -70,7 +73,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
     setCookie('language', lang, 365); // Cookie expires in 1 year
 
     // Also call API to set server-side cookie
-    fetch('/api/language', {
+    fetch(`${API_BASE_URL}/language`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
