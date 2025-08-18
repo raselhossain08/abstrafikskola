@@ -111,7 +111,8 @@ const defaultWhyChooseUsData: WhyChooseUsData = {
 
 export const getWhyChooseUsData = cache(async (): Promise<WhyChooseUsData> => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/why-choose-us`, {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    const response = await fetch(`${API_BASE_URL}/why-choose-us`, {
       cache: 'force-cache',
       next: { revalidate: 3600 } // Cache for 1 hour
     });
@@ -137,7 +138,8 @@ export const getWhyChooseUsData = cache(async (): Promise<WhyChooseUsData> => {
 // Client-side fetch function for React components
 export const fetchWhyChooseUsData = async (): Promise<WhyChooseUsData> => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/why-choose-us`);
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    const response = await fetch(`${API_BASE_URL}/why-choose-us`);
 
     if (!response.ok) {
       console.error('Failed to fetch why choose us data');

@@ -128,7 +128,8 @@ const defaultFooterData: FooterData = {
 
 export const getFooterData = cache(async (): Promise<FooterData> => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/footer`, {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    const response = await fetch(`${API_BASE_URL}/footer`, {
       cache: 'force-cache',
       next: { revalidate: 3600 } // Cache for 1 hour
     });
@@ -154,7 +155,8 @@ export const getFooterData = cache(async (): Promise<FooterData> => {
 // Client-side fetch function for React components
 export const fetchFooterData = async (): Promise<FooterData> => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/footer`);
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    const response = await fetch(`${API_BASE_URL}/footer`);
 
     if (!response.ok) {
       console.error('Failed to fetch footer data');

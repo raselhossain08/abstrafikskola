@@ -80,7 +80,8 @@ const defaultContactSectionData: ContactSectionData = {
 
 export const getContactSectionData = cache(async (): Promise<ContactSectionData> => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/contact-section`, {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    const response = await fetch(`${API_BASE_URL}/contact-section`, {
       cache: 'force-cache',
       next: { revalidate: 3600 } // Cache for 1 hour
     });
@@ -106,7 +107,8 @@ export const getContactSectionData = cache(async (): Promise<ContactSectionData>
 // Client-side fetch function for React components
 export const fetchContactSectionData = async (): Promise<ContactSectionData> => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/contact-section`);
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    const response = await fetch(`${API_BASE_URL}/contact-section`);
 
     if (!response.ok) {
       console.error('Failed to fetch contact section data');

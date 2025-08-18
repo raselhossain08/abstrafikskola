@@ -14,7 +14,8 @@ interface SimpleSection {
 // API call function
 async function getAboutContent() {
   try {
-    const response = await fetch('http://localhost:8000/api/about-content', {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    const response = await fetch(`${API_BASE_URL}/about-content`, {
       cache: 'no-store',
     });
     
