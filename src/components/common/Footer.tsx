@@ -136,11 +136,11 @@ export default function Footer() {
               ))}
             </div>
           </div>
-          <div className="w-[111px] pb-8 md:pb-0">
+          <div className="w-4/12 pb-8 md:pb-0">
             <h2 className="text-24 font-raleway font-[500] text-[#1D1F2C] mb-3 md:mb-5">
               {footerData.companySection.title}
             </h2>
-            <ul className="space-y-3 text-16 font-raleway text-[#4A4C56]">
+            <ul className="space-y-3 text-16 font-raleway grid-cols-3 grid text-[#4A4C56]">
               {sortedCompanyLinks.map((link) => (
                 <li key={link._id}>
                   <Link href={link.url} className="hover:text-blue-600 transition">
@@ -154,7 +154,7 @@ export default function Footer() {
             <h2 className="text-24 font-raleway font-[500] text-[#1D1F2C] mb-3 md:mb-5">
               {footerData.contactsSection.title}
             </h2>
-            <ul className="space-y-3 text-16 font-raleway text-[#4A4C56]">
+            <ul className="space-y-3 text-16 font-raleway text-[#4A4C56] ">
               {sortedContacts.map((contact) => (
                 <li key={contact._id} className="flex items-center space-x-2">
                   <Image src={contact.icon} alt="" height={15} width={15} />
