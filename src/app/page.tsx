@@ -1,7 +1,7 @@
 'use client';
 
 import Contact from '@/components/common/Contact';
-import GalleryWrapper from '@/components/home/GalleryWrapper';
+import Gallery from '@/components/home/Gallery';
 import HeroSection from '@/components/home/HeroSection';
 import HeroSection2 from '@/components/home/HeroSection2';
 import IntensiveDrivingProgram from '@/components/home/IntensiveDrivingProgram';
@@ -12,13 +12,13 @@ import Image from 'next/image';
 
 export default function Home() {
   return (
-    <div>
+    <div className=' lt'>
       <HeroSection2 />
       <PricingSection />
       <IntensiveDrivingProgram />
       <WhyChooseUs />
       <StudentFeedback />
-      <GalleryWrapper />
+      <Gallery />
       <Contact />
     </div>
   );

@@ -54,7 +54,7 @@ export default function HeroSection2() {
     <div
       className="relative w-full bg-white px-4 xl:px-0 bg-no-repeat bg-cover"
       style={{ backgroundImage: `url(${content.backgroundImage.url})` }}
-      
+      dir={language === 'ar' ? 'rtl' : 'ltr'}
     >
       <div className="w-full xl:w-[1320px] mx-auto relative z-10 pb-10">
         <div className="flex py-14 justify-center">
@@ -69,7 +69,11 @@ export default function HeroSection2() {
               {content.mainContent.subtitle}
             </h3>
             <Button 
-              className={`bg-custom-3 w-[200px] h-[48px] rounded-[30px] font-raleway font-medium text-[18px] leading-[26px] tracking-normal text-white hover:bg-custom-3 hover:text-white mb-8`}
+              className={`w-[200px] h-[48px] rounded-[30px] font-raleway font-medium text-[18px] leading-[26px] tracking-normal text-white mb-8 ${
+                content.buttonStyle.variant === 'primary' ? 'bg-custom-3 hover:bg-custom-3' :
+                content.buttonStyle.variant === 'secondary' ? 'bg-custom-2 hover:bg-custom-2' :
+                'bg-transparent border border-white hover:bg-white hover:text-black'
+              } hover:text-white`}
             >
               {content.mainContent.cta}
             </Button>

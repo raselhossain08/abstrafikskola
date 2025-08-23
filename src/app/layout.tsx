@@ -84,8 +84,9 @@ export default function RootLayout({
     <html
       lang={initialLanguage}
       className={`${raleway.variable} ${sansation.variable}`}
+     
     >
-      <body className="font-sansation antialiased" suppressHydrationWarning>
+      <body className="font-sansation antialiased" suppressHydrationWarning  dir="ltr">
         <ClientOnly>
           <AuthProvider>
             <LanguageProvider initialLanguage={initialLanguage}>
