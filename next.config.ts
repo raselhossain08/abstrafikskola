@@ -25,18 +25,32 @@ const nextConfig: NextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   
-  // Development optimizations - removed deprecated options
-  
-  // Suppress hydration warnings in development (for browser extension issues)
-  ...(process.env.NODE_ENV === 'development' && {
-    webpack: (config: any) => {
-      config.resolve.fallback = { fs: false };
-      return config;
-    },
-  }),
+  // Webpack configuration for handling server-side modules
+  webpack: (config: any, { isServer }: { isServer: boolean }) => {
+    if (!isServer) {
+      // Exclude Google Cloud modules from client-side bundle
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: require.resolve('crypto-browserify'),
+        stream: require.resolve('stream-browserify'),
+        buffer: require.resolve('buffer'),
+      };
+
+      // Exclude Google Cloud libraries from client bundle
+      config.externals = config.externals || [];
+      config.externals.push({
+        '@google-cloud/translate': 'commonjs @google-cloud/translate',
+      });
+    }
+
+    return config;
+  },
   
   // Server external packages for better build performance
-  serverExternalPackages: [],
+  serverExternalPackages: ['@google-cloud/translate'],
 };
 
 export default nextConfig;

@@ -1,26 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { MiddlewareCookies } from '@/lib/cookies';
+import { cookies } from 'next/headers';
+import type { Language } from '@/contexts/LanguageContext';
 
 export async function POST(request: NextRequest) {
   try {
     const { language } = await request.json();
 
-    // Validate language
     if (!language || !['en', 'sv', 'ar'].includes(language)) {
       return NextResponse.json(
-        { message: 'Invalid language' },
+        { error: 'Invalid language' },
         { status: 400 }
       );
     }
 
-    // Create response and set language cookie
-    const response = NextResponse.json({
+    const response = NextResponse.json({ 
+      success: true, 
       message: 'Language updated successfully',
-      language,
+      language 
     });
-
-    response.cookies.set('language', language, {
-      maxAge: 365 * 24 * 60 * 60, // 1 year
+    
+    // Set cookie that expires in 1 year
+    response.cookies.set('language', language as Language, {
+      maxAge: 365 * 24 * 60 * 60, // 1 year in seconds
       path: '/',
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
@@ -28,9 +29,27 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Language switch error:', error);
+    console.error('Language setting error:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { error: 'Failed to set language' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    const cookieStore = await cookies();
+    const language = cookieStore.get('language')?.value || 'en';
+
+    return NextResponse.json({
+      success: true,
+      language,
+    });
+  } catch (error) {
+    console.error('Language getting error:', error);
+    return NextResponse.json(
+      { error: 'Failed to get language' },
       { status: 500 }
     );
   }

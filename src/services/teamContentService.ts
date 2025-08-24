@@ -47,17 +47,17 @@ class TeamContentService {
     return this.cache !== null && Date.now() < this.cacheExpiry;
   }
 
-  async getTeamContent(): Promise<TeamContent> {
+  async getTeamContent(language: string = 'en'): Promise<TeamContent> {
     try {
       // Return cached data if valid
       if (this.isCacheValid()) {
-        console.log('✅ Returning cached team content');
+        console.log(`✅ Returning cached team content for ${language}`);
         return this.cache!;
       }
 
-      console.log('🔄 Fetching team content from API...');
+      console.log(`🔄 Fetching team content from API for language: ${language}...`);
       
-      const response = await fetch(`${API_BASE_URL}/team-content`, {
+      const response = await fetch(`${API_BASE_URL}/team-content?lang=${language}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

@@ -24,9 +24,11 @@ export default function ContactPage() {
     const fetchContactContent = async () => {
       setLoading(true);
       try {
-        const result = await contactContentService.getContactContent();
+        const result = await contactContentService.getContactContent(language);
         if (result.success && result.data) {
-          setContactContent(result.data);
+          // Validate the data structure before setting state
+          const validatedData = validateContactContent(result.data);
+          setContactContent(validatedData);
         } else {
           setError(result.error || 'Failed to load contact content');
           // Use fallback data
@@ -41,14 +43,70 @@ export default function ContactPage() {
     };
 
     fetchContactContent();
-  }, []);
+  }, [language]); // Re-fetch when language changes
 
-  // Translation helper function
-  const t = (content: any) => {
-    if (typeof content === 'object' && content && content[language]) {
-      return content[language];
+  // Validate and sanitize contact content data
+  const validateContactContent = (data: any): ContactContentInterface => {
+    // Ensure all required fields exist and have proper structure
+    const validated = {
+      ...data,
+      hero: {
+        ...data.hero,
+        title: data.hero?.title || { en: 'Contact Us', sv: '', ar: '' },
+        subtitle: data.hero?.subtitle || { en: '', sv: '', ar: '' },
+        desktopImage: data.hero?.desktopImage || '/img/contact/2.png',
+        mobileImage: data.hero?.mobileImage || '/img/contact/mobile.png',
+      },
+      contactSection: {
+        ...data.contactSection,
+        title: data.contactSection?.title || { en: 'Contact', sv: '', ar: '' },
+        description: data.contactSection?.description || { en: '', sv: '', ar: '' },
+        contactMethods: Array.isArray(data.contactSection?.contactMethods) ? data.contactSection.contactMethods : [],
+        hours: Array.isArray(data.contactSection?.hours) ? data.contactSection.hours : [],
+        features: Array.isArray(data.contactSection?.features) ? data.contactSection.features : [],
+        location: data.contactSection?.location || {
+          address: 'Dalgatan 1 1, 15133 Södertälje',
+          googleMapsLink: 'https://maps.google.com/?q=Dalgatan+1+1,+15133+Södertälje',
+          embedUrl: ''
+        }
+      },
+      form: {
+        ...data.form,
+        title: data.form?.title || { en: 'Get In Touch With Us', sv: '', ar: '' }
+      }
+    };
+
+    return validated as ContactContentInterface;
+  };
+
+  // Translation helper function with enhanced error handling
+  const t = (content: any): string => {
+    // Handle null/undefined
+    if (!content) return '';
+    
+    // If it's already a string, return it
+    if (typeof content === 'string') return content;
+    
+    // Handle multi-language objects
+    if (typeof content === 'object' && content !== null) {
+      // Try the current language first
+      if (content[language] && typeof content[language] === 'string') {
+        return content[language];
+      }
+      
+      // Fallback to English
+      if (content.en && typeof content.en === 'string') {
+        return content.en;
+      }
+      
+      // If it's an object but doesn't have language properties, 
+      // it might be something that shouldn't be rendered
+      console.warn('Attempted to render object as text:', content);
+      return '';
     }
-    return content || '';
+    
+    // For any other type, convert to string safely
+    return String(content);
   };
 
   // Loading state
@@ -89,7 +147,7 @@ export default function ContactPage() {
         style={{
           backgroundImage: `url(${contactContent.hero.desktopImage})`,
         }}
-        className="h-[400px] hidden md:flex items-center justify-center flex-col px-4 bg-no-repeat bg-right"
+        className="h-[400px] hidden md:flex items-center justify-center flex-col px-4 bg-no-repeat  bg-cover"
         aria-label="Contact Us Hero"
       >
         <h1 className="text-48 font-bold text-[#3F8FEE]">
@@ -195,13 +253,46 @@ export default function ContactPage() {
 
               {/* Map */}
               <div className="map mb-20 sm:mb-0">
-                <Image
-                  src={contactContent.contactSection.map.src}
-                  alt={t(contactContent.contactSection.map.alt)}
-                  width={contactContent.contactSection.map.width}
-                  height={contactContent.contactSection.map.height}
-                  loading="lazy"
-                />
+                <div className="relative w-full">
+                  <iframe
+                    src={
+                      contactContent.contactSection.location?.embedUrl || 
+                      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2034.397!2d17.6248!3d59.1957!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x465f7d7c4c8b1f11%3A0x9a8b7c6d5e4f3a2b!2sDalgatan%201%2C%20151%2033%20S%C3%B6dert%C3%A4lje%2C%20Sweden!5e0!3m2!1sen!2sse!4v1642680000000!5m2!1sen!2sse"
+                    }
+                    width="100%"
+                    height="279"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Driving School Location Map"
+                    className="w-full rounded-lg shadow-sm"
+                    onError={(e) => {
+                      console.error('Map failed to load');
+                      // Fallback: show a link to Google Maps
+                      const target = e.target as HTMLIFrameElement;
+                      const fallbackDiv = document.createElement('div');
+                      fallbackDiv.className = 'w-full h-[279px] bg-gray-100 rounded-lg shadow-sm flex items-center justify-center flex-col border';
+                      fallbackDiv.innerHTML = `
+                        <div class="text-center p-4">
+                          <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                          </svg>
+                          <p class="text-gray-600 mb-4">Interactive map unavailable</p>
+                          <a href="https://maps.google.com/?q=Dalgatan+1+1,+15133+Södertälje" target="_blank" rel="noopener noreferrer" 
+                             class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                            View on Google Maps
+                          </a>
+                        </div>
+                      `;
+                      target.parentNode?.replaceChild(fallbackDiv, target);
+                    }}
+                  />
+                </div>
               </div>
             </section>
 

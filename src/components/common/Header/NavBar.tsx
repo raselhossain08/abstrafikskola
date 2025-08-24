@@ -385,27 +385,29 @@ export default function NavBar({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-48">
-                  <DropdownMenuLabel>Select Language</DropdownMenuLabel>
+                  <DropdownMenuLabel>
+                    {language === 'ar' ? 'اختر اللغة' : language === 'sv' ? 'Välj språk' : 'Select Language'}
+                  </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuRadioGroup
                     value={selectedLanguage.code}
                     onValueChange={handleLanguageChange}
                   >
-                    {languages.map((language) => (
+                    {languages.map((lang) => (
                       <DropdownMenuRadioItem
-                        key={language.code}
-                        value={language.code}
-                        className="flex items-center space-x-2"
+                        key={lang.code}
+                        value={lang.code}
+                        className={`flex items-center space-x-2 ${language === 'ar' ? 'flex-row-reverse space-x-reverse' : ''}`}
                       >
                         <Image
-                          src={typeof language.flag === 'string' ? language.flag : language.flag?.url || '/icons/default-flag.svg'}
+                          src={typeof lang.flag === 'string' ? lang.flag : lang.flag?.url || '/icons/default-flag.svg'}
                           height={20}
                           width={20}
-                          alt={`${getLocalizedText(language.name)} Flag`}
+                          alt={`${getLocalizedText(lang.name)} Flag`}
                           className="rounded-full"
                           unoptimized
                         />
-                        <span>{getLocalizedText(language.name)}</span>
+                        <span>{getLocalizedText(lang.name)}</span>
                       </DropdownMenuRadioItem>
                     ))}
                   </DropdownMenuRadioGroup>

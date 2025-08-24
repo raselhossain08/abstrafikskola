@@ -1,4 +1,4 @@
-// Contact content service
+// Contact content service with multi-language support
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 export interface ContactMethodInterface {
@@ -28,6 +28,12 @@ export interface FeatureInterface {
   ar: string;
 }
 
+export interface LocationInterface {
+  address: string;
+  googleMapsLink: string;
+  embedUrl?: string;
+}
+
 export interface MapInterface {
   src: string;
   width: number;
@@ -37,6 +43,7 @@ export interface MapInterface {
     sv: string;
     ar: string;
   };
+  embedUrl?: string;
 }
 
 export interface ContactContentInterface {
@@ -73,7 +80,8 @@ export interface ContactContentInterface {
     contactMethods: ContactMethodInterface[];
     hours: HoursInterface[];
     features: FeatureInterface[];
-    map: MapInterface;
+    map?: MapInterface; // Legacy support
+    location?: LocationInterface; // New structure
   };
   form: {
     title: {
@@ -84,17 +92,36 @@ export interface ContactContentInterface {
   };
 }
 
+// Cache interface for storing translations
+interface CacheEntry {
+  data: ContactContentInterface;
+  timestamp: number;
+  ttl: number; // Time to live in milliseconds
+}
+
 class ContactContentService {
-  
-  // Get contact content from API
-  async getContactContent(): Promise<{ success: boolean; data?: ContactContentInterface; error?: string }> {
+  private cache: Map<string, CacheEntry> = new Map();
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  // Get contact content from API with language support
+  async getContactContent(language: string = 'en'): Promise<{ success: boolean; data?: ContactContentInterface; error?: string }> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/contact-content`, {
+      // Check cache first
+      const cacheKey = `contact-content-${language}`;
+      const cached = this.getCachedData(cacheKey);
+      if (cached) {
+        console.log(`📦 Returning cached contact content for ${language}`);
+        return { success: true, data: cached };
+      }
+
+      console.log(`🌍 Fetching contact content for language: ${language}`);
+
+      const response = await fetch(`${API_BASE_URL}/api/contact-content?lang=${language}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        cache: 'no-store', // Always fetch fresh data
+        cache: 'no-store', // Always fetch fresh data from API
       });
 
       const result = await response.json();
@@ -104,6 +131,9 @@ class ContactContentService {
       }
 
       if (result.success && result.data) {
+        // Cache the result
+        this.setCachedData(cacheKey, result.data);
+        
         return {
           success: true,
           data: result.data,
@@ -112,15 +142,194 @@ class ContactContentService {
         throw new Error('Invalid response format');
       }
     } catch (error) {
-      console.error('❌ Error fetching contact content:', error);
+      console.error(`❌ Error fetching contact content for ${language}:`, error);
       
       // Return fallback data if API fails
+      const fallbackData = this.getFallbackData();
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
-        data: this.getFallbackData(),
+        data: fallbackData,
       };
     }
+  }
+
+  // Cache management
+  private getCachedData(key: string): ContactContentInterface | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+
+    const now = Date.now();
+    if (now - entry.timestamp > entry.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return entry.data;
+  }
+
+  private setCachedData(key: string, data: ContactContentInterface): void {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl: this.CACHE_TTL
+    });
+  }
+
+  // Clear all cached data
+  clearCache(): void {
+    this.cache.clear();
+    console.log('🧹 Contact content cache cleared');
+  }
+
+  // Upload contact method icon
+  async uploadContactMethodIcon(
+    file: File, 
+    methodIndex: number, 
+    contactId?: string, 
+    token?: string
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      console.log(`📤 Uploading icon for contact method ${methodIndex}`);
+
+      const formData = new FormData();
+      formData.append('icon', file);
+      formData.append('methodIndex', methodIndex.toString());
+      
+      if (contactId) {
+        formData.append('contactId', contactId);
+      }
+
+      const headers: HeadersInit = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/contact-content/upload-icon`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to upload contact method icon');
+      }
+
+      if (result.success) {
+        // Clear cache since data has been updated
+        this.clearCache();
+        
+        console.log(`✅ Contact method icon uploaded successfully:`, result.data?.url);
+        
+        return {
+          success: true,
+          data: result.data,
+        };
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error(`❌ Error uploading contact method icon:`, error);
+      
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  // Update contact content (admin functionality)
+  async updateContactContent(
+    id: string,
+    data: Partial<ContactContentInterface>,
+    token: string
+  ): Promise<{ success: boolean; data?: ContactContentInterface; error?: string }> {
+    try {
+      console.log(`📝 Updating contact content: ${id}`);
+
+      const response = await fetch(`${API_BASE_URL}/api/contact-content/admin/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to update contact content');
+      }
+
+      if (result.success) {
+        // Clear cache since data has been updated
+        this.clearCache();
+        
+        console.log(`✅ Contact content updated successfully`);
+        
+        return {
+          success: true,
+          data: result.data,
+        };
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error(`❌ Error updating contact content:`, error);
+      
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  // Get all contact contents (admin functionality)
+  async getAllContactContents(token: string): Promise<{ success: boolean; data?: ContactContentInterface[]; error?: string }> {
+    try {
+      console.log('📋 Fetching all contact contents');
+
+      const response = await fetch(`${API_BASE_URL}/api/contact-content/admin/all`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to fetch contact contents');
+      }
+
+      if (result.success) {
+        return {
+          success: true,
+          data: result.data,
+        };
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error(`❌ Error fetching contact contents:`, error);
+      
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  // Get cached data info
+  getCacheInfo(): { size: number; keys: string[] } {
+    return {
+      size: this.cache.size,
+      keys: Array.from(this.cache.keys())
+    };
   }
 
   // Fallback data in case API fails
@@ -246,6 +455,7 @@ class ContactContentService {
             sv: 'Platskarta för körskola',
             ar: 'خريطة موقع مدرسة القيادة',
           },
+          embedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2034.397!2d17.6248!3d59.1957!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x465f7d7c4c8b1f11%3A0x9a8b7c6d5e4f3a2b!2sDalgatan%201%2C%20151%2033%20S%C3%B6dert%C3%A4lje%2C%20Sweden!5e0!3m2!1sen!2sse!4v1642680000000!5m2!1sen!2sse',
         },
       },
       form: {

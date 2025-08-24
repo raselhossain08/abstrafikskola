@@ -160,6 +160,7 @@ export default function page() {
     setPopupData(data);
     console.log(data);
   };
+  
   return (
     <>
       <div className="bg-[#F7FAFF] py-[56px] md:py-[120px] px-4">
@@ -368,16 +369,16 @@ export default function page() {
       <div className=" bg-white py-[56px] xl:py-[120px] px-4 ">
         <div className="w-full xl:w-[1320px] mx-auto">
           <h1 className="text-[24px] sm:text-35 font-[600]  text-[#1D1F2C]  pb-5 tracking-[0.5%]">
-            Risk1 + Risk2 Courses at ABS Trafikskola Södertälje 🚗🚦
+            {contentLoading ? 'Risk1 + Risk2 Courses at ABS Trafikskola Södertälje 🚗🚦' : pageContent?.pageContent?.mainTitle}
           </h1>
           <p className="text-20 sm:text-30 font-[500]  text-[#1D1F2C] leading-[100%]  pb-3">
-            Complete your risk education with our comprehensive courses! 🌟
+            {contentLoading ? 'Complete your risk education with our comprehensive courses! 🌟' : pageContent?.pageContent?.subtitle}
           </p>
           <p className="text-16 font-[400]  text-[#000000] leading-[140%] tracking-[0.5%]   w-11/12 pb-10">
-            At ABS Trafikskola Södertälje, we offer both Risk1 and Risk2 courses
-            that are mandatory requirements for obtaining your Swedish driving
-            license. These courses provide essential knowledge about road safety
-            and traffic behavior.
+            {contentLoading 
+              ? 'At ABS Trafikskola Södertälje, we offer both Risk1 and Risk2 courses that are mandatory requirements for obtaining your Swedish driving license. These courses provide essential knowledge about road safety and traffic behavior.'
+              : pageContent?.pageContent?.description
+            }
           </p>
           <div className="flex justify-between items-center pb-12 flex-col-reverse md:flex-row">
             <div className="w-full md:w-[633px]">
@@ -399,63 +400,65 @@ export default function page() {
                   </div>
                 </div>
               )) || (
-                <div className="flex space-x-4 items-start mb-4">
-                  <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
-                    <FaCheck />
+                // Fallback content when no CMS data is available
+                <>
+                  <div className="flex space-x-4 items-start mb-4">
+                    <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
+                      <FaCheck />
+                    </div>
+                    <div className=" w-11/12 space-y-1">
+                      <h3 className="text-16 font-bold sm:text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] sm:font-semibold ">
+                        Risk1 Course
+                      </h3>
+                      <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
+                        Covers alcohol, drugs, fatigue and how these affect driving
+                        ability. Essential foundation for understanding traffic
+                        risks.
+                      </p>
+                    </div>
                   </div>
-                  <div className=" w-11/12 space-y-1">
-                    <h3 className="text-16 font-bold sm:text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] sm:font-semibold ">
-                      Risk1 Course
-                    </h3>
-                    <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
-                      Covers alcohol, drugs, fatigue and how these affect driving
-                      ability. Essential foundation for understanding traffic
-                      risks.
-                    </p>
+                  
+                  <div className="flex space-x-4 items-start mb-2">
+                    <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
+                      <FaCheck />
+                    </div>
+                    <div className=" w-11/12 space-y-1">
+                      <h3 className=" text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] font-semibold ">
+                        Risk2 Course
+                      </h3>
+                      <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
+                        Advanced risk awareness training focusing on hazard perception
+                        and defensive driving techniques for safe road behavior.
+                      </p>
+                    </div>
                   </div>
-                </div>
+                </>
               )}
-
-              <div className="flex space-x-4 items-start mb-2">
-                <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
-                  <FaCheck />
-                </div>
-                <div className=" w-11/12 space-y-1">
-                  <h3 className=" text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] font-semibold ">
-                    For the Instructor 
-                  </h3>
-                  <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
-                    Update knowledge on current driving laws, learn effective
-                    teaching methods, and become certified to instruct
-                    privately.
-                  </p>
-                </div>
-              </div>
             </div>
             <div className="w-full md:w-[633px]">
               <div className="flex w-full justify-between gap-8 md:gap-0">
                 <div className=" flex flex-col justify-between">
                   <Image
-                    src="/img/product/1.png"
+                    src={pageContent?.images?.productImages?.[0]?.url || "/img/product/1.png"}
                     width={300}
                     height={200}
-                    alt="p1"
+                    alt={pageContent?.images?.productImages?.[0]?.alt || "Risk course image 1"}
                     className="w-[300px] h-[190px] rounded-[22px] object-cover"
                   />
                   <Image
-                    src="/img/product/2.png"
+                    src={pageContent?.images?.productImages?.[1]?.url || "/img/product/2.png"}
                     width={300}
                     height={200}
-                    alt="p1"
+                    alt={pageContent?.images?.productImages?.[1]?.alt || "Risk course image 2"}
                     className="w-[300px] h-[190px] rounded-[22px] object-cover"
                   />
                 </div>
                 <div className="">
                   <Image
-                    src="/img/product/3.png"
+                    src={pageContent?.images?.productImages?.[2]?.url || "/img/product/3.png"}
                     width={300}
                     height={200}
-                    alt="p1"
+                    alt={pageContent?.images?.productImages?.[2]?.alt || "Training facility"}
                     className="w-[300px] h-[407px] rounded-[22px] object-cover"
                   />
                 </div>
@@ -468,26 +471,26 @@ export default function page() {
               <div className="flex w-full justify-between gap-8 md:gap-0">
                 <div className="">
                   <Image
-                    src="/img/product/4.png"
+                    src={pageContent?.images?.productImages?.[3]?.url || "/img/product/4.png"}
                     width={300}
                     height={200}
-                    alt="p1"
+                    alt={pageContent?.images?.productImages?.[3]?.alt || "Course materials"}
                     className="w-[300px] h-[407px] rounded-[22px] object-cover"
                   />
                 </div>
                 <div className=" flex flex-col justify-between">
                   <Image
-                    src="/img/product/1.png"
+                    src={pageContent?.images?.productImages?.[0]?.url || "/img/product/1.png"}
                     width={300}
                     height={200}
-                    alt="p1"
+                    alt={pageContent?.images?.productImages?.[0]?.alt || "Risk course image 1"}
                     className="w-[300px] h-[190px] rounded-[22px] object-cover"
                   />
                   <Image
-                    src="/img/product/2.png"
+                    src={pageContent?.images?.productImages?.[1]?.url || "/img/product/2.png"}
                     width={300}
                     height={200}
-                    alt="p1"
+                    alt={pageContent?.images?.productImages?.[1]?.alt || "Risk course image 2"}
                     className="w-[300px] h-[190px] rounded-[22px] object-cover"
                   />
                 </div>
@@ -588,37 +591,40 @@ export default function page() {
                 </p>
               </div>
             )) || (
-              <div>
-                <strong className="block text-[#000000] mb-1 text-16 md:text-18 font-bold leading-[26px]">
-                  Who Should Participate?
-                </strong>
+              // Fallback content when no CMS data is available
+              <>
+                <div>
+                  <strong className="block text-[#000000] mb-1 text-16 md:text-18 font-bold leading-[26px]">
+                    Who Should Participate?
+                  </strong>
+                  <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
+                    Anyone planning to learn to drive privately - both students and
+                    their private instructors. The course is crucial to ensure a
+                    safe and informed driving experience for all involved.
+                  </p>
+                </div>
+
+                <div>
+                  <strong className="block text-[#000000] mb-1 text-18 font-bold leading-[26px]">
+                    Book Your Spot Today!
+                  </strong>
+                  <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
+                    Contact us to secure your place in our next Risk course.
+                    Don't wait – spaces fill up quickly!
+                  </p>
+                </div>
+
                 <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
-                  Anyone planning to learn to drive privately - both students and
-                  their private instructors. The course is crucial to ensure a
-                  safe and informed driving experience for all involved.
+                  For more information on supervision and practice driving, visit
+                  Transportstyrelsen's website.
                 </p>
-              </div>
+
+                <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
+                  Remember, a good start is half the journey! We look forward to
+                  welcoming you to ABS Trafikskola Södertälje. 🚗🎉
+                </p>
+              </>
             )}
-
-            <div>
-              <strong className="block text-[#000000] mb-1 text-18 font-bold leading-[26px]">
-                Book Your Spot Today!
-              </strong>
-              <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
-                Contact us to secure your place in our next Introduction Course.
-                Don’t wait – spaces fill up quickly!
-              </p>
-            </div>
-
-            <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
-              For more information on supervision and practice driving, visit
-              Transportstyrelsen’s website.
-            </p>
-
-            <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
-              Remember, a good start is half the journey! We look forward to
-              welcoming you to ABS Trafikskola Södertälje. 🚗🎉
-            </p>
           </div>
         </div>
       </div>

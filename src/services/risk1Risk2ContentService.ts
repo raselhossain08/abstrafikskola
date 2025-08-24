@@ -28,6 +28,20 @@ export interface AdditionalInfoItem {
   order: number;
 }
 
+export interface ProductImage {
+  url: string;
+  alt: string;
+  order: number;
+}
+
+export interface Images {
+  productImages: ProductImage[];
+  mainImage: {
+    url: string;
+    alt: string;
+  };
+}
+
 export interface Risk1Risk2ContentData {
   _id: string;
   sectionTitle: string;
@@ -50,6 +64,7 @@ export interface Risk1Risk2ContentData {
     items: CourseContentItem[];
   };
   additionalInfo: AdditionalInfoItem[];
+  images?: Images;
   language: string;
   isActive: boolean;
   version: string;
@@ -182,6 +197,34 @@ class Risk1Risk2ContentService {
           order: 4
         }
       ],
+      images: {
+        productImages: [
+          {
+            url: '/img/product/1.png',
+            alt: 'Risk1 course image 1',
+            order: 1
+          },
+          {
+            url: '/img/product/2.png', 
+            alt: 'Risk2 course image 2',
+            order: 2
+          },
+          {
+            url: '/img/product/3.png',
+            alt: 'Training facility',
+            order: 3
+          },
+          {
+            url: '/img/product/4.png',
+            alt: 'Course materials',
+            order: 4
+          }
+        ],
+        mainImage: {
+          url: '/img/product/main.png',
+          alt: 'Risk1 + Risk2 courses at ABS Trafikskola'
+        }
+      },
       language: 'en',
       isActive: true,
       version: '1.0.0',

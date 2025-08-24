@@ -72,8 +72,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
     setLanguageState(lang);
     setCookie('language', lang, 365); // Cookie expires in 1 year
 
-    // Also call API to set server-side cookie
-    fetch(`${API_BASE_URL}/language`, {
+    // Also call Next.js API route to set server-side cookie
+    fetch('/api/language', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
