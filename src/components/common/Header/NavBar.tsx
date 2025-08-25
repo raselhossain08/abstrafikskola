@@ -45,7 +45,7 @@ export default function NavBar({
 
   // Keep layout consistent - no RTL for the main container
   const isRTLContent = language === 'ar';
-  const textDirection = isRTLContent ? 'rtl' : 'ltr';
+  const textDirection = isRTLContent ? 'ltr' : 'ltr';
 
   // Get multilingual content based on current language
   const getLocalizedText = (textObj: any) => {
