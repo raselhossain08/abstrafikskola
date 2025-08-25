@@ -2,8 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import PricingCard from './PricingCard';
 import { pricingSectionService, type PricingSectionData } from '@/services/pricingSectionService';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function PricingSection() {
+  const { language } = useLanguage();
   const [pricingData, setPricingData] = useState<PricingSectionData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -12,7 +14,7 @@ export default function PricingSection() {
     const fetchPricingData = async () => {
       try {
         setLoading(true);
-        const data = await pricingSectionService.getPricingSection();
+        const data = await pricingSectionService.getPricingSection(language);
         setPricingData(data);
       } catch (error) {
         console.error('Error fetching pricing data:', error);
@@ -22,7 +24,7 @@ export default function PricingSection() {
     };
 
     fetchPricingData();
-  }, []);
+  }, [language]);
 
   // Show loading state
   if (loading) {

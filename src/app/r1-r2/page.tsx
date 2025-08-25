@@ -2,13 +2,55 @@
 import Contact from '@/components/common/Contact';
 import { ProductDialog } from '@/components/dialog/ProductDialog';
 import { Button } from '@/components/ui/button';
+import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
+import { useLanguage } from '@/contexts/LanguageContext';
 import Image from 'next/image';
 import React, { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaRegClock } from 'react-icons/fa';
 import { FaCheck } from 'react-icons/fa6';
 import { SlLike } from 'react-icons/sl';
 import { scheduleAPI, risk1Risk2API, type Schedule } from '@/lib/api';
-import { risk1Risk2ContentService, type Risk1Risk2ContentData } from '@/services/risk1Risk2ContentService';
+import { risk1Risk2ContentService } from '@/services/risk1Risk2ContentService';
+
+type Risk1Risk2ContentData = {
+  sectionTitle?: string;
+  sectionDescription?: string;
+  pageContent?: {
+    mainTitle: string;
+    subtitle: string;
+    description: string;
+  };
+  whyImportant?: {
+    title: string;
+    sections: Array<{
+      title: string;
+      description: string;
+    }>;
+  };
+  courseOffers?: {
+    title: string;
+    features: Array<{
+      title: string;
+      description: string;
+    }>;
+  };
+  courseContent?: {
+    title: string;
+    items: Array<{
+      title: string;
+    }>;
+  };
+  additionalInfo?: Array<{
+    title: string;
+    description: string;
+  }>;
+  images?: {
+    productImages: Array<{
+      url: string;
+      alt: string;
+    }>;
+  };
+};
 
 type Risk1Risk2Item = {
   _id?: string;
@@ -33,23 +75,24 @@ type Risk1Risk2Item = {
 };
 
 export default function page() {
+  const { language } = useLanguage();
   const [handledarkursOpen, setHandledarkursOpen] = useState(false);
   const [popupData, setPopupData] = useState<Risk1Risk2Item | null>(null);
   const [courseSlots, setCourseSlots] = useState<Risk1Risk2Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [pageContent, setPageContent] = useState<Risk1Risk2ContentData | null>(null);
+  const [pageContent, setPageContent] = useState<any>(null);
   const [contentLoading, setContentLoading] = useState(true);
 
   useEffect(() => {
     fetchRiskCourses();
     fetchPageContent();
-  }, []);
+  }, [language]); // Re-fetch content when language changes
 
   const fetchPageContent = async () => {
     try {
       setContentLoading(true);
-      const content = await risk1Risk2ContentService.getRisk1Risk2Content();
+      const content = await risk1Risk2ContentService.getRisk1Risk2Content(language);
       setPageContent(content);
     } catch (error) {
       console.error('Failed to fetch page content:', error);
@@ -165,14 +208,15 @@ export default function page() {
     <>
       <div className="bg-[#F7FAFF] py-[56px] md:py-[120px] px-4">
         <div className="w-full xl:w-[1320px] mx-auto">
+          
           <h1 className="text-24 sm:text-56 font-bold  text-[#1D1F2C] leading-[140%] text-center pb-5">
-            {contentLoading ? 'Risk1 + Risk2 Schedule and Prices' : pageContent?.sectionTitle}
+            {contentLoading ? 'Risk1 + Risk2 Schedule and Prices' : (pageContent?.hero?.title || 'Risk1 + Risk2 Schedule and Prices')}
           </h1>
           <div className="w-full sm:w-[872px] mx-auto pb-10">
             <p className=" text-16 leading-[140%] text-center font-normal text-[#4A4C56]">
               {contentLoading 
                 ? 'Complete your risk education with our Risk1 and Risk2 courses. These mandatory courses cover essential traffic safety knowledge for all new drivers. Check out our upcoming schedule and prices, and book your sessions online.'
-                : pageContent?.sectionDescription
+                : (pageContent?.hero?.description || 'Complete your risk education with our Risk1 and Risk2 courses. These mandatory courses cover essential traffic safety knowledge for all new drivers. Check out our upcoming schedule and prices, and book your sessions online.')
               }
             </p>
           </div>
@@ -369,33 +413,33 @@ export default function page() {
       <div className=" bg-white py-[56px] xl:py-[120px] px-4 ">
         <div className="w-full xl:w-[1320px] mx-auto">
           <h1 className="text-[24px] sm:text-35 font-[600]  text-[#1D1F2C]  pb-5 tracking-[0.5%]">
-            {contentLoading ? 'Risk1 + Risk2 Courses at ABS Trafikskola Södertälje 🚗🚦' : pageContent?.pageContent?.mainTitle}
+            {contentLoading ? 'Risk1 + Risk2 Courses at ABS Trafikskola Södertälje 🚗🚦' : (pageContent?.course?.welcomeTitle || 'Risk1 + Risk2 Courses at ABS Trafikskola Södertälje 🚗🚦')}
           </h1>
           <p className="text-20 sm:text-30 font-[500]  text-[#1D1F2C] leading-[100%]  pb-3">
-            {contentLoading ? 'Complete your risk education with our comprehensive courses! 🌟' : pageContent?.pageContent?.subtitle}
+            {contentLoading ? 'Complete your risk education with our comprehensive courses! 🌟' : (pageContent?.course?.subtitle || 'Complete your risk education with our comprehensive courses! 🌟')}
           </p>
           <p className="text-16 font-[400]  text-[#000000] leading-[140%] tracking-[0.5%]   w-11/12 pb-10">
             {contentLoading 
               ? 'At ABS Trafikskola Södertälje, we offer both Risk1 and Risk2 courses that are mandatory requirements for obtaining your Swedish driving license. These courses provide essential knowledge about road safety and traffic behavior.'
-              : pageContent?.pageContent?.description
+              : (pageContent?.course?.description || 'At ABS Trafikskola Södertälje, we offer both Risk1 and Risk2 courses that are mandatory requirements for obtaining your Swedish driving license. These courses provide essential knowledge about road safety and traffic behavior.')
             }
           </p>
           <div className="flex justify-between items-center pb-12 flex-col-reverse md:flex-row">
             <div className="w-full md:w-[633px]">
               <h3 className="text-20 sm:text-32 font-medium  my-4">
-                {pageContent?.whyImportant?.title || 'Why are Risk1 + Risk2 Important?'}
+                {pageContent?.course?.whyImportantTitle || 'Why are Risk1 + Risk2 Important?'}
               </h3>
-              {pageContent?.whyImportant?.sections?.map((section, index) => (
+              {pageContent?.course?.benefits?.map((benefit: any, index: number) => (
                 <div key={index} className="flex space-x-4 items-start mb-4">
                   <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
                     <FaCheck />
                   </div>
                   <div className=" w-11/12 space-y-1">
                     <h3 className="text-16 font-bold sm:text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] sm:font-semibold ">
-                      {section.title}
+                      {benefit.title}
                     </h3>
                     <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
-                      {section.description}
+                      {benefit.description}
                     </p>
                   </div>
                 </div>
@@ -439,26 +483,26 @@ export default function page() {
               <div className="flex w-full justify-between gap-8 md:gap-0">
                 <div className=" flex flex-col justify-between">
                   <Image
-                    src={pageContent?.images?.productImages?.[0]?.url || "/img/product/1.png"}
+                    src={pageContent?.course?.images?.[0]?.src || "/img/product/1.png"}
                     width={300}
                     height={200}
-                    alt={pageContent?.images?.productImages?.[0]?.alt || "Risk course image 1"}
+                    alt={pageContent?.course?.images?.[0]?.alt || "Risk course image 1"}
                     className="w-[300px] h-[190px] rounded-[22px] object-cover"
                   />
                   <Image
-                    src={pageContent?.images?.productImages?.[1]?.url || "/img/product/2.png"}
+                    src={pageContent?.course?.images?.[1]?.src || "/img/product/2.png"}
                     width={300}
                     height={200}
-                    alt={pageContent?.images?.productImages?.[1]?.alt || "Risk course image 2"}
+                    alt={pageContent?.course?.images?.[1]?.alt || "Risk course image 2"}
                     className="w-[300px] h-[190px] rounded-[22px] object-cover"
                   />
                 </div>
                 <div className="">
                   <Image
-                    src={pageContent?.images?.productImages?.[2]?.url || "/img/product/3.png"}
+                    src={pageContent?.course?.images?.[2]?.src || "/img/product/3.png"}
                     width={300}
                     height={200}
-                    alt={pageContent?.images?.productImages?.[2]?.alt || "Training facility"}
+                    alt={pageContent?.course?.images?.[2]?.alt || "Training facility"}
                     className="w-[300px] h-[407px] rounded-[22px] object-cover"
                   />
                 </div>
@@ -471,26 +515,26 @@ export default function page() {
               <div className="flex w-full justify-between gap-8 md:gap-0">
                 <div className="">
                   <Image
-                    src={pageContent?.images?.productImages?.[3]?.url || "/img/product/4.png"}
+                    src={pageContent?.course?.images?.[3]?.src || "/img/product/4.png"}
                     width={300}
                     height={200}
-                    alt={pageContent?.images?.productImages?.[3]?.alt || "Course materials"}
+                    alt={pageContent?.course?.images?.[3]?.alt || "Course materials"}
                     className="w-[300px] h-[407px] rounded-[22px] object-cover"
                   />
                 </div>
                 <div className=" flex flex-col justify-between">
                   <Image
-                    src={pageContent?.images?.productImages?.[0]?.url || "/img/product/1.png"}
+                    src={pageContent?.course?.images?.[0]?.src || "/img/product/1.png"}
                     width={300}
                     height={200}
-                    alt={pageContent?.images?.productImages?.[0]?.alt || "Risk course image 1"}
+                    alt={pageContent?.course?.images?.[0]?.alt || "Risk course image 1"}
                     className="w-[300px] h-[190px] rounded-[22px] object-cover"
                   />
                   <Image
-                    src={pageContent?.images?.productImages?.[1]?.url || "/img/product/2.png"}
+                    src={pageContent?.course?.images?.[1]?.src || "/img/product/2.png"}
                     width={300}
                     height={200}
-                    alt={pageContent?.images?.productImages?.[1]?.alt || "Risk course image 2"}
+                    alt={pageContent?.course?.images?.[1]?.alt || "Risk course image 2"}
                     className="w-[300px] h-[190px] rounded-[22px] object-cover"
                   />
                 </div>
@@ -498,9 +542,9 @@ export default function page() {
             </div>
             <div className="w-full md:w-[633px]">
               <h3 className=" text-32 font-medium  my-4">
-                {pageContent?.courseOffers?.title || 'What Our Course Offers:'}
+                {pageContent?.course?.whatOffersTitle || 'What Our Course Offers:'}
               </h3>
-              {pageContent?.courseOffers?.features?.map((feature, index) => (
+              {pageContent?.course?.features?.map((feature: any, index: number) => (
                 <div key={index} className="flex space-x-4 items-start mb-4">
                   <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
                     <FaCheck />
@@ -550,13 +594,13 @@ export default function page() {
           </div>
 
           <h2 className="text-20 sm:text-32 font-medium mb-3 md:mb-6 text-[#1D1F2C]">
-            {pageContent?.courseContent?.title || 'Course Content'}
+            {pageContent?.course?.courseContent?.title || 'Course Content'}
           </h2>
           <ul className="space-y-2 text-16 md:text-18 font-bold text-[#4A4C56] mb-8">
-            {pageContent?.courseContent?.items?.map((item, index) => (
+            {pageContent?.course?.courseContent?.items?.map((item: any, index: number) => (
               <li key={index} className="flex items-center ">
                 <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
-                <span>{item.title}</span>
+                <span>{item}</span>
               </li>
             )) || (
               <>
@@ -581,13 +625,10 @@ export default function page() {
           </ul>
 
           <div className="space-y-4 ">
-            {pageContent?.additionalInfo?.map((section, index) => (
+            {pageContent?.course?.additionalInfo?.map((info: any, index: number) => (
               <div key={index}>
-                <strong className="block text-[#000000] mb-1 text-16 md:text-18 font-bold leading-[26px]">
-                  {section.title}
-                </strong>
                 <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
-                  {section.description}
+                  {info}
                 </p>
               </div>
             )) || (

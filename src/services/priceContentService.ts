@@ -50,15 +50,15 @@ export interface PriceContentData {
 
 class PriceContentService {
   private baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-  private cache: PriceContentData | null = null;
-  private cacheTime: number = 0;
+  private cache: Map<string, { data: PriceContentData; time: number }> = new Map();
   private cacheExpiry = 5 * 60 * 1000; // 5 minutes
 
   async getPriceContent(lang: string = 'en'): Promise<PriceContentData> {
     try {
       // Check cache first
-      if (this.cache && Date.now() - this.cacheTime < this.cacheExpiry) {
-        return this.cache;
+      const cached = this.cache.get(lang);
+      if (cached && Date.now() - cached.time < this.cacheExpiry) {
+        return cached.data;
       }
 
       const response = await fetch(
@@ -83,40 +83,84 @@ class PriceContentService {
       }
 
       // Update cache
-      this.cache = result.data;
-      this.cacheTime = Date.now();
+      this.cache.set(lang, {
+        data: result.data,
+        time: Date.now()
+      });
 
       return result.data;
     } catch (error) {
       console.error('Error fetching price content:', error);
       
       // Return fallback data if API fails
-      if (this.cache) {
+      const cached = this.cache.get(lang);
+      if (cached) {
         console.warn('Using cached price content due to API error');
-        return this.cache;
+        return cached.data;
       }
 
       // Return default fallback
-      return this.getFallbackData();
+      return this.getFallbackData(lang);
     }
   }
 
-  private getFallbackData(): PriceContentData {
+  private getFallbackData(lang: string = 'en'): PriceContentData {
+    const fallbackTranslations = {
+      en: {
+        sectionTitle: 'Pricing & Packages',
+        sectionDescription: 'Choose the perfect package for your driving journey. We offer competitive prices and flexible payment options.',
+        categoryName: 'Courses',
+        itemTitle: 'Handledarkurs',
+        itemDescription: 'Get ready for private driving lessons with our Handledarkurs.',
+        buttonText: 'Book Online',
+        termsTitle: 'Terms & Conditions',
+        termHeading: 'Payment Terms',
+        termText: 'Payment must be made before or at the start of lessons.',
+        installmentDescription: 'Contact us for flexible payment options.'
+      },
+      sv: {
+        sectionTitle: 'Priser & Paket',
+        sectionDescription: 'Välj det perfekta paketet för din körresa. Vi erbjuder konkurrenskraftiga priser och flexibla betalningsalternativ.',
+        categoryName: 'Kurser',
+        itemTitle: 'Handledarkurs',
+        itemDescription: 'Förbered dig för privata körlektioner med vår Handledarkurs.',
+        buttonText: 'Boka Online',
+        termsTitle: 'Villkor',
+        termHeading: 'Betalningsvillkor',
+        termText: 'Betalning måste göras före eller vid lektionens början.',
+        installmentDescription: 'Kontakta oss för flexibla betalningsalternativ.'
+      },
+      ar: {
+        sectionTitle: 'الأسعار والحزم',
+        sectionDescription: 'اختر الباقة المثالية لرحلة تعلم القيادة الخاصة بك. نحن نقدم أسعار تنافسية وخيارات دفع مرنة.',
+        categoryName: 'الدورات',
+        itemTitle: 'دورة المرشد',
+        itemDescription: 'استعد لدروس القيادة الخاصة مع دورة المرشد الخاصة بنا.',
+        buttonText: 'احجز أونلاين',
+        termsTitle: 'الشروط والأحكام',
+        termHeading: 'شروط الدفع',
+        termText: 'يجب أن يتم الدفع قبل أو في بداية الدروس.',
+        installmentDescription: 'اتصل بنا للحصول على خيارات دفع مرنة.'
+      }
+    };
+
+    const translations = fallbackTranslations[lang as keyof typeof fallbackTranslations] || fallbackTranslations.en;
+
     return {
       _id: 'fallback',
-      sectionTitle: 'Pricing & Packages',
-      sectionDescription: 'Choose the perfect package for your driving journey. We offer competitive prices and flexible payment options.',
+      sectionTitle: translations.sectionTitle,
+      sectionDescription: translations.sectionDescription,
       categories: [
         {
-          name: 'Courses',
+          name: translations.categoryName,
           items: [
             {
-              title: 'Handledarkurs',
-              description: 'Get ready for private driving lessons with our Handledarkurs.',
+              title: translations.itemTitle,
+              description: translations.itemDescription,
               duration: '180 mins, ex.rest',
               price: 299,
               currency: 'kr',
-              buttonText: 'Book Online',
+              buttonText: translations.buttonText,
               isPhoneNumber: false,
               order: 1
             }
@@ -124,18 +168,18 @@ class PriceContentService {
         }
       ],
       termsAndConditions: {
-        title: 'Terms & Conditions',
+        title: translations.termsTitle,
         content: [
           {
-            heading: 'Payment Terms',
-            text: 'Payment must be made before or at the start of lessons.',
+            heading: translations.termHeading,
+            text: translations.termText,
             order: 1
           }
         ]
       },
       installmentInfo: {
         title: 'Installment Payment Available',
-        description: 'Contact us for flexible payment options.'
+        description: translations.installmentDescription
       },
       version: '1.0.0',
       viewCount: 0,
@@ -145,9 +189,12 @@ class PriceContentService {
   }
 
   // Clear cache manually if needed
-  clearCache(): void {
-    this.cache = null;
-    this.cacheTime = 0;
+  clearCache(lang?: string): void {
+    if (lang) {
+      this.cache.delete(lang);
+    } else {
+      this.cache.clear();
+    }
   }
 
   // Get categories for filtering

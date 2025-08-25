@@ -46,7 +46,8 @@ export default function HalkbanaPage() {
         setContentLoading(true);
         setContentError(null);
         
-        const content = await halkbanaContentService.getHalkbanaContent();
+        // Pass current language to API
+        const content = await halkbanaContentService.getHalkbanaContent(language);
         
         if (content) {
           setHalkbanaContent(content);
@@ -62,7 +63,7 @@ export default function HalkbanaPage() {
     };
 
     fetchHalkbanaContent();
-  }, []);
+  }, [language]); // Re-fetch when language changes
 
   // Fetch course schedules from API
   useEffect(() => {
@@ -213,12 +214,27 @@ export default function HalkbanaPage() {
     console.log('Booking data:', data);
   };
 
-  // Translation helper function
+  // Translation helper function - handles both string and multi-language objects
   const t = (content: any) => {
-    if (typeof content === 'object' && content[language]) {
-      return content[language];
+    if (!content) return '';
+    
+    // If it's already a string, return it
+    if (typeof content === 'string') return content;
+    
+    // If it's an object with language keys
+    if (typeof content === 'object' && content !== null) {
+      // Try to get the current language first
+      if (content[language]) return content[language];
+      
+      // Fallback to English
+      if (content.en) return content.en;
+      
+      // Fallback to first available language
+      const firstKey = Object.keys(content)[0];
+      if (firstKey) return content[firstKey];
     }
-    return content;
+    
+    return '';
   };
 
   // Handle RTL for Arabic
@@ -254,8 +270,8 @@ export default function HalkbanaPage() {
   }
 
   return (
-    <div className={directionClass}>
-      <div className="bg-[#F7FAFF] py-[56px] md:py-[120px] px-4">
+    <div dir='ltr'>
+      <div className="bg-[#F7FAFF] py-[56px] md:py-[120px] px-4" >
         <div className="w-full xl:w-[1320px] mx-auto">
           <h1 className="text-24 sm:text-56 font-bold  text-[#1D1F2C] leading-[140%] text-center pb-5">
             {t(halkbanaContent.hero.title)}
@@ -459,49 +475,55 @@ export default function HalkbanaPage() {
               <h3 id="course-heading" className="sr-only">
                 {t(halkbanaContent.course.title)}
               </h3>
-              <ul className="space-y-2 text-18 font-medium text-[#4A4C56] mb-8">
-                {halkbanaContent.course.benefits.map((benefit, index) => (
-                  <li key={index} className="flex items-start">
-                    <span className="mr-2 w-2 h-2 rounded-full bg-[#08316A] mt-2" />
-                    <p className="w-11/12">
-                      <strong>{t(benefit.title)}: </strong>
-                      {t(benefit.description)}
-                    </p>
-                  </li>
-                ))}
-              </ul>
+              {halkbanaContent.course.benefits && halkbanaContent.course.benefits.length > 0 && (
+                <ul className="space-y-2 text-18 font-medium text-[#4A4C56] mb-8">
+                  {halkbanaContent.course.benefits.map((benefit, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="mr-2 w-2 h-2 rounded-full bg-[#08316A] mt-2" />
+                      <p className="w-11/12">
+                        <strong>{t(benefit.title) || `Benefit ${index + 1}`}: </strong>
+                        {t(benefit.description) || ''}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
               <h3 className="text-32 font-medium mb-6 text-[#1D1F2C]">
-                {t(halkbanaContent.course.courseContent.title)}
+                {halkbanaContent.course.courseContent?.title ? t(halkbanaContent.course.courseContent.title) : 'Course Content'}
               </h3>
-              <ul className="space-y-2 text-18 font-medium text-[#4A4C56] mb-8">
-                {halkbanaContent.course.courseContent.items.map((item, index) => (
-                  <li key={index} className="flex items-start">
-                    <span className="mr-2 w-2 h-2 rounded-full bg-[#08316A] mt-2" />
-                    <p className="w-11/12">{t(item)}</p>
-                  </li>
-                ))}
-              </ul>
+              {halkbanaContent.course.courseContent?.items && halkbanaContent.course.courseContent.items.length > 0 && (
+                <ul className="space-y-2 text-18 font-medium text-[#4A4C56] mb-8">
+                  {halkbanaContent.course.courseContent.items.map((item, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="mr-2 w-2 h-2 rounded-full bg-[#08316A] mt-2" />
+                      <p className="w-11/12">{t(item) || `Course item ${index + 1}`}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
               <h4 className="font-bold text-18 text-black">
-                {t(halkbanaContent.course.duration.title)}:
+                {halkbanaContent.course.duration?.title ? t(halkbanaContent.course.duration.title) : 'Duration'}:
               </h4>
               <p className="font-normal text-16 text-[#4A4C56] tracking-[0.5%] py-3">
-                {t(halkbanaContent.course.duration.description)}
+                {halkbanaContent.course.duration?.description ? t(halkbanaContent.course.duration.description) : ''}
               </p>
-              <p className="font-normal text-16 text-[#4A4C56] tracking-[0.5%]">
-                {language === 'en'
-                  ? 'For more information, visit'
-                  : language === 'ar'
-                    ? 'لمزيد من المعلومات، قم بزيارة'
-                    : 'För mer information, besök'}{' '}
-                <a
-                  href={halkbanaContent.course.duration.linkUrl}
-                  className="text-[#3F8FEE] hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {t(halkbanaContent.course.duration.linkText)}
-                </a>
-              </p>
+              {halkbanaContent.course.duration?.linkUrl && (
+                <p className="font-normal text-16 text-[#4A4C56] tracking-[0.5%]">
+                  {language === 'en'
+                    ? 'For more information, visit'
+                    : language === 'ar'
+                      ? 'لمزيد من المعلومات، قم بزيارة'
+                      : 'För mer information, besök'}{' '}
+                  <a
+                    href={halkbanaContent.course.duration.linkUrl}
+                    className="text-[#3F8FEE] hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {halkbanaContent.course.duration.linkText ? t(halkbanaContent.course.duration.linkText) : 'here'}
+                  </a>
+                </p>
+              )}
             </section>
 
             {/* Images */}
@@ -509,36 +531,42 @@ export default function HalkbanaPage() {
               className="w-full md:w-[633px] mb-5 md:mb-0"
               aria-label="Course Images"
             >
-              <div className="flex w-full justify-between space-x-5">
-                <div className="flex flex-col justify-between">
-                  <Image
-                    src={halkbanaContent.course.images[0].src}
-                    width={halkbanaContent.course.images[0].width}
-                    height={halkbanaContent.course.images[0].height}
-                    alt={t(halkbanaContent.course.images[0].alt)}
-                    className="w-[300px] h-[190px] rounded-[22px] object-cover"
-                    loading="lazy"
-                  />
-                  <Image
-                    src={halkbanaContent.course.images[1].src}
-                    width={halkbanaContent.course.images[1].width}
-                    height={halkbanaContent.course.images[1].height}
-                    alt={t(halkbanaContent.course.images[1].alt)}
-                    className="w-[300px] h-[190px] rounded-[22px] object-cover"
-                    loading="lazy"
-                  />
+              {halkbanaContent.course.images && halkbanaContent.course.images.length >= 3 ? (
+                <div className="flex w-full justify-between space-x-5">
+                  <div className="flex flex-col justify-between">
+                    <Image
+                      src={halkbanaContent.course.images[0].src}
+                      width={halkbanaContent.course.images[0].width}
+                      height={halkbanaContent.course.images[0].height}
+                      alt={t(halkbanaContent.course.images[0].alt) || 'Course image'}
+                      className="w-[300px] h-[190px] rounded-[22px] object-cover"
+                      loading="lazy"
+                    />
+                    <Image
+                      src={halkbanaContent.course.images[1].src}
+                      width={halkbanaContent.course.images[1].width}
+                      height={halkbanaContent.course.images[1].height}
+                      alt={t(halkbanaContent.course.images[1].alt) || 'Course image'}
+                      className="w-[300px] h-[190px] rounded-[22px] object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div>
+                    <Image
+                      src={halkbanaContent.course.images[2].src}
+                      width={halkbanaContent.course.images[2].width}
+                      height={halkbanaContent.course.images[2].height}
+                      alt={t(halkbanaContent.course.images[2].alt) || 'Course image'}
+                      className="w-[300px] h-[407px] rounded-[22px] object-cover"
+                      loading="lazy"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Image
-                    src={halkbanaContent.course.images[2].src}
-                    width={halkbanaContent.course.images[2].width}
-                    height={halkbanaContent.course.images[2].height}
-                    alt={t(halkbanaContent.course.images[2].alt)}
-                    className="w-[300px] h-[407px] rounded-[22px] object-cover"
-                    loading="lazy"
-                  />
+              ) : (
+                <div className="flex items-center justify-center h-[407px] bg-gray-200 rounded-[22px]">
+                  <p className="text-gray-500">Course images loading...</p>
                 </div>
-              </div>
+              )}
             </section>
           </div>
         </div>

@@ -1,5 +1,5 @@
 // Terms Content API Service for Frontend with Multi-Language Support
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 export interface TermItem {
   text: string;
@@ -72,7 +72,7 @@ class TermsContentService {
       console.log(`🔄 Fetching terms content for language: ${language}...`);
       
       // Try language-specific endpoint first
-      let url = `${API_BASE_URL}/terms-content/${language}`;
+      let url = `${API_BASE_URL}/api/terms-content/${language}`;
       let response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -84,7 +84,7 @@ class TermsContentService {
       // Fallback to query parameter method if direct endpoint fails
       if (!response.ok && language !== 'en') {
         console.log(`⚠️ Direct endpoint failed, trying query parameter method...`);
-        url = `${API_BASE_URL}/terms-content?lang=${language}`;
+        url = `${API_BASE_URL}/api/terms-content?lang=${language}`;
         response = await fetch(url, {
           method: 'GET',
           headers: {
@@ -145,7 +145,7 @@ class TermsContentService {
    * Get Terms content for multiple languages at once
    * Useful for preloading
    */
-  async getTermsContentMultiLang(): Promise<{
+  async getTermsContentMultiLang(lang: string = 'en'): Promise<{
     en: TermsContent;
     sv: TermsContent;
     ar: TermsContent;
@@ -350,7 +350,7 @@ class TermsContentService {
   /**
    * Get cache status for debugging
    */
-  getCacheStatus(): { language: string; cached: boolean; expires: string }[] {
+  getCacheStatus(lang: string = 'en'): { language: string; cached: boolean; expires: string }[] {
     const status: { language: string; cached: boolean; expires: string }[] = [];
     
     ['en', 'sv', 'ar'].forEach(lang => {

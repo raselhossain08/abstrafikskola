@@ -178,12 +178,13 @@ class AboutContentService {
   async updateAboutContent(
     id: string,
     data: Partial<AboutContentInterface>,
-    token: string
+    token: string,
+    language: string = 'en'
   ): Promise<{ success: boolean; data?: AboutContentInterface; error?: string }> {
     try {
       console.log(`📝 Updating about content: ${id}`);
 
-      const response = await fetch(`${API_BASE_URL}/api/about-content/admin/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/about-content/admin/${id}?lang=${language}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -221,8 +222,45 @@ class AboutContentService {
     }
   }
 
+  // Get all about contents (admin functionality)  
+  async getAllAboutContents(token: string, language: string = 'en'): Promise<{ success: boolean; data?: AboutContentInterface[]; error?: string }> {
+    try {
+      console.log('📋 Fetching all about contents');
+
+      const response = await fetch(`${API_BASE_URL}/api/about-content/admin/all?lang=${language}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to fetch about contents');
+      }
+
+      if (result.success) {
+        return {
+          success: true,
+          data: result.data,
+        };
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error(`❌ Error fetching about contents:`, error);
+      
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
   // Get cached data info
-  getCacheInfo(): { size: number; keys: string[] } {
+  getCacheInfo(lang: string = 'en'): { size: number; keys: string[] } {
     return {
       size: this.cache.size,
       keys: Array.from(this.cache.keys())
@@ -230,7 +268,7 @@ class AboutContentService {
   }
 
   // Fallback data in case API fails
-  private getFallbackData(): AboutContentInterface {
+  private getFallbackData(lang: string = 'en'): AboutContentInterface {
     return {
       history: {
         title: {

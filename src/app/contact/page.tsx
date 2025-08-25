@@ -23,16 +23,20 @@ export default function ContactPage() {
   useEffect(() => {
     const fetchContactContent = async () => {
       setLoading(true);
+      setError(null);
       try {
+        console.log(`🌍 Fetching contact content for language: ${language}...`);
         const result = await contactContentService.getContactContent(language);
         if (result.success && result.data) {
           // Validate the data structure before setting state
           const validatedData = validateContactContent(result.data);
           setContactContent(validatedData);
+          console.log(`✅ Contact content loaded for ${language}`);
         } else {
           setError(result.error || 'Failed to load contact content');
           // Use fallback data
           setContactContent(result.data || null);
+          console.error(`❌ Failed to load contact content for ${language}:`, result.error);
         }
       } catch (err) {
         setError('Failed to load contact content');
@@ -84,19 +88,27 @@ export default function ContactPage() {
     // Handle null/undefined
     if (!content) return '';
     
-    // If it's already a string, return it
+    // If it's already a string, return it (for single-language content)
     if (typeof content === 'string') return content;
     
     // Handle multi-language objects
     if (typeof content === 'object' && content !== null) {
       // Try the current language first
-      if (content[language] && typeof content[language] === 'string') {
+      if (content[language] && typeof content[language] === 'string' && content[language].trim()) {
         return content[language];
       }
       
       // Fallback to English
-      if (content.en && typeof content.en === 'string') {
+      if (content.en && typeof content.en === 'string' && content.en.trim()) {
         return content.en;
+      }
+      
+      // Fallback to any available language
+      const availableLanguages = ['sv', 'ar'];
+      for (const lang of availableLanguages) {
+        if (content[lang] && typeof content[lang] === 'string' && content[lang].trim()) {
+          return content[lang];
+        }
       }
       
       // If it's an object but doesn't have language properties, 

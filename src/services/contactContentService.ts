@@ -187,7 +187,8 @@ class ContactContentService {
     file: File, 
     methodIndex: number, 
     contactId?: string, 
-    token?: string
+    token?: string,
+    language: string = 'en'
   ): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
       console.log(`📤 Uploading icon for contact method ${methodIndex}`);
@@ -205,7 +206,7 @@ class ContactContentService {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/contact-content/upload-icon`, {
+      const response = await fetch(`${API_BASE_URL}/api/contact-content/upload-icon?lang=${language}`, {
         method: 'POST',
         headers,
         body: formData,
@@ -244,12 +245,13 @@ class ContactContentService {
   async updateContactContent(
     id: string,
     data: Partial<ContactContentInterface>,
-    token: string
+    token: string,
+    language: string = 'en'
   ): Promise<{ success: boolean; data?: ContactContentInterface; error?: string }> {
     try {
       console.log(`📝 Updating contact content: ${id}`);
 
-      const response = await fetch(`${API_BASE_URL}/api/contact-content/admin/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/contact-content/admin/${id}?lang=${language}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -288,11 +290,11 @@ class ContactContentService {
   }
 
   // Get all contact contents (admin functionality)
-  async getAllContactContents(token: string): Promise<{ success: boolean; data?: ContactContentInterface[]; error?: string }> {
+  async getAllContactContents(token: string, language: string = 'en'): Promise<{ success: boolean; data?: ContactContentInterface[]; error?: string }> {
     try {
       console.log('📋 Fetching all contact contents');
 
-      const response = await fetch(`${API_BASE_URL}/api/contact-content/admin/all`, {
+      const response = await fetch(`${API_BASE_URL}/api/contact-content/admin/all?lang=${language}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -325,7 +327,7 @@ class ContactContentService {
   }
 
   // Get cached data info
-  getCacheInfo(): { size: number; keys: string[] } {
+  getCacheInfo(lang: string = 'en'): { size: number; keys: string[] } {
     return {
       size: this.cache.size,
       keys: Array.from(this.cache.keys())
@@ -333,7 +335,7 @@ class ContactContentService {
   }
 
   // Fallback data in case API fails
-  private getFallbackData(): ContactContentInterface {
+  private getFallbackData(lang: string = 'en'): ContactContentInterface {
     return {
       hero: {
         title: {

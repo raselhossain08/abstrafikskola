@@ -1,5 +1,5 @@
 // Program Benefits Content API Service for Frontend
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 export interface ProgramBenefit {
   id: string;
@@ -90,7 +90,7 @@ class ProgramBenefitsContentService {
 
       console.log('🔄 Fetching program benefits content from API...');
       
-      const response = await fetch(`${API_BASE_URL}/program-benefits-content?lang=${lang}`, {
+      const response = await fetch(`${API_BASE_URL}/api/program-benefits-content?lang=${lang}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

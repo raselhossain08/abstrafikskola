@@ -1,59 +1,52 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from '../ui/button';
 import Link from 'next/link';
-import { fetchContactSectionData, ContactSectionData } from '@/services/contactSectionService';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Contact() {
-  const [contactData, setContactData] = useState<ContactSectionData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { language } = useLanguage();
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const data = await fetchContactSectionData();
-        setContactData(data);
-      } catch (error) {
-        console.error('Error loading contact section data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Multi-language content
+  const content = {
+    en: {
+      title: "Ready to Start Your Driving Journey?<br/>Contact Us Today!",
+      buttonText: "Contact Us",
+      buttonLink: "/contact"
+    },
+    sv: {
+      title: "Redo att Börja Din Körresa?<br/>Kontakta Oss Idag!",
+      buttonText: "Kontakta Oss",
+      buttonLink: "/contact"
+    },
+    ar: {
+      title: "مستعد لبدء رحلة القيادة؟<br/>اتصل بنا اليوم!",
+      buttonText: "اتصل بنا",
+      buttonLink: "/contact"
+    }
+  };
 
-    loadData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="h-[400px] md:h-[600px] flex items-center justify-center">
-        <div className="text-center">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!contactData) {
-    return null;
-  }
+  const currentContent = content[language as keyof typeof content] || content.en;
 
   return (
     <div
       style={{
-        backgroundImage: `url(${contactData.backgroundImage})`,
+        backgroundImage: "url('/img/contact/contact-bg.png')",
         backgroundSize: 'cover',
       }}
-      className={`${contactData.containerHeight.mobile} ${contactData.containerHeight.desktop} flex items-center justify-center`}
+      className="h-[400px] md:h-[600px] flex items-center justify-center"
     >
       <div className="container h-full px-4 lg:px-0">
         <div className="flex items-center justify-center h-full flex-col">
           <h3 
-            className={`font-raleway ${contactData.textStyles.fontWeight} ${contactData.textStyles.fontSize.mobile} ${contactData.textStyles.fontSize.desktop} leading-[31px] md:leading-[42px] tracking-normal ${contactData.textStyles.textAlign} ${contactData.textStyles.titleColor} ${contactData.textStyles.marginBottom}`}
-            dangerouslySetInnerHTML={{ __html: contactData.title.replace(/\n/g, '<br />') }}
+            className="font-raleway font-bold text-24 md:text-32 leading-[31px] md:leading-[42px] tracking-normal text-center text-white mb-4"
+            dangerouslySetInnerHTML={{ __html: currentContent.title }}
           />
-          <Link href={contactData.buttonLink}>
+          <Link href={currentContent.buttonLink}>
             <Button 
-              className={`${contactData.buttonStyle.backgroundColor} ${contactData.buttonStyle.hoverColor} ${contactData.buttonStyle.width} ${contactData.buttonStyle.height} ${contactData.buttonStyle.borderRadius} font-raleway font-medium text-[18px] leading-[26px] tracking-normal text-white mt-4 cursor-pointer`}
+              className="bg-blue-600 hover:bg-blue-700 w-auto h-12 rounded-full font-raleway font-medium text-[18px] leading-[26px] tracking-normal text-white mt-4 cursor-pointer px-8"
             >
-              {contactData.buttonText}
+              {currentContent.buttonText}
             </Button>
           </Link>
         </div>

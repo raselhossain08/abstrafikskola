@@ -1,5 +1,5 @@
 // Hero Content API Service for Frontend
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 export interface HeroContent {
   id: string;
@@ -72,7 +72,7 @@ class HeroContentService {
 
       console.log('🔄 Fetching hero content from API...');
       
-      const response = await fetch(`${API_BASE_URL}/hero-content?lang=${lang}`, {
+      const response = await fetch(`${API_BASE_URL}/api/hero-content?lang=${lang}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

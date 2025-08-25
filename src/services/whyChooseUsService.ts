@@ -109,10 +109,11 @@ const defaultWhyChooseUsData: WhyChooseUsData = {
   updatedAt: ''
 };
 
-export const getWhyChooseUsData = cache(async (): Promise<WhyChooseUsData> => {
+export const getWhyChooseUsData = cache(async (language: string = 'en'): Promise<WhyChooseUsData> => {
   try {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-    const response = await fetch(`${API_BASE_URL}/why-choose-us`, {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+    const languageParam = language ? `?lang=${language}` : '';
+    const response = await fetch(`${API_BASE_URL}/api/why-choose-us${languageParam}`, {
       cache: 'force-cache',
       next: { revalidate: 3600 } // Cache for 1 hour
     });
@@ -136,10 +137,11 @@ export const getWhyChooseUsData = cache(async (): Promise<WhyChooseUsData> => {
 });
 
 // Client-side fetch function for React components
-export const fetchWhyChooseUsData = async (): Promise<WhyChooseUsData> => {
+export const fetchWhyChooseUsData = async (language: string = 'en'): Promise<WhyChooseUsData> => {
   try {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-    const response = await fetch(`${API_BASE_URL}/why-choose-us`);
+    const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+    const languageParam = language ? `?lang=${language}` : '';
+    const response = await fetch(`${API_BASE_URL}/api/why-choose-us${languageParam}`);
 
     if (!response.ok) {
       console.error('Failed to fetch why choose us data');
@@ -156,5 +158,29 @@ export const fetchWhyChooseUsData = async (): Promise<WhyChooseUsData> => {
   } catch (error) {
     console.error('Error fetching why choose us data:', error);
     return defaultWhyChooseUsData;
+  }
+};
+
+// Get available languages
+export const getAvailableLanguages = async (): Promise<{ languages: string[]; default: string } | null> => {
+  try {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+    const response = await fetch(`${API_BASE_URL}/api/why-choose-us/languages`);
+
+    if (!response.ok) {
+      console.error('Failed to fetch available languages');
+      return null;
+    }
+
+    const result = await response.json();
+    
+    if (result.success && result.data) {
+      return result.data;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error fetching available languages:', error);
+    return null;
   }
 };

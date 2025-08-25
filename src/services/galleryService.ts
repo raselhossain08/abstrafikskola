@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Gallery API Service
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 export interface SocialLinks {
   facebook: string;
@@ -37,10 +37,10 @@ export interface Gallery {
 
 export const galleryService = {
   // Get public gallery data
-  async getPublicGallery(): Promise<Gallery[]> {
+  async getPublicGallery(lang: string = 'en'): Promise<Gallery[]> {
     try {
       console.log('Fetching public gallery data...');
-      const res = await axios.get(`${API_BASE_URL}/gallery/public`);
+      const res = await axios.get(`${API_BASE_URL}/api/gallery/public`);
       console.log('API Response:', res.data);
       
       const galleries = res.data.data || [];
@@ -90,8 +90,8 @@ export const galleryService = {
   },
 
   // Get all galleries
-  async getAll(): Promise<Gallery[]> {
-    const res = await axios.get(`${API_BASE_URL}/gallery/public`);
+  async getAll(lang: string = 'en'): Promise<Gallery[]> {
+    const res = await axios.get(`${API_BASE_URL}/api/gallery/public`);
     return res.data.data;
   },
 

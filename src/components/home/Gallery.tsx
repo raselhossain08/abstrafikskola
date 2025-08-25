@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { FaFacebookF, FaInstagram } from 'react-icons/fa6';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Layout configuration with fixed dimensions
 const galleryLayout = [
@@ -17,9 +18,19 @@ const galleryLayout = [
 ];
 
 export default function Gallery() {
+  const { language } = useLanguage();
   const [galleryItems, setGalleryItems] = useState<GalleryType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Multi-language titles
+  const titles = {
+    en: "Gallery",
+    sv: "Galleri", 
+    ar: "المعرض"
+  };
+
+  const currentTitle = titles[language as keyof typeof titles] || titles.en;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,7 +79,7 @@ export default function Gallery() {
     return (
       <section className="py-24 px-4 bg-[#F7FAFF]">
         <div className="w-full xl:w-[1320px] mx-auto text-center pb-5">
-          <h2 className="text-48 font-bold mb-12 text-[#1D1F2C]">Gallery</h2>
+          <h2 className="text-48 font-bold mb-12 text-[#1D1F2C]">{currentTitle}</h2>
           <div className="flex justify-center items-center h-[400px]">
             <p className="text-lg text-gray-600">Loading gallery...</p>
           </div>
@@ -82,7 +93,7 @@ export default function Gallery() {
     return (
       <section className="py-24 px-4 bg-[#F7FAFF]">
         <div className="w-full xl:w-[1320px] mx-auto text-center pb-5">
-          <h2 className="text-48 font-bold mb-12 text-[#1D1F2C]">Gallery</h2>
+          <h2 className="text-48 font-bold mb-12 text-[#1D1F2C]">{currentTitle}</h2>
           <div className="flex justify-center items-center h-[400px]">
             <p className="text-lg text-red-600">Error: {error}</p>
           </div>
@@ -93,7 +104,7 @@ export default function Gallery() {
   return (
     <section className="py-24 px-4 bg-[#F7FAFF]">
       <div className="w-full xl:w-[1320px] mx-auto text-center pb-5">
-        <h2 className="text-48 font-bold mb-12 text-[#1D1F2C]">Gallery</h2>
+        <h2 className="text-48 font-bold mb-12 text-[#1D1F2C]">{currentTitle}</h2>
 
         <div className="   justify-between h-[950px] md:flex  hidden">
           <div className="w-[424px] flex flex-col justify-between">

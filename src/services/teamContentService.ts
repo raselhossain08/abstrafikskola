@@ -1,5 +1,5 @@
 // Team Content API Service for Frontend
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 export interface TeamMember {
   id: string;
@@ -57,7 +57,7 @@ class TeamContentService {
 
       console.log(`🔄 Fetching team content from API for language: ${language}...`);
       
-      const response = await fetch(`${API_BASE_URL}/team-content?lang=${language}`, {
+      const response = await fetch(`${API_BASE_URL}/api/team-content?lang=${language}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -103,7 +103,7 @@ class TeamContentService {
     }
   }
 
-  private getFallbackContent(): TeamContent {
+  private getFallbackContent(lang: string = 'en'): TeamContent {
     return {
       id: 'fallback',
       title: 'Team Are Helping You',

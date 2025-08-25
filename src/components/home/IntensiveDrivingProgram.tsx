@@ -3,17 +3,19 @@ import Image from 'next/image';
 import { FaCheck } from 'react-icons/fa6';
 import { useState, useEffect } from 'react';
 import { intensiveDrivingContentService, type IntensiveDrivingContentData } from '@/services/intensiveDrivingContentService';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function IntensiveDrivingProgram() {
   const [content, setContent] = useState<IntensiveDrivingContentData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { language, isRTL } = useLanguage();
 
-  // Fetch content from API
+  // Fetch content from API when language changes
   useEffect(() => {
     const fetchContent = async () => {
       try {
         setLoading(true);
-        const data = await intensiveDrivingContentService.getIntensiveDrivingContent();
+        const data = await intensiveDrivingContentService.getIntensiveDrivingContent(language);
         setContent(data);
       } catch (error) {
         console.error('Error fetching intensive driving content:', error);
@@ -23,7 +25,7 @@ export default function IntensiveDrivingProgram() {
     };
 
     fetchContent();
-  }, []);
+  }, [language]); // Re-fetch when language changes
 
   // Show loading state
   if (loading) {
@@ -39,9 +41,9 @@ export default function IntensiveDrivingProgram() {
     );
   }
   return (
-    <section className="py-14 md:py-20  bg-white px-4 xl:px-0 ">
+    <section className="py-14 md:py-20  bg-white px-4 xl:px-0">
       <div className="w-full xl:w-[1320px] mx-auto">
-        <div className="flex justify-between items-center md:flex-row flex-col-reverse">
+        <div className={`flex justify-between items-center md:flex-row ${isRTL ? 'flex-col' : 'flex-col-reverse'}`}>
           {/* Left Side Content */}
           <div className="w-full sm:w-8/12 xl:w-[784px] font-raleway">
             <h2 className="text-24 sm:text-[48px] font-semibold text-[#1D1F2C] mb-2">
@@ -53,10 +55,7 @@ export default function IntensiveDrivingProgram() {
 
             {/* Program Features */}
             <div className="mb-4">
-              <div
-                className="flex items-center space-x-3 mb-2
-              "
-              >
+              <div className={`flex items-center mb-2 ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
                 <div className="flex items-center justify-center w-[28px] h-[28px] rounded-full border border-[#1474FC]">
                   <FaCheck size="14" color="#1474FC" />
                 </div>
@@ -68,7 +67,7 @@ export default function IntensiveDrivingProgram() {
               <ul className="space-y-3 ">
                 {content?.programFeatures?.items?.map((item, index) => (
                   <li key={index}>
-                    <div className="flex items-start space-x-2">
+                    <div className={`flex items-start ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                       <div className=" w-[8px] h-[8px] rounded-full bg-[#1A3C64] mt-2"></div>
                       <p className="w-10/12 text-16 text-[#4A4C56]">
                         <strong>{item.title}</strong> {item.description}
@@ -78,7 +77,7 @@ export default function IntensiveDrivingProgram() {
                 )) || (
                   <>
                     <li>
-                      <div className="flex items-start space-x-2">
+                      <div className={`flex items-start ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                         <div className=" w-[8px] h-[8px] rounded-full bg-[#1A3C64] mt-2"></div>
                         <p className="w-10/12 text-16 text-[#4A4C56]">
                           <strong>Accelerated Schedule:</strong> Complete all
@@ -87,7 +86,7 @@ export default function IntensiveDrivingProgram() {
                       </div>
                     </li>
                     <li>
-                      <div className="flex items-start space-x-2">
+                      <div className={`flex items-start ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                         <div className=" w-[8px] h-[8px] rounded-full bg-[#1A3C64] mt-2"></div>
                         <p className="w-10/12 text-16 text-[#4A4C56]">
                           <strong>Customized Lessons:</strong> Daily lessons
@@ -96,7 +95,7 @@ export default function IntensiveDrivingProgram() {
                       </div>
                     </li>
                     <li>
-                      <div className="flex items-start space-x-2">
+                      <div className={`flex items-start ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                         <div className=" w-[8px] h-[8px] rounded-full bg-[#1A3C64] mt-2"></div>
                         <p className="w-10/12 text-16 text-[#4A4C56]">
                           <strong>Expert Instructors:</strong> Learn from
@@ -105,7 +104,7 @@ export default function IntensiveDrivingProgram() {
                       </div>
                     </li>
                     <li>
-                      <div className="flex items-start space-x-2">
+                      <div className={`flex items-start ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                         <div className=" w-[8px] h-[8px] rounded-full bg-[#1A3C64] mt-2"></div>
                         <p className="w-10/12 text-16 text-[#4A4C56]">
                           <strong>Comprehensive Training:</strong> Master all
@@ -114,7 +113,7 @@ export default function IntensiveDrivingProgram() {
                       </div>
                     </li>
                     <li>
-                      <div className="flex items-start space-x-2">
+                      <div className={`flex items-start ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                         <div className=" w-[8px] h-[8px] rounded-full bg-[#1A3C64] mt-2"></div>
                         <p className="w-10/12 text-16 text-[#4A4C56]">
                           <strong>Flexible Timing:</strong> Evening and weekend
@@ -123,7 +122,7 @@ export default function IntensiveDrivingProgram() {
                       </div>
                     </li>
                     <li>
-                      <div className="flex items-start space-x-2">
+                      <div className={`flex items-start ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                         <div className=" w-[8px] h-[8px] rounded-full bg-[#1A3C64] mt-2"></div>
                         <p className="w-10/12 text-16 text-[#4A4C56]">
                           <strong>Same Car as Trafikverket:</strong> Practice in the
@@ -137,10 +136,7 @@ export default function IntensiveDrivingProgram() {
             </div>
 
             <div>
-              <div
-                className="flex items-center space-x-3 mb-2
-              "
-              >
+              <div className={`flex items-center mb-2 ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
                 <div className="flex items-center justify-center w-[28px] h-[28px] rounded-full border border-[#1474FC]">
                   <FaCheck size="14" color="#1474FC" />
                 </div>
@@ -151,7 +147,7 @@ export default function IntensiveDrivingProgram() {
               <ul className=" space-y-3 text-gray-700">
                 {content?.whyChoose?.items?.map((item, index) => (
                   <li key={index}>
-                    <div className="flex items-start space-x-2">
+                    <div className={`flex items-start ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                       <div className=" w-[8px] h-[8px] rounded-full bg-[#1A3C64] mt-2"></div>
                       <p className="w-10/12 text-16 text-[#4A4C56]">
                         <strong>{item.title}</strong> {item.description}
@@ -161,7 +157,7 @@ export default function IntensiveDrivingProgram() {
                 )) || (
                   <>
                     <li>
-                      <div className="flex items-start space-x-2">
+                      <div className={`flex items-start ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                         <div className=" w-[8px] h-[8px] rounded-full bg-[#1A3C64] mt-2"></div>
                         <p className="w-10/12 text-16 text-[#4A4C56]">
                           <strong>High Pass Rates:</strong> Exceptional pass rates
@@ -170,7 +166,7 @@ export default function IntensiveDrivingProgram() {
                       </div>
                     </li>
                     <li>
-                      <div className="flex items-start space-x-2">
+                      <div className={`flex items-start ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                         <div className=" w-[8px] h-[8px] rounded-full bg-[#1A3C64] mt-2"></div>
                         <p className="w-10/12 text-16 text-[#4A4C56]">
                           <strong>Central Location:</strong> Conveniently located in
@@ -179,7 +175,7 @@ export default function IntensiveDrivingProgram() {
                       </div>
                     </li>
                     <li>
-                      <div className="flex items-start space-x-2">
+                      <div className={`flex items-start ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                         <div className=" w-[8px] h-[8px] rounded-full bg-[#1A3C64] mt-2"></div>
                         <p className="w-10/12 text-16 text-[#4A4C56]">
                           <strong>Full Support:</strong> Assistance with booking

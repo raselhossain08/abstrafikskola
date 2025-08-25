@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 export interface HalkbanaContent {
   _id: string;
@@ -96,11 +96,11 @@ interface ApiResponse<T> {
 }
 
 export const halkbanaContentService = {
-  async getHalkbanaContent(): Promise<HalkbanaContent | null> {
+  async getHalkbanaContent(lang: string = 'en'): Promise<HalkbanaContent | null> {
     try {
-      console.log('🔄 Fetching halkbana content from:', `${API_BASE_URL}/halkbana-content`);
+      console.log('🔄 Fetching halkbana content from:', `${API_BASE_URL}/api/halkbana-content`);
       
-      const response = await fetch(`${API_BASE_URL}/halkbana-content`, {
+      const response = await fetch(`${API_BASE_URL}/api/halkbana-content?lang=${lang}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

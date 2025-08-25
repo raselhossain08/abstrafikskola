@@ -1,5 +1,5 @@
 // Student Feedback Service
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 export interface Feedback {
   _id?: string;
@@ -30,24 +30,31 @@ export interface ApiResponse<T> {
 class StudentFeedbackService {
   private baseURL: string;
   private cache: StudentFeedbackData | null = null;
+  private currentLang: string = 'en';
   private cacheExpiry: number = 0;
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   constructor() {
-    this.baseURL = `${API_BASE_URL}/student-feedback`;
+    this.baseURL = `${API_BASE_URL}/api/student-feedback`;
   }
 
   /**
-   * Get student feedback with caching
+   * Get student feedback with caching and language support
    */
-  async getStudentFeedback(): Promise<StudentFeedbackData> {
+  async getStudentFeedback(lang: string = 'en'): Promise<StudentFeedbackData> {
+    // Language-specific cache key
+    const cacheKey = `studentFeedback_${lang}`;
+    
     // Return cached data if available and not expired
-    if (this.cache && Date.now() < this.cacheExpiry) {
+    if (this.cache && Date.now() < this.cacheExpiry && this.currentLang === lang) {
       return this.cache;
     }
 
     try {
-      const response = await fetch(this.baseURL, {
+      const url = `${this.baseURL}?lang=${lang}`;
+      console.log(`📡 Fetching Student Feedback for language: ${lang}`);
+      
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -66,9 +73,12 @@ class StudentFeedbackService {
           result.data.feedbacks.sort((a, b) => (a.order || 0) - (b.order || 0));
         }
 
-        // Cache the successful response
+        // Cache the successful response with language info
         this.cache = result.data;
+        this.currentLang = lang;
         this.cacheExpiry = Date.now() + this.CACHE_DURATION;
+        
+        console.log(`✅ Student Feedback loaded for language: ${lang}`);
         return result.data;
       } else {
         throw new Error(result.message || 'Failed to fetch student feedback');
@@ -77,7 +87,7 @@ class StudentFeedbackService {
       console.error('Error fetching student feedback:', error);
       
       // Return fallback data if API fails
-      return this.getFallbackData();
+      return this.getFallbackData(lang);
     }
   }
 
@@ -86,13 +96,14 @@ class StudentFeedbackService {
    */
   clearCache(): void {
     this.cache = null;
+    this.currentLang = 'en';
     this.cacheExpiry = 0;
   }
 
   /**
    * Fallback data when API is unavailable
    */
-  private getFallbackData(): StudentFeedbackData {
+  private getFallbackData(lang: string = 'en'): StudentFeedbackData {
     return {
       title: "What Our Students Are Saying",
       subtitle: "The Best Trafikskola in Stockholm!",

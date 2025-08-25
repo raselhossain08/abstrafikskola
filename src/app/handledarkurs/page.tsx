@@ -4,6 +4,7 @@ import { ProductDialog } from '@/components/dialog/ProductDialog';
 import { Button } from '@/components/ui/button';
 import { scheduleAPI, type Schedule } from '@/lib/api';
 import { handledarkursContentService, HandledarkursContent } from '@/services/handledarkursContentService';
+import { useLanguage } from '@/contexts/LanguageContext';
 import Image from 'next/image';
 import React, { useState, useEffect } from 'react';
 import { FaCheck } from 'react-icons/fa6';
@@ -29,6 +30,7 @@ type HandledarkursItem = {
 };
 
 export default function page() {
+  const { language } = useLanguage(); // Get current language from context
   const [handledarkursOpen, setHandledarkursOpen] = useState(false);
   const [popupData, setPopupData] = useState<HandledarkursItem | null>(null);
   const [courseSlots, setCourseSlots] = useState<HandledarkursItem[]>([]);
@@ -39,18 +41,21 @@ export default function page() {
   const [contentLoading, setContentLoading] = useState(true);
   const [contentError, setContentError] = useState<string | null>(null);
 
-  // Fetch handledarkurs content from API
+  // Fetch handledarkurs content from API based on current language
   useEffect(() => {
     const fetchHandledarkursContent = async () => {
       try {
         setContentLoading(true);
         setContentError(null);
         
-        const content = await handledarkursContentService.getHandledarkursContent();
+        console.log(`🌐 Fetching handledarkurs content for language: ${language}`);
+        const content = await handledarkursContentService.getHandledarkursContent(language);
         
         if (content) {
+          console.log(`✅ Content loaded successfully for ${language}`);
           setHandledarkursContent(content);
         } else {
+          console.error(`❌ Failed to load content for ${language}`);
           setContentError('Failed to load content');
         }
       } catch (err) {
@@ -62,7 +67,7 @@ export default function page() {
     };
 
     fetchHandledarkursContent();
-  }, []);
+  }, [language]); // Re-fetch when language changes
 
   useEffect(() => {
     fetchHandledarkursCourses();
@@ -129,10 +134,16 @@ export default function page() {
     console.log(data);
   };
 
-  // Translation helper function (defaulting to English)
+  // Translation helper function - now content is already in selected language
   const t = (content: any) => {
-    if (typeof content === 'object' && content.en) {
-      return content.en;
+    // Since we're fetching language-specific content from API,
+    // the content is already in the selected language
+    if (typeof content === 'string') {
+      return content;
+    }
+    // Fallback for multi-language objects (backward compatibility)
+    if (typeof content === 'object' && content) {
+      return content[language] || content.en || content;
     }
     return content;
   };

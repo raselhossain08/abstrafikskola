@@ -1,5 +1,5 @@
 // Payment Content API Service for Frontend with Multi-language Support
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 export type SupportedLanguage = 'en' | 'sv' | 'ar';
 
@@ -50,7 +50,7 @@ class PaymentContentService {
     console.log(`🌐 Payment service language set to: ${language}`);
   }
 
-  getCurrentLanguage(): SupportedLanguage {
+  getCurrentLanguage(lang: string = 'en'): SupportedLanguage {
     return this.currentLanguage;
   }
 
@@ -75,14 +75,14 @@ class PaymentContentService {
       }
 
       console.log(`🔄 Fetching payment content from API for language: ${lang}...`);
-      console.log(`🌐 API URL: ${API_BASE_URL}/payment-content/${lang}`);
+      console.log(`🌐 API URL: ${API_BASE_URL}/api/payment-content/${lang}`);
       console.log(`🔍 Environment check:`, {
         NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
         API_BASE_URL: API_BASE_URL,
         isClient: typeof window !== 'undefined'
       });
       
-      const response = await fetch(`${API_BASE_URL}/payment-content/${lang}`, {
+      const response = await fetch(`${API_BASE_URL}/api/payment-content/${lang}?lang=${lang}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -240,7 +240,7 @@ class PaymentContentService {
   }
 
   // Get available languages (for language switching UI)
-  getAvailableLanguages(): { code: SupportedLanguage; name: string; nativeName: string }[] {
+  getAvailableLanguages(lang: string = 'en'): { code: SupportedLanguage; name: string; nativeName: string }[] {
     return [
       { code: 'en', name: 'English', nativeName: 'English' },
       { code: 'sv', name: 'Swedish', nativeName: 'Svenska' },

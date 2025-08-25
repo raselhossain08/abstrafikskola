@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 export interface HandledarkursContent {
   _id: string;
@@ -101,11 +101,11 @@ interface ApiResponse<T> {
 }
 
 export const handledarkursContentService = {
-  async getHandledarkursContent(): Promise<HandledarkursContent | null> {
+  async getHandledarkursContent(lang: string = 'en'): Promise<HandledarkursContent | null> {
     try {
-      console.log('🔄 Fetching handledarkurs content from:', `${API_BASE_URL}/handledarkurs-content`);
+      console.log(`🔄 Fetching handledarkurs content from: ${API_BASE_URL}/api/handledarkurs-content?lang=${lang}`);
       
-      const response = await fetch(`${API_BASE_URL}/handledarkurs-content`, {
+      const response = await fetch(`${API_BASE_URL}/api/handledarkurs-content?lang=${lang}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ export const handledarkursContentService = {
       }
 
       const result: ApiResponse<HandledarkursContent> = await response.json();
-      console.log('✅ API response received:', result.success ? 'Success' : 'Failed');
+      console.log(`✅ API response received for ${lang}:`, result.success ? 'Success' : 'Failed');
 
       if (result.success && result.data) {
         return result.data;
@@ -128,8 +128,40 @@ export const handledarkursContentService = {
         return null;
       }
     } catch (error) {
-      console.error('❌ Error fetching handledarkurs content:', error);
+      console.error(`❌ Error fetching handledarkurs content for ${lang}:`, error);
       return null;
+    }
+  },
+
+  async getAvailableLanguages(): Promise<string[]> {
+    try {
+      console.log(`🔄 Fetching available languages from: ${API_BASE_URL}/api/handledarkurs-content/languages`);
+      
+      const response = await fetch(`${API_BASE_URL}/api/handledarkurs-content/languages`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        console.error('❌ Languages API response not ok:', response.status, response.statusText);
+        return ['en', 'sv', 'ar']; // Fallback to default languages
+      }
+
+      const result = await response.json();
+      console.log('✅ Available languages:', result.data);
+
+      if (result.success && result.data && Array.isArray(result.data)) {
+        return result.data;
+      } else {
+        console.error('❌ Languages API returned invalid data:', result);
+        return ['en', 'sv', 'ar']; // Fallback
+      }
+    } catch (error) {
+      console.error('❌ Error fetching available languages:', error);
+      return ['en', 'sv', 'ar']; // Fallback
     }
   },
 };

@@ -1,91 +1,77 @@
-// Types
+// Types for new API structure
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
   message?: string;
 }
 
-export interface WhyImportantSection {
+export interface HeroData {
   title: string;
   description: string;
-  order: number;
 }
 
-export interface CourseFeature {
+export interface Benefit {
   title: string;
   description: string;
-  order: number;
 }
 
-export interface CourseContentItem {
-  title: string;
-  order: number;
-}
-
-export interface AdditionalInfoItem {
+export interface Feature {
   title: string;
   description: string;
-  order: number;
 }
 
-export interface ProductImage {
-  url: string;
+export interface CourseContentType {
+  title: string;
+  items: string[];
+}
+
+export interface ImageType {
+  src: string;
+  width: number;
+  height: number;
   alt: string;
-  order: number;
+  caption?: string;
 }
 
-export interface Images {
-  productImages: ProductImage[];
-  mainImage: {
-    url: string;
-    alt: string;
-  };
+export interface CourseData {
+  welcomeTitle: string;
+  subtitle: string;
+  description: string;
+  whyImportantTitle: string;
+  benefits: Benefit[];
+  whatOffersTitle: string;
+  features: Feature[];
+  courseContent: CourseContentType;
+  additionalInfo: string[];
+  images: ImageType[];
 }
 
-export interface Risk1Risk2ContentData {
-  _id: string;
-  sectionTitle: string;
-  sectionDescription: string;
-  pageContent: {
-    mainTitle: string;
-    subtitle: string;
-    description: string;
-  };
-  whyImportant: {
-    title: string;
-    sections: WhyImportantSection[];
-  };
-  courseOffers: {
-    title: string;
-    features: CourseFeature[];
-  };
-  courseContent: {
-    title: string;
-    items: CourseContentItem[];
-  };
-  additionalInfo: AdditionalInfoItem[];
-  images?: Images;
-  language: string;
-  isActive: boolean;
-  version: string;
-  viewCount: number;
-  createdAt: string;
-  updatedAt: string;
+export interface Risk1Risk2Content {
+  _id?: string;
+  hero: HeroData;
+  course: CourseData;
+  isActive?: boolean;
+  version?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 class Risk1Risk2ContentService {
   private baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-  private cache: Risk1Risk2ContentData | null = null;
+  private cache: Risk1Risk2Content | null = null;
   private cacheTime: number = 0;
   private cacheExpiry = 5 * 60 * 1000; // 5 minutes
 
-  async getRisk1Risk2Content(lang: string = 'en'): Promise<Risk1Risk2ContentData> {
+  async getRisk1Risk2Content(lang: string = 'en'): Promise<Risk1Risk2Content> {
     try {
-      // Check cache first
+      // Check cache first (but invalidate on language change)
+      const cacheKey = `risk1risk2_${lang}`;
       if (this.cache && Date.now() - this.cacheTime < this.cacheExpiry) {
         return this.cache;
       }
 
+      console.log(`Fetching Risk1Risk2 content for language: ${lang}`);
+      
       const response = await fetch(
         `${this.baseUrl}/api/risk1risk2-content?lang=${lang}`,
         {
@@ -101,7 +87,7 @@ class Risk1Risk2ContentService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result: ApiResponse<Risk1Risk2ContentData> = await response.json();
+      const result: ApiResponse<Risk1Risk2Content> = await response.json();
 
       if (!result.success) {
         throw new Error(result.message || 'Failed to fetch Risk1Risk2 content');
@@ -111,6 +97,7 @@ class Risk1Risk2ContentService {
       this.cache = result.data;
       this.cacheTime = Date.now();
 
+      console.log(`Successfully fetched Risk1Risk2 content in ${lang}:`, result.data);
       return result.data;
     } catch (error) {
       console.error('Error fetching Risk1Risk2 content:', error);
@@ -122,113 +109,161 @@ class Risk1Risk2ContentService {
       }
 
       // Return default fallback
-      return this.getFallbackData();
+      return this.getFallbackData(lang);
     }
   }
 
-  private getFallbackData(): Risk1Risk2ContentData {
+  private getFallbackData(lang: string = 'en'): Risk1Risk2Content {
+    const fallbackData = {
+      en: {
+        hero: {
+          title: 'Risk 1 & Risk 2 Courses',
+          description: 'Essential Safety Training for New Drivers'
+        },
+        course: {
+          welcomeTitle: 'Welcome to Risk Training',
+          subtitle: 'Complete your mandatory risk training with expert guidance',
+          description: 'Learn essential safety skills and hazard recognition for safer driving',
+          whyImportantTitle: 'Why is Risk Training Important?',
+          benefits: [
+            {
+              title: 'Hazard Recognition',
+              description: 'Learn to identify potential dangers on the road'
+            },
+            {
+              title: 'Safe Driving Techniques',
+              description: 'Master defensive driving strategies and techniques'
+            }
+          ],
+          whatOffersTitle: 'What Our Course Offers',
+          features: [
+            {
+              title: 'Interactive Learning',
+              description: 'Hands-on training with real-world scenarios'
+            },
+            {
+              title: 'Expert Instructors',
+              description: 'Learn from experienced driving professionals'
+            }
+          ],
+          courseContent: {
+            title: 'Course Content',
+            items: [
+              'Understanding traffic risks',
+              'Identifying dangerous situations',
+              'Proper response to emergencies'
+            ]
+          },
+          additionalInfo: [
+            'Mandatory for all new drivers',
+            'Government approved curriculum',
+            'Valid certificate upon completion'
+          ],
+          images: []
+        }
+      },
+      sv: {
+        hero: {
+          title: 'Risk 1 & Risk 2 Kurser',
+          description: 'Grundläggande säkerhetsutbildning för nya förare'
+        },
+        course: {
+          welcomeTitle: 'Välkommen till riskutbildning',
+          subtitle: 'Genomför din obligatoriska riskutbildning med experthjälp',
+          description: 'Lär dig viktiga säkerhetsfärdigheter och faroigenkänning för säkrare körning',
+          whyImportantTitle: 'Varför är riskutbildning viktig?',
+          benefits: [
+            {
+              title: 'Faroigenkänning',
+              description: 'Lär dig att identifiera potentiella faror på vägen'
+            },
+            {
+              title: 'Säker körning tekniker',
+              description: 'Behärska defensiva körstrategier och tekniker'
+            }
+          ],
+          whatOffersTitle: 'Vad vår kurs erbjuder',
+          features: [
+            {
+              title: 'Interaktiv inlärning',
+              description: 'Praktisk utbildning med verkliga scenarier'
+            },
+            {
+              title: 'Expert instruktörer',
+              description: 'Lär av erfarna körproffs'
+            }
+          ],
+          courseContent: {
+            title: 'Kursinnehåll',
+            items: [
+              'Förstå trafikrisker',
+              'Identifiera farliga situationer',
+              'Rätt respons på nödsituationer'
+            ]
+          },
+          additionalInfo: [
+            'Obligatorisk för alla nya förare',
+            'Regeringsgodkänd läroplan',
+            'Giltigt certifikat vid slutförande'
+          ],
+          images: []
+        }
+      },
+      ar: {
+        hero: {
+          title: 'دورات المخاطر 1 و 2',
+          description: 'التدريب الأساسي على السلامة للسائقين الجدد'
+        },
+        course: {
+          welcomeTitle: 'أهلاً بك في تدريب المخاطر',
+          subtitle: 'أكمل تدريب المخاطر الإلزامي مع الإرشاد الخبير',
+          description: 'تعلم مهارات السلامة الأساسية والتعرف على المخاطر للقيادة الآمنة',
+          whyImportantTitle: 'لماذا يعتبر تدريب المخاطر مهماً؟',
+          benefits: [
+            {
+              title: 'التعرف على المخاطر',
+              description: 'تعلم كيفية تحديد المخاطر المحتملة على الطريق'
+            },
+            {
+              title: 'تقنيات القيادة الآمنة',
+              description: 'أتقن استراتيجيات وتقنيات القيادة الدفاعية'
+            }
+          ],
+          whatOffersTitle: 'ما تقدمه دورتنا',
+          features: [
+            {
+              title: 'التعلم التفاعلي',
+              description: 'تدريب عملي مع سيناريوهات من العالم الحقيقي'
+            },
+            {
+              title: 'مدربون خبراء',
+              description: 'تعلم من محترفي القيادة ذوي الخبرة'
+            }
+          ],
+          courseContent: {
+            title: 'محتوى الدورة',
+            items: [
+              'فهم مخاطر المرور',
+              'تحديد المواقف الخطيرة',
+              'الاستجابة المناسبة للطوارئ'
+            ]
+          },
+          additionalInfo: [
+            'إلزامي لجميع السائقين الجدد',
+            'منهج معتمد من الحكومة',
+            'شهادة صالحة عند الإنجاز'
+          ],
+          images: []
+        }
+      }
+    };
+
+    const validLang = lang as 'en' | 'sv' | 'ar';
     return {
       _id: 'fallback',
-      sectionTitle: 'Risk1 + Risk2 Schedule and Prices',
-      sectionDescription: 'Complete your risk education with our Risk1 and Risk2 courses. These mandatory courses cover essential traffic safety knowledge for all new drivers. Check out our upcoming schedule and prices, and book your sessions online.',
-      pageContent: {
-        mainTitle: 'Risk1 + Risk2 Courses at ABS Trafikskola Södertälje 🚗🚦',
-        subtitle: 'Complete your risk education with our comprehensive courses! 🌟',
-        description: 'At ABS Trafikskola Södertälje, we offer both Risk1 and Risk2 courses that are mandatory requirements for obtaining your Swedish driving license. These courses provide essential knowledge about road safety and traffic behavior.'
-      },
-      whyImportant: {
-        title: 'Why are Risk1 + Risk2 Important?',
-        sections: [
-          {
-            title: 'Risk1 Course',
-            description: 'Covers alcohol, drugs, fatigue and how these affect driving ability. Essential foundation for understanding traffic risks.',
-            order: 1
-          },
-          {
-            title: 'For the Instructor',
-            description: 'Update knowledge on current driving laws, learn effective teaching methods, and become certified to instruct privately.',
-            order: 2
-          }
-        ]
-      },
-      courseOffers: {
-        title: 'What Our Course Offers:',
-        features: [
-          {
-            title: 'Experienced Instructors',
-            description: 'Our teachers are experts at making learning both fun and effective.',
-            order: 1
-          },
-          {
-            title: 'Modern Education',
-            description: 'We use the latest technology and teaching materials.',
-            order: 2
-          }
-        ]
-      },
-      courseContent: {
-        title: 'Course Content',
-        items: [
-          { title: 'Basic Traffic Rules', order: 1 },
-          { title: 'Risk Awareness', order: 2 },
-          { title: 'Practical Driving Tips', order: 3 },
-          { title: 'First Aid and Emergency Preparedness', order: 4 }
-        ]
-      },
-      additionalInfo: [
-        {
-          title: 'Who Should Participate?',
-          description: 'Anyone planning to learn to drive privately - both students and their private instructors. The course is crucial to ensure a safe and informed driving experience for all involved.',
-          order: 1
-        },
-        {
-          title: 'Book Your Spot Today!',
-          description: 'Contact us to secure your place in our next Introduction Course. Don\'t wait – spaces fill up quickly!',
-          order: 2
-        },
-        {
-          title: 'Additional Information',
-          description: 'For more information on supervision and practice driving, visit Transportstyrelsen\'s website.',
-          order: 3
-        },
-        {
-          title: 'Welcome Message',
-          description: 'Remember, a good start is half the journey! We look forward to welcoming you to ABS Trafikskola Södertälje. 🚗🎉',
-          order: 4
-        }
-      ],
-      images: {
-        productImages: [
-          {
-            url: '/img/product/1.png',
-            alt: 'Risk1 course image 1',
-            order: 1
-          },
-          {
-            url: '/img/product/2.png', 
-            alt: 'Risk2 course image 2',
-            order: 2
-          },
-          {
-            url: '/img/product/3.png',
-            alt: 'Training facility',
-            order: 3
-          },
-          {
-            url: '/img/product/4.png',
-            alt: 'Course materials',
-            order: 4
-          }
-        ],
-        mainImage: {
-          url: '/img/product/main.png',
-          alt: 'Risk1 + Risk2 courses at ABS Trafikskola'
-        }
-      },
-      language: 'en',
+      ...(fallbackData[validLang] || fallbackData['en']),
       isActive: true,
-      version: '1.0.0',
-      viewCount: 0,
+      version: 1,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -238,16 +273,6 @@ class Risk1Risk2ContentService {
   clearCache(): void {
     this.cache = null;
     this.cacheTime = 0;
-  }
-
-  // Get sections by order
-  getSectionsByOrder(sections: WhyImportantSection[] | CourseFeature[]): any[] {
-    return sections.sort((a, b) => a.order - b.order);
-  }
-
-  // Get items by order
-  getItemsByOrder(items: CourseContentItem[] | AdditionalInfoItem[]): any[] {
-    return items.sort((a, b) => a.order - b.order);
   }
 }
 

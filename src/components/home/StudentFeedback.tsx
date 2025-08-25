@@ -11,6 +11,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { FaStar } from 'react-icons/fa6';
 import { studentFeedbackService, type StudentFeedbackData, type Feedback as ApiFeedback } from '@/services/studentFeedbackService';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Feedback {
   name: string;
@@ -27,14 +28,17 @@ export default function StudentFeedback() {
   const [count, setCount] = useState(0);
   const [feedbackData, setFeedbackData] = useState<StudentFeedbackData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { language } = useLanguage();
 
-  // Fetch feedback data from API
+  // Fetch feedback data from API with language support
   useEffect(() => {
     const fetchFeedbackData = async () => {
       try {
         setLoading(true);
-        const data = await studentFeedbackService.getStudentFeedback();
+        console.log(`🔄 Loading Student Feedback for language: ${language}`);
+        const data = await studentFeedbackService.getStudentFeedback(language);
         setFeedbackData(data);
+        console.log('✅ Student Feedback loaded successfully');
       } catch (error) {
         console.error('Error fetching student feedback:', error);
       } finally {
@@ -43,7 +47,7 @@ export default function StudentFeedback() {
     };
 
     fetchFeedbackData();
-  }, []);
+  }, [language]); // Re-fetch when language changes
 
   useEffect(() => {
     if (!api) return;

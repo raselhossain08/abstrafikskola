@@ -4,8 +4,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { fetchWhyChooseUsData, WhyChooseUsData } from '@/services/whyChooseUsService';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function WhyChooseUs() {
+  const { language } = useLanguage(); // Get current language from context
   const [whyChooseUsData, setWhyChooseUsData] = useState<WhyChooseUsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedCards, setSelectedCards] = useState<string[]>([]);
@@ -25,7 +27,8 @@ export default function WhyChooseUs() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const data = await fetchWhyChooseUsData();
+        setLoading(true);
+        const data = await fetchWhyChooseUsData(language);
         setWhyChooseUsData(data);
       } catch (error) {
         console.error('Error loading why choose us data:', error);
@@ -35,7 +38,7 @@ export default function WhyChooseUs() {
     };
 
     loadData();
-  }, []);
+  }, [language]); // Re-fetch when language changes
 
   if (loading) {
     return (

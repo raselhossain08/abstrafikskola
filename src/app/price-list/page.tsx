@@ -1,27 +1,106 @@
+'use client';
+
 import Contact from '@/components/common/Contact';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { Button } from '@/components/ui/button';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaRegClock } from 'react-icons/fa6';
 import { FaPhoneAlt } from 'react-icons/fa';
 import Link from 'next/link';
-import { priceContentService } from '@/services/priceContentService';
+import { priceContentService, PriceContentData } from '@/services/priceContentService';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-export default async function PriceListPage() {
-  let priceContent;
-  
-  try {
-    priceContent = await priceContentService.getPriceContent();
-  } catch (error) {
-    console.error('Failed to fetch price content:', error);
+export default function PriceListPage() {
+  const { language } = useLanguage();
+  const [priceContent, setPriceContent] = useState<PriceContentData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Language-specific texts
+  const getTranslatedText = (key: string) => {
+    const translations = {
+      en: {
+        ourDrivingLesson: 'Our driving lesson is 50 minutes',
+        thankYou: 'Thank you for your understanding and cooperation.',
+        loadingTitle: 'Loading Price Content...',
+        loadingMessage: 'Please wait while we fetch the latest pricing information.',
+        errorTitle: 'Error Loading Price Content',
+        errorMessage: 'Please try again later or contact support.',
+        retry: 'Retry'
+      },
+      sv: {
+        ourDrivingLesson: 'Vår körlektion är 50 minuter',
+        thankYou: 'Tack för er förståelse och samarbete.',
+        loadingTitle: 'Laddar prisinnehåll...',
+        loadingMessage: 'Vänta medan vi hämtar den senaste prisinformationen.',
+        errorTitle: 'Fel vid laddning av prisinnehåll',
+        errorMessage: 'Försök igen senare eller kontakta supporten.',
+        retry: 'Försök igen'
+      },
+      ar: {
+        ourDrivingLesson: 'درس القيادة الخاص بنا هو 50 دقيقة',
+        thankYou: 'شكراً لتفهمكم وتعاونكم.',
+        loadingTitle: 'جاري تحميل محتوى الأسعار...',
+        loadingMessage: 'يرجى الانتظار بينما نجلب أحدث معلومات الأسعار.',
+        errorTitle: 'خطأ في تحميل محتوى الأسعار',
+        errorMessage: 'يرجى المحاولة مرة أخرى لاحقاً أو الاتصال بالدعم.',
+        retry: 'أعد المحاولة'
+      }
+    };
+
+    return translations[language as keyof typeof translations]?.[key as keyof typeof translations.en] || translations.en[key as keyof typeof translations.en];
+  };
+
+  useEffect(() => {
+    const fetchPriceContent = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const content = await priceContentService.getPriceContent(language);
+        setPriceContent(content);
+      } catch (err) {
+        console.error('Failed to fetch price content:', err);
+        setError('Failed to load price content. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPriceContent();
+  }, [language]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#3F8FEE] mx-auto mb-4"></div>
+          <h2 className="text-24 font-bold text-[#1D1F2C] mb-4">
+            {getTranslatedText('loadingTitle')}
+          </h2>
+          <p className="text-16 text-gray-600">
+            {getTranslatedText('loadingMessage')}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !priceContent) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-24 font-bold text-red-600 mb-4">
-            Error Loading Price Content
+            {getTranslatedText('errorTitle')}
           </h2>
-          <p className="text-16 text-gray-600">
-            Please try again later or contact support.
+          <p className="text-16 text-gray-600 mb-4">
+            {error || getTranslatedText('errorMessage')}
           </p>
+          <Button 
+            onClick={() => window.location.reload()}
+            className="bg-[#3F8FEE] hover:bg-[#2A7BD4]"
+          >
+            {getTranslatedText('retry')}
+          </Button>
         </div>
       </div>
     );
@@ -38,7 +117,7 @@ export default async function PriceListPage() {
 
             <div className="flex flex-col space-y-5 justify-center items-center">
               <Button className="bg-[#EB3D4D] hover:bg-[#EB3D4D] w-[291px] h-[46px] rounded-[100px] font-semibold text-16 leading-[140%] tracking-[0.5%] text-white">
-                Our driving lesson is 50 minutes
+                {getTranslatedText('ourDrivingLesson')}
               </Button>
 
               <div className="w-full md:w-[872px] text-center">
@@ -156,7 +235,7 @@ export default async function PriceListPage() {
                   </div>
                 ))}
                 
-                <p>Thank you for your understanding and cooperation.</p>
+                <p>{getTranslatedText('thankYou')}</p>
               </div>
             )}
           </div>

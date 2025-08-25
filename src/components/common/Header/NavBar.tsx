@@ -162,6 +162,7 @@ export default function NavBar({
         className={`bg-white flex items-center h-[56px] lg:h-[96px] transition-all duration-300 ${
           isScrolled ? 'lg:h-[70px] shadow-md' : ''
         }`}
+        dir='ltr'
       >
         <div className="w-full xl:w-[1320px] mx-auto px-4 xl:px-0">
           <div className="flex items-center justify-between">
