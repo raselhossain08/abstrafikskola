@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import React, { useState, useEffect } from 'react';
 import { FaCheck } from 'react-icons/fa6';
-import { scheduleAPI, type Schedule } from '@/lib/api';
+import { scheduleAPI, courseAPI, Schedule } from '@/lib/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { riskettanContentService, type RiskettanContentData } from '@/services/riskettanContentService';
 
@@ -60,68 +60,134 @@ export default function RiskettanPage() {
 
   // Fetch course schedules from API
   useEffect(() => {
-    const fetchSchedules = async () => {
+    const fetchRiskettanCourses = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Search for "Riskettan" schedules
-        const response = await scheduleAPI.getByTitle('Riskettan');
+        console.log('🔍 Starting Riskettan course search...');
+        let response;
+        
+        // Strategy 1: Try exact "Riskettan" category match
+        try {
+          console.log('📋 Trying category search: Riskettan');
+          response = await courseAPI.getByCategory('Riskettan');
+          console.log('🔍 Riskettan Category API response:', response);
+          
+          if (response.success && response.data && response.data.length > 0) {
+            console.log(`✅ Found ${response.data.length} courses with Riskettan category`);
+          }
+        } catch (error) {
+          console.error('❌ Error with Riskettan category search:', error);
+        }
+        
+        // Strategy 2: Try lowercase "riskettan" as fallback
+        if (!response || !response.success || !response.data || response.data.length === 0) {
+          try {
+            console.log('📋 Trying category search: riskettan (lowercase)');
+            response = await courseAPI.getByCategory('riskettan');
+            console.log('🔍 riskettan Category API response:', response);
+            
+            if (response.success && response.data && response.data.length > 0) {
+              console.log(`✅ Found ${response.data.length} courses with riskettan category`);
+            }
+          } catch (error) {
+            console.error('❌ Error with riskettan category search:', error);
+          }
+        }
+        
+        // Strategy 3: Try title-based search as final fallback
+        if (!response || !response.success || !response.data || response.data.length === 0) {
+          try {
+            console.log('📋 Trying title search: Riskettan');
+            response = await scheduleAPI.getByTitle('Riskettan');
+            console.log('🔍 Title search API response:', response);
+            
+            if (response.success && response.data && response.data.length > 0) {
+              console.log(`✅ Found ${response.data.length} courses with title search`);
+            }
+          } catch (error) {
+            console.error('❌ Error with title search:', error);
+          }
+        }
 
-        if (response.success && response.data) {
+        if (response && response.success && response.data && response.data.length > 0) {
           // Transform API data to match component format
           const transformedSlots: ProductItem[] = response.data.map(
-            (schedule: Schedule) => {
-              // Format date with day name
-              const scheduleDate = new Date(schedule.date);
-              const formattedDate = scheduleDate.toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-              });
+            (item: any, index: number) => {
+              let scheduleDate, formattedDate, timeRange, availableSeats, seatsText;
+              
+              try {
+                // Check if this is schedule data or course data with schedule info
+                if (item.date && item.startTime && item.endTime) {
+                  // This is schedule data
+                  scheduleDate = new Date(item.date);
+                  formattedDate = scheduleDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                  });
+                  timeRange = `${item.startTime} - ${item.endTime}`;
+                  availableSeats = item.availableSlots || item.availableSeats || item.totalSeats || 15;
+                } else {
+                  // This is course data, use default values
+                  const tomorrow = new Date();
+                  tomorrow.setDate(tomorrow.getDate() + 1 + index); // Stagger dates for multiple courses
+                  formattedDate = tomorrow.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                  });
+                  timeRange = item.schedule?.time || '09:00 - 15:00';
+                  availableSeats = item.maxStudents || item.totalSeats || 15;
+                }
 
-              // Format time range
-              const timeRange = `${schedule.startTime} - ${schedule.endTime}`;
+                seatsText = availableSeats > 0 ? `${availableSeats} places left` : 'Fully booked';
 
-              // Calculate available seats
-              const availableSeats =
-                schedule.availableSlots ||
-                schedule.maxStudents - schedule.currentBookings;
-              const seatsText =
-                availableSeats > 0
-                  ? `${availableSeats} places left`
-                  : 'Fully booked';
-
-              return {
-                _id: schedule._id,
-                scheduleId: schedule.scheduleId,
-                date: formattedDate,
-                time: timeRange,
-                title: schedule.title,
-                seats: seatsText,
-                price: `${schedule.price} kr`,
-              };
+                return {
+                  _id: item._id || item.scheduleId || `riskettan-${index}`,
+                  scheduleId: item.scheduleId || item._id,
+                  date: formattedDate,
+                  time: timeRange,
+                  title: item.title || item.course?.title || 'Riskettan (Risk 1)',
+                  seats: seatsText,
+                  price: `${item.price || item.course?.price || 799} kr`,
+                };
+              } catch (transformError) {
+                console.error('❌ Error transforming course data:', transformError, item);
+                // Return a fallback object
+                return {
+                  _id: `riskettan-fallback-${index}`,
+                  scheduleId: item._id || `schedule-${index}`,
+                  date: 'Date TBD',
+                  time: 'Time TBD',
+                  title: 'Riskettan (Risk 1)',
+                  seats: 'Contact for availability',
+                  price: '799 kr',
+                };
+              }
             }
-          );
+          ).filter(Boolean); // Remove any null/undefined items
 
           setRiskOneSlots(transformedSlots);
+          console.log(`✅ Successfully loaded ${transformedSlots.length} Riskettan courses`);
         } else {
           // No data found from API
           setRiskOneSlots([]);
-          console.log('No Riskettan courses found in database');
+          console.log('❌ No Riskettan courses found in database after trying all search methods');
         }
       } catch (err) {
-        console.error('Error fetching schedules:', err);
-        setError('No courses at the moment');
-        // Set empty array instead of fallback data
+        console.error('❌ Error fetching Riskettan courses:', err);
+        setError('Failed to load Riskettan courses. Please try again later.');
         setRiskOneSlots([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSchedules();
+    fetchRiskettanCourses();
   }, []);
 
   const handleSubmit = (data: ProductItem) => {
@@ -177,7 +243,7 @@ export default function RiskettanPage() {
                 <div className="flex justify-center items-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                   <span className="ml-3 text-lg text-gray-600">
-                    Loading schedules...
+                    Loading Riskettan courses...
                   </span>
                 </div>
               ) : error ? (
@@ -212,7 +278,7 @@ export default function RiskettanPage() {
                     No Riskettan Courses Available
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    There are currently no Riskettan courses scheduled. Please check
+                    There are currently no Riskettan (Risk 1) courses scheduled. Please check
                     back later or contact us for more information.
                   </p>
                   <Button
@@ -220,7 +286,7 @@ export default function RiskettanPage() {
                     variant="outline"
                     className="px-6 py-2"
                   >
-                    Refresh
+                    Refresh Page
                   </Button>
                 </div>
               ) : (

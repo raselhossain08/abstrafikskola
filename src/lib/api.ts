@@ -180,6 +180,12 @@ class ApiClient {
     );
   }
 
+  async getCoursesByCategory(category: string): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>(
+      `/public/category/${encodeURIComponent(category)}`
+    );
+  }
+
   async createSubscription(
     subscriptionData: SubscriptionData
   ): Promise<ApiResponse<SubscriptionResponse>> {
@@ -207,6 +213,7 @@ export const courseAPI = {
   getAll: (params?: Parameters<typeof apiClient.getPublicCourses>[0]) =>
     apiClient.getPublicCourses(params),
   getById: (id: string) => apiClient.getPublicCourse(id),
+  getByCategory: (category: string) => apiClient.getCoursesByCategory(category),
 };
 
 export const bookingAPI = {
@@ -233,52 +240,55 @@ export const risk1Risk2API = {
   // Get combined Risk1 + Risk2 courses
   getCombinedCourses: async () => {
     try {
-      // Fetch both Risk1 and Risk2 schedules
-      const [risk1Response, risk2Response] = await Promise.all([
-        scheduleAPI.getByTitle('Riskettan'),
-        scheduleAPI.getByTitle('Halkbana')
-      ]);
-
-      let allCourses: any[] = [];
-
-      // Add Risk1 courses if available
-      if (risk1Response.success && risk1Response.data) {
-        const risk1Courses = risk1Response.data.map((schedule: Schedule) => ({
-          ...schedule,
-          courseType: 'risk1',
-          packageType: 'individual'
+      console.log('🔍 Risk1Risk2 API: Searching for Risk1 + Risk2 category courses only');
+      
+      // Only try to get courses by "Risk1 + Risk2" category - no individual fallback
+      const combinedResponse = await courseAPI.getByCategory('Risk1 + Risk2');
+      
+      if (combinedResponse.success && combinedResponse.data && combinedResponse.data.length > 0) {
+        console.log(`✅ Risk1Risk2 API: Found ${combinedResponse.data.length} Risk1 + Risk2 category courses`);
+        
+        // Transform category courses to schedule format
+        const combinedCourses = combinedResponse.data.map((course: any) => ({
+          _id: course._id,
+          scheduleId: course._id,
+          title: course.title || 'Risk1 + Risk2',
+          date: course.nextAvailableDate || new Date().toISOString().split('T')[0],
+          startTime: course.startTime || '09:00',
+          endTime: course.endTime || '15:00',
+          price: course.price || 1200,
+          maxStudents: course.maxStudents || 15,
+          currentBookings: course.currentBookings || 0,
+          availableSlots: course.maxStudents - (course.currentBookings || 0),
+          venue: course.venue || 'ABS Trafikskola Södertälje',
+          instructor: course.instructor || 'Certified Instructor',
+          isAvailable: course.active !== false,
+          courseType: 'risk1-risk2-combined',
+          packageType: 'combined',
+          category: 'Risk1 + Risk2'
         }));
-        allCourses = [...allCourses, ...risk1Courses];
+
+        return {
+          success: true,
+          data: combinedCourses,
+          message: 'Risk1 + Risk2 courses fetched successfully from category'
+        };
       }
 
-      // Add Risk2 courses if available  
-      if (risk2Response.success && risk2Response.data) {
-        const risk2Courses = risk2Response.data.map((schedule: Schedule) => ({
-          ...schedule,
-          courseType: 'risk2', 
-          packageType: 'individual'
-        }));
-        allCourses = [...allCourses, ...risk2Courses];
-      }
-
-      // Sort by date
-      allCourses.sort((a, b) => {
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
-        return dateA.getTime() - dateB.getTime();
-      });
-
-      return {
-        success: true,
-        data: allCourses,
-        message: 'Combined courses fetched successfully'
-      };
-    } catch (error) {
-      console.error('Error fetching combined courses:', error);
+      // No fallback to individual courses - this API is specifically for combined Risk1 + Risk2
+      console.log('❌ Risk1Risk2 API: No Risk1 + Risk2 category courses found');
       return {
         success: false,
-        data: null,
-        message: 'Failed to fetch combined courses'
+        data: [],
+        message: 'No Risk1 + Risk2 category courses available'
+      };
+      
+    } catch (error) {
+      console.error('❌ Risk1Risk2 API: Error fetching combined courses:', error);
+      return {
+        success: false,
+        data: [],
+        message: 'Failed to fetch Risk1 + Risk2 courses'
       };
     }
   },

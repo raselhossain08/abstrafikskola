@@ -2,7 +2,7 @@
 import Contact from '@/components/common/Contact';
 import { ProductDialog } from '@/components/dialog/ProductDialog';
 import { Button } from '@/components/ui/button';
-import { scheduleAPI, type Schedule } from '@/lib/api';
+import { scheduleAPI, courseAPI, type Schedule } from '@/lib/api';
 import { handledarkursContentService, HandledarkursContent } from '@/services/handledarkursContentService';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Image from 'next/image';
@@ -77,40 +77,109 @@ export default function page() {
     try {
       setLoading(true);
 
-      // Use the API utility to get schedules by course title
-      const response = await scheduleAPI.getByTitle('Handledarkurs');
+      // First try to search by Handledarkurs category, then fallback to other searches
+      let response;
+      
+      // Try Handledarkurs category first (exact match)
+      response = await courseAPI.getByCategory('Handledarkurs');
+      console.log('🔍 Handledarkurs Category API response:', response);
+      
+      if (!response.success || !response.data || response.data.length === 0) {
+        // Try handledarkurs lowercase as fallback
+        console.log('❌ No Handledarkurs courses found, trying lowercase handledarkurs');
+        response = await courseAPI.getByCategory('handledarkurs');
+        console.log('🔍 handledarkurs Category API response:', response);
+      }
+      
+      if (!response.success || !response.data || response.data.length === 0) {
+        // Final fallback to title search
+        console.log('❌ No category courses found, falling back to title search');
+        response = await scheduleAPI.getByTitle('Handledarkurs');
+        console.log('🔍 Title search API response:', response);
+      }
 
       if (response.success && response.data && response.data.length > 0) {
-        // Transform the schedule data to match our component interface
-        const transformedCourses = response.data.map((schedule: Schedule) => {
+        // Transform the course data to match our component interface
+        const transformedCourses = response.data.map((item: any) => {
+          let scheduleDate, formattedDate, timeRange, availableSeats;
+          
+          // Check if this is schedule data or course data with schedule info
+          if (item.date && item.startTime && item.endTime) {
+            // This is schedule data
+            scheduleDate = new Date(item.date);
+            formattedDate = formatScheduleDate(item.date);
+            timeRange = `${item.startTime} - ${item.endTime}`;
+            availableSeats = item.availableSlots || item.availableSeats || item.totalSeats || 15;
+          } else {
+            // This is course data, use default values
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            formattedDate = formatScheduleDate(tomorrow.toISOString());
+            timeRange = '09:00 - 17:00';
+            availableSeats = item.maxStudents || item.totalSeats || 15;
+          }
+
           return {
-            scheduleId: schedule.scheduleId,
-            date: formatScheduleDate(schedule.date),
-            time: `${schedule.startTime} - ${schedule.endTime}`,
-            title: schedule.title,
-            seats: `${schedule.availableSlots} seats available`,
-            price: `${schedule.price} kr`,
-            maxStudents: schedule.maxStudents,
-            currentBookings: schedule.currentBookings,
-            startTime: schedule.startTime,
-            endTime: schedule.endTime,
-            venue: schedule.venue,
-            instructor: schedule.instructor,
-            status: schedule.isAvailable,
+            scheduleId: item.scheduleId || item._id,
+            date: formattedDate,
+            time: timeRange,
+            title: item.title || item.course?.title || 'Handledarkurs',
+            seats: `${availableSeats} seats available`,
+            price: `${item.price || 1500} kr`,
+            maxStudents: item.maxStudents || item.totalSeats || 15,
+            currentBookings: item.currentBookings || item.bookedSeats || 0,
+            startTime: item.startTime || '09:00',
+            endTime: item.endTime || '17:00',
+            venue: item.venue || 'ABS Trafikskola Södertälje',
+            instructor: item.instructor || item.teacherName || 'Certified Instructor',
+            status: item.status !== false,
             course: {
-              title: schedule.title,
+              title: item.title || item.course?.title || 'Handledarkurs',
               category: 'Handledarkurs',
-              language: 'Svenska',
+              language: item.language || 'Svenska',
             },
           };
         });
 
         setCourseSlots(transformedCourses);
+        console.log(`✅ Loaded ${transformedCourses.length} handledarkurs courses`);
       } else {
-        setCourseSlots([]);
+        console.log('❌ No handledarkurs courses found, falling back to title search');
+        
+        // Fallback to the original method if category API doesn't return results
+        const fallbackResponse = await scheduleAPI.getByTitle('Handledarkurs');
+        
+        if (fallbackResponse.success && fallbackResponse.data && fallbackResponse.data.length > 0) {
+          const transformedCourses = fallbackResponse.data.map((schedule: Schedule) => {
+            return {
+              scheduleId: schedule.scheduleId,
+              date: formatScheduleDate(schedule.date),
+              time: `${schedule.startTime} - ${schedule.endTime}`,
+              title: schedule.title,
+              seats: `${schedule.availableSlots} seats available`,
+              price: `${schedule.price} kr`,
+              maxStudents: schedule.maxStudents,
+              currentBookings: schedule.currentBookings,
+              startTime: schedule.startTime,
+              endTime: schedule.endTime,
+              venue: schedule.venue,
+              instructor: schedule.instructor,
+              status: schedule.isAvailable,
+              course: {
+                title: schedule.title,
+                category: 'Handledarkurs',
+                language: 'Svenska',
+              },
+            };
+          });
+
+          setCourseSlots(transformedCourses);
+        } else {
+          setCourseSlots([]);
+        }
       }
     } catch (err) {
-      console.error('Error fetching courses:', err);
+      console.error('Error fetching handledarkurs courses:', err);
       setCourseSlots([]);
     } finally {
       setLoading(false);
@@ -191,7 +260,7 @@ export default function page() {
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3F8FEE] mx-auto mb-3"></div>
                 <p className="text-[#4A4C56] font-medium text-16">
-                  Loading courses...
+                  Loading Handledarkurs courses...
                 </p>
               </div>
             </div>
@@ -202,10 +271,10 @@ export default function page() {
             <div className="flex justify-center items-center py-12">
               <div className="text-center">
                 <h3 className="text-24 font-bold text-[#1D1F2C] mb-2">
-                  No Courses Available
+                  No Handledarkurs Courses Available
                 </h3>
                 <p className="text-[#4A4C56] text-16 mb-4">
-                  Currently, there are no Handledarkurs courses scheduled.
+                  Currently, there are no Handledarkurs category courses scheduled.
                 </p>
                 <Button
                   onClick={fetchHandledarkursCourses}
@@ -356,179 +425,110 @@ export default function page() {
           )}
         </div>
       </div>
-      <div className=" bg-white py-[56px] xl:py-[120px] px-4 ">
+      <main className="bg-white py-16 xl:py-[120px] px-4">
         <div className="w-full xl:w-[1320px] mx-auto">
-          <h1 className="text-[24px] sm:text-35 font-[600]  text-[#1D1F2C]  pb-5 tracking-[0.5%]">
+          <h2 className="text-24 md:text-35 font-[600] text-[#1D1F2C] leading-[100%] pb-5">
             {t(handledarkursContent.course.welcomeTitle)}
-          </h1>
-          <p className="text-20 sm:text-30 font-[500]  text-[#1D1F2C] leading-[100%]  pb-3">
+          </h2>
+          <p className="text-20 md:text-30 font-[500] text-[#1D1F2C] leading-[100%] pb-3">
             {t(handledarkursContent.course.subtitle)}
           </p>
-          <p className="text-16 font-[400]  text-[#000000] leading-[140%] tracking-[0.5%]   w-11/12 pb-10">
+          <p className="text-16 font-[400] text-[#000000] leading-[140%] tracking-[0.5%] w-11/12 pb-10">
             {t(handledarkursContent.course.description)}
           </p>
-          <div className="flex justify-between items-center pb-12 flex-col-reverse md:flex-row">
-            <div className="w-full md:w-[633px]">
-              <h3 className="text-20 sm:text-32 font-medium  my-4">
-                {t(handledarkursContent.course.whyImportantTitle)}
+          <div className="flex justify-between items-center pb-12 md:flex-row flex-col-reverse">
+            {/* Course Details */}
+            <section
+              className="w-full md:w-[633px]"
+              aria-labelledby="course-heading"
+            >
+              <h3 id="course-heading" className="sr-only">
+                {t(handledarkursContent.course.welcomeTitle)}
               </h3>
-              {handledarkursContent.course.benefits.map((benefit, index) => (
-                <div key={index} className="flex space-x-4 items-start mb-4">
-                  <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
-                    <FaCheck />
-                  </div>
-                  <div className=" w-11/12 space-y-1">
-                    <h3 className="text-16 font-bold sm:text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] sm:font-semibold ">
-                      {t(benefit.title)}
-                    </h3>
-                    <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
-                      {t(benefit.description)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-
-              <div className="flex space-x-4 items-start mb-2">
-                <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
-                  <FaCheck />
-                </div>
-                <div className=" w-11/12 space-y-1">
-                  <h3 className=" text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] font-semibold ">
-                    For the Instructor 
-                  </h3>
-                  <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
-                    Update knowledge on current driving laws, learn effective
-                    teaching methods, and become certified to instruct
-                    privately.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="w-full md:w-[633px]">
-              <div className="flex w-full justify-between gap-8 md:gap-0">
-                <div className=" flex flex-col justify-between">
-                  {handledarkursContent.course.images.slice(0, 2).map((image, index) => (
-                    <Image
-                      key={index}
-                      src={image.src}
-                      width={image.width}
-                      height={image.height}
-                      alt={image.alt}
-                      className="w-[300px] h-[190px] rounded-[22px] object-cover"
-                    />
+              {handledarkursContent.course.benefits && handledarkursContent.course.benefits.length > 0 && (
+                <ul className="space-y-2 text-18 font-medium text-[#4A4C56] mb-8">
+                  {handledarkursContent.course.benefits.map((benefit, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="mr-2 w-2 h-2 rounded-full bg-[#08316A] mt-2" />
+                      <p className="w-11/12">
+                        <strong>{t(benefit.title) || `Benefit ${index + 1}`}: </strong>
+                        {t(benefit.description) || ''}
+                      </p>
+                    </li>
                   ))}
-                </div>
-                <div className="">
-                  {handledarkursContent.course.images.slice(2, 3).map((image, index) => (
-                    <Image
-                      key={index + 2}
-                      src={image.src}
-                      width={image.width}
-                      height={image.height}
-                      alt={image.alt}
-                      className="w-[300px] h-[407px] rounded-[22px] object-cover"
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center pb-12  flex-col md:flex-row">
-            <div className="w-full md:w-[633px]">
-              <div className="flex w-full justify-between gap-8 md:gap-0">
-                <div className="">
-                  {handledarkursContent.course.images.slice(3, 4).map((image, index) => (
-                    <Image
-                      key={index + 3}
-                      src={image.src}
-                      width={image.width}
-                      height={image.height}
-                      alt={image.alt}
-                      className="w-[300px] h-[407px] rounded-[22px] object-cover"
-                    />
-                  ))}
-                </div>
-                <div className=" flex flex-col justify-between">
-                  {handledarkursContent.course.images.slice(0, 2).map((image, index) => (
-                    <Image
-                      key={index}
-                      src={image.src}
-                      width={image.width}
-                      height={image.height}
-                      alt={image.alt}
-                      className="w-[300px] h-[190px] rounded-[22px] object-cover"
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="w-full md:w-[633px]">
-              <h3 className=" text-32 font-medium  my-4">
-                {t(handledarkursContent.course.whatOffersTitle)}
+                </ul>
+              )}
+              <h3 className="text-32 font-medium mb-6 text-[#1D1F2C]">
+                {handledarkursContent.course.courseContent?.title ? t(handledarkursContent.course.courseContent.title) : 'Course Content'}
               </h3>
-              {handledarkursContent.course.features.map((feature, index) => (
-                <div key={index} className="flex space-x-4 items-start mb-4">
-                  <div className="flex w-[28px] h-[28px] items-center justify-center rounded-full border-[1.5px] border-[#1474FC] text-[#1474FC] text-12 mt-2">
-                    <FaCheck />
+              {handledarkursContent.course.courseContent?.items && handledarkursContent.course.courseContent.items.length > 0 && (
+                <ul className="space-y-2 text-18 font-medium text-[#4A4C56] mb-8">
+                  {handledarkursContent.course.courseContent.items.map((item, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="mr-2 w-2 h-2 rounded-full bg-[#08316A] mt-2" />
+                      <p className="w-11/12">{t(item) || `Course item ${index + 1}`}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="space-y-4">
+                {handledarkursContent.course.additionalInfo && handledarkursContent.course.additionalInfo.length > 0 && (
+                  <>
+                    {handledarkursContent.course.additionalInfo.map((info, index) => (
+                      <p key={index} className="font-normal text-16 text-[#4A4C56] tracking-[0.5%]">
+                        {t(info)}
+                      </p>
+                    ))}
+                  </>
+                )}
+              </div>
+            </section>
+
+            {/* Images */}
+            <section
+              className="w-full md:w-[633px] mb-5 md:mb-0"
+              aria-label="Course Images"
+            >
+              {handledarkursContent.course.images && handledarkursContent.course.images.length >= 3 ? (
+                <div className="flex w-full justify-between space-x-5">
+                  <div className="flex flex-col justify-between">
+                    <Image
+                      src={handledarkursContent.course.images[0].src}
+                      width={handledarkursContent.course.images[0].width}
+                      height={handledarkursContent.course.images[0].height}
+                      alt={t(handledarkursContent.course.images[0].alt) || 'Course image'}
+                      className="w-[300px] h-[190px] rounded-[22px] object-cover"
+                      loading="lazy"
+                    />
+                    <Image
+                      src={handledarkursContent.course.images[1].src}
+                      width={handledarkursContent.course.images[1].width}
+                      height={handledarkursContent.course.images[1].height}
+                      alt={t(handledarkursContent.course.images[1].alt) || 'Course image'}
+                      className="w-[300px] h-[190px] rounded-[22px] object-cover"
+                      loading="lazy"
+                    />
                   </div>
-                  <div className=" w-11/12 space-y-1">
-                    <h3 className=" text-18 text-[#1D1F2C] tracking-[0.5%] leading-[140%] font-semibold ">
-                      {t(feature.title)}
-                    </h3>
-                    <p className="text-16 font-normal leading-[140%] tracking-[0.5%] text-black">
-                      {t(feature.description)}
-                    </p>
+                  <div>
+                    <Image
+                      src={handledarkursContent.course.images[2].src}
+                      width={handledarkursContent.course.images[2].width}
+                      height={handledarkursContent.course.images[2].height}
+                      alt={t(handledarkursContent.course.images[2].alt) || 'Course image'}
+                      className="w-[300px] h-[407px] rounded-[22px] object-cover"
+                      loading="lazy"
+                    />
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <h2 className="text-20 sm:text-32 font-medium mb-3 md:mb-6 text-[#1D1F2C]">
-            {t(handledarkursContent.course.courseContent.title)}
-          </h2>
-          <ul className="space-y-2 text-16 md:text-18 font-bold text-[#4A4C56] mb-8">
-            {handledarkursContent.course.courseContent.items.map((item, index) => (
-              <li key={index} className="flex items-center ">
-                <span className="mt-1 mr-2 w-2 h-2 rounded-full bg-[#08316A]" />
-                <span>{t(item)}</span>
-              </li>
-            ))}
-          </ul>
-
-          <div className="space-y-4 ">
-            <div>
-              <strong className="block text-[#000000] mb-1 text-16 md:text-18 font-bold leading-[26px]">
-                Who Should Participate?
-              </strong>
-              <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
-                {t(handledarkursContent.course.additionalInfo[0])}
-              </p>
-            </div>
-
-            <div>
-              <strong className="block text-[#000000] mb-1 text-18 font-bold leading-[26px]">
-                Book Your Spot Today!
-              </strong>
-              <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
-                Contact us to secure your place in our next Introduction Course.
-                Don’t wait – spaces fill up quickly!
-              </p>
-            </div>
-
-            <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
-              For more information on supervision and practice driving, visit
-              Transportstyrelsen’s website.
-            </p>
-
-            <p className=" text-[#4A4C56] leading-[140%] text-16 font-normal tracking-[0.5%]">
-              Remember, a good start is half the journey! We look forward to
-              welcoming you to ABS Trafikskola Södertälje. 🚗🎉
-            </p>
+              ) : (
+                <div className="flex items-center justify-center h-[407px] bg-gray-200 rounded-[22px]">
+                  <p className="text-gray-500">Course images loading...</p>
+                </div>
+              )}
+            </section>
           </div>
         </div>
-      </div>
+      </main>
       <Contact />
       {popupData && (
         <ProductDialog

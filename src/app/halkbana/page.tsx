@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { FaCheck } from 'react-icons/fa6';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { scheduleAPI, Schedule } from '@/lib/api';
+import { scheduleAPI, courseAPI, Schedule } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { ProductDialog } from '@/components/dialog/ProductDialog';
 import Contact from '@/components/common/Contact';
@@ -67,63 +67,159 @@ export default function HalkbanaPage() {
 
   // Fetch course schedules from API
   useEffect(() => {
-    const fetchSchedules = async () => {
+    const fetchHalkbanaCourses = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Search for "Halkbana" schedules using the API
-        const response = await scheduleAPI.getByTitle('Halkbana');
+        console.log('🔍 Starting Risk2 (Halkbana) course search...');
+        let response;
+        
+        // Strategy 1: Try exact "Risk2 (Halkbana)" category match
+        try {
+          console.log('📋 Trying category search: Risk2 (Halkbana)');
+          response = await courseAPI.getByCategory('Risk2 (Halkbana)');
+          console.log('🔍 Risk2 (Halkbana) Category API response:', response);
+          
+          if (response.success && response.data && response.data.length > 0) {
+            console.log(`✅ Found ${response.data.length} courses with Risk2 (Halkbana) category`);
+          }
+        } catch (error) {
+          console.error('❌ Error with Risk2 (Halkbana) category search:', error);
+        }
+        
+        // Strategy 2: Try "Risk2" as fallback
+        if (!response || !response.success || !response.data || response.data.length === 0) {
+          try {
+            console.log('📋 Trying category search: Risk2');
+            response = await courseAPI.getByCategory('Risk2');
+            console.log('🔍 Risk2 Category API response:', response);
+            
+            if (response.success && response.data && response.data.length > 0) {
+              console.log(`✅ Found ${response.data.length} courses with Risk2 category`);
+            }
+          } catch (error) {
+            console.error('❌ Error with Risk2 category search:', error);
+          }
+        }
+        
+        // Strategy 3: Try "Halkbana" as additional fallback
+        if (!response || !response.success || !response.data || response.data.length === 0) {
+          try {
+            console.log('📋 Trying category search: Halkbana');
+            response = await courseAPI.getByCategory('Halkbana');
+            console.log('🔍 Halkbana Category API response:', response);
+            
+            if (response.success && response.data && response.data.length > 0) {
+              console.log(`✅ Found ${response.data.length} courses with Halkbana category`);
+            }
+          } catch (error) {
+            console.error('❌ Error with Halkbana category search:', error);
+          }
+        }
+        
+        // Strategy 4: Final fallback to title search
+        if (!response || !response.success || !response.data || response.data.length === 0) {
+          try {
+            console.log('📋 Trying title search: Halkbana');
+            response = await scheduleAPI.getByTitle('Halkbana');
+            console.log('🔍 Title search API response:', response);
+            
+            if (response.success && response.data && response.data.length > 0) {
+              console.log(`✅ Found ${response.data.length} courses with title search`);
+            }
+          } catch (error) {
+            console.error('❌ Error with title search:', error);
+          }
+        }
 
-        if (response.success && response.data && response.data.length > 0) {
+        if (response && response.success && response.data && response.data.length > 0) {
           // Transform API data to match component format
           const transformedSlots: HalkbanaItem[] = response.data.map(
-            (schedule: Schedule) => {
-              // Format date with day name
-              const scheduleDate = new Date(schedule.date);
-              const formattedDate = scheduleDate.toLocaleDateString(
-                language === 'ar'
-                  ? 'ar-SA'
-                  : language === 'sv'
-                    ? 'sv-SE'
-                    : 'en-US',
-                {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: '2-digit',
-                  day: '2-digit',
+            (item: any, index: number) => {
+              let scheduleDate, formattedDate, timeRange, availableSeats, seatsText;
+              
+              try {
+                // Check if this is schedule data or course data with schedule info
+                if (item.date && item.startTime && item.endTime) {
+                  // This is schedule data
+                  scheduleDate = new Date(item.date);
+                  formattedDate = scheduleDate.toLocaleDateString(
+                    language === 'ar'
+                      ? 'ar-SA'
+                      : language === 'sv'
+                        ? 'sv-SE'
+                        : 'en-US',
+                    {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                    }
+                  );
+                  timeRange = `${item.startTime} - ${item.endTime}`;
+                  availableSeats = item.availableSlots || item.availableSeats || item.totalSeats || 10;
+                } else {
+                  // This is course data, use default values with staggered dates
+                  const tomorrow = new Date();
+                  tomorrow.setDate(tomorrow.getDate() + 1 + index); // Stagger dates for multiple courses
+                  formattedDate = tomorrow.toLocaleDateString(
+                    language === 'ar'
+                      ? 'ar-SA'
+                      : language === 'sv'
+                        ? 'sv-SE'
+                        : 'en-US',
+                    {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                    }
+                  );
+                  timeRange = item.schedule?.time || '09:00 - 12:00';
+                  availableSeats = item.maxStudents || item.totalSeats || 10;
                 }
-              );
 
-              // Format time range
-              const timeRange = `${schedule.startTime} - ${schedule.endTime}`;
+                // Calculate available seats text
+                seatsText =
+                  availableSeats > 0
+                    ? `${availableSeats} ${language === 'ar' ? 'مقاعد متاحة' : language === 'sv' ? 'platser tillgängliga' : 'seats available'}`
+                    : language === 'ar'
+                      ? 'مكتملة'
+                      : language === 'sv'
+                        ? 'Fullbokad'
+                        : 'Fully booked';
 
-              // Calculate available seats
-              const availableSeats = schedule.availableSlots;
-              const seatsText =
-                availableSeats > 0
-                  ? `${availableSeats} ${language === 'ar' ? 'مقاعد متاحة' : language === 'sv' ? 'platser tillgängliga' : 'seats available'}`
-                  : language === 'ar'
-                    ? 'مكتملة'
-                    : language === 'sv'
-                      ? 'Fullbokad'
-                      : 'Fully booked';
-
-              return {
-                _id: schedule._id,
-                scheduleId: schedule.scheduleId,
-                date: formattedDate,
-                time: timeRange,
-                title: schedule.title,
-                seats: seatsText,
-                price: `${schedule.price} ${language === 'ar' ? 'كرونة' : 'kr'}`,
-              };
+                return {
+                  _id: item._id || item.scheduleId || `halkbana-${index}`,
+                  scheduleId: item.scheduleId || item._id,
+                  date: formattedDate,
+                  time: timeRange,
+                  title: item.title || item.course?.title || (language === 'ar' ? 'دورة هالكبانا (ريسك 2)' : language === 'sv' ? 'Halkbana (Risk2)' : 'Halkbana (Risk2)'),
+                  seats: seatsText,
+                  price: `${item.price || item.course?.price || 599} ${language === 'ar' ? 'كرونة' : 'kr'}`,
+                };
+              } catch (transformError) {
+                console.error('❌ Error transforming course data:', transformError, item);
+                // Return a fallback object
+                return {
+                  _id: `halkbana-fallback-${index}`,
+                  scheduleId: item._id || `schedule-${index}`,
+                  date: language === 'ar' ? 'موعد لاحق' : language === 'sv' ? 'Datum TBD' : 'Date TBD',
+                  time: language === 'ar' ? 'وقت لاحق' : language === 'sv' ? 'Tid TBD' : 'Time TBD',
+                  title: language === 'ar' ? 'دورة هالكبانا (ريسك 2)' : language === 'sv' ? 'Halkbana (Risk2)' : 'Halkbana (Risk2)',
+                  seats: language === 'ar' ? 'اتصل للتوفر' : language === 'sv' ? 'Kontakta för tillgänglighet' : 'Contact for availability',
+                  price: language === 'ar' ? '599 كرونة' : '599 kr',
+                };
+              }
             }
-          );
+          ).filter(Boolean); // Remove any null/undefined items
 
           setCourseSlots(transformedSlots);
+          console.log(`✅ Successfully loaded ${transformedSlots.length} Risk2 (Halkbana) courses`);
         } else {
-          // Fallback to static data if API has no data
+          // No data found from API, use fallback data
+          console.log('❌ No Risk2 (Halkbana) courses found in database after trying all search methods');
           setCourseSlots([
             {
               date:
@@ -147,32 +243,10 @@ export default function HalkbanaPage() {
                     : '8 seats available',
               price: language === 'ar' ? '599 كرونة' : '599 kr',
             },
-            {
-              date:
-                language === 'ar'
-                  ? 'السبت 2024-03-23'
-                  : language === 'sv'
-                    ? '2024-03-23 Lördag'
-                    : '2024-03-23 Saturday',
-              time: '13:00 - 16:00',
-              title:
-                language === 'ar'
-                  ? 'دورة هالكبانا (ريسك 2)'
-                  : language === 'sv'
-                    ? 'Halkbana (Risk2)'
-                    : 'Halkbana (Risk2)',
-              seats:
-                language === 'ar'
-                  ? '6 مقاعد متاحة'
-                  : language === 'sv'
-                    ? '6 platser tillgängliga'
-                    : '6 seats available',
-              price: language === 'ar' ? '599 كرونة' : '599 kr',
-            },
           ]);
         }
       } catch (err) {
-        console.error('Error fetching schedules:', err);
+        console.error('❌ Error fetching Risk2 (Halkbana) courses:', err);
         setError(null); // Don't show error, just fall back to static data
 
         // Fallback to static data
@@ -205,7 +279,7 @@ export default function HalkbanaPage() {
       }
     };
 
-    fetchSchedules();
+    fetchHalkbanaCourses();
   }, [language]);
 
   const handleBooking = (data: HalkbanaItem) => {
@@ -288,7 +362,7 @@ export default function HalkbanaPage() {
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3F8FEE] mx-auto mb-3"></div>
                 <p className="text-[#4A4C56] font-medium text-16">
-                  Loading courses...
+                  Loading Risk2 (Halkbana) courses...
                 </p>
               </div>
             </div>
@@ -299,16 +373,16 @@ export default function HalkbanaPage() {
             <div className="flex justify-center items-center py-12">
               <div className="text-center">
                 <h3 className="text-24 font-bold text-[#1D1F2C] mb-2">
-                  No Courses Available
+                  No Risk2 (Halkbana) Courses Available
                 </h3>
                 <p className="text-[#4A4C56] text-16 mb-4">
-                  Currently, there are no Halkbana courses scheduled.
+                  Currently, there are no Risk2 (Halkbana) category courses scheduled. Please check back later.
                 </p>
                 <Button
                   onClick={() => window.location.reload()}
                   className="border border-[#3F8FEE] rounded-[30px] h-[48px] bg-[#3F8FEE] text-white hover:bg-[#3F8FEE]"
                 >
-                  Refresh
+                  Refresh Page
                 </Button>
               </div>
             </div>
