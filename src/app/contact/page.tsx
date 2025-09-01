@@ -70,7 +70,7 @@ export default function ContactPage() {
         features: Array.isArray(data.contactSection?.features) ? data.contactSection.features : [],
         location: data.contactSection?.location || {
           address: 'Dalgatan 1 1, 15133 Södertälje',
-          googleMapsLink: 'https://maps.google.com/?q=Dalgatan+1+1,+15133+Södertälje',
+          googleMapsLink: 'https://maps.app.goo.gl/YvEdbMgu1tmbxVRf8',
           embedUrl: ''
         }
       },
