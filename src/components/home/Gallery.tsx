@@ -106,7 +106,7 @@ export default function Gallery() {
       <div className="w-full xl:w-[1320px] mx-auto text-center pb-5">
         <h2 className="text-48 font-bold mb-12 text-[#1D1F2C]">{currentTitle}</h2>
 
-        <div className="   justify-between h-[950px] md:flex  hidden">
+        <div className="   justify-between h-[950px] lg:flex  hidden">
           <div className="w-[424px] flex flex-col justify-between">
             <div className="relative rounded-xl overflow-hidden group">
               <Image
@@ -325,7 +325,7 @@ export default function Gallery() {
           </div>
         </div>
         {/* mobile */}
-        <div className=" grid grid-cols-3 gap-5 md:hidden">
+        <div className=" grid grid-cols-3 gap-5 lg:hidden">
           <div className="relative  overflow-hidden group mb-0 pb-0">
             <Image
               src={getGalleryItem(0).image || '/img/gallery/1.png'}

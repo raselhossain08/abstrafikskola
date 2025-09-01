@@ -101,8 +101,8 @@ export default function Footer() {
   return (
     <div className={footerData.backgroundColor} dir='ltr'>
       <div className="container mx-auto px-4 lg:px-0">
-        <div className="flex justify-between py-10 md:flex-row flex-col">
-          <div className="w-[310px]">
+        <div className="flex justify-between pt-10 lg:py-10 gap-8 lg:gap-0 lg:flex-row flex-col">
+          <div className="w-full lg:w-[310px]">
             {/* Logo */}
             <div className="flex items-center">
               <Link href="/">
@@ -142,7 +142,7 @@ export default function Footer() {
               ))}
             </div>
           </div>
-          <div className="w-4/12 pb-8 md:pb-0">
+          <div className="w-full lg:w-4/12 pb-8 md:pb-0">
             <h2 className="text-24 font-raleway font-[500] text-[#1D1F2C] mb-3 md:mb-5">
               {footerData.companySection?.title}
             </h2>
@@ -156,7 +156,7 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-          <div className="w-[250px] pb-8 md:pb-0">
+          <div className="w-full md:w-[250px] pb-8 md:pb-0">
             <h2 className="text-24 font-raleway font-[500] text-[#1D1F2C] mb-3 md:mb-5">
               {footerData.contactsSection?.title}
             </h2>
@@ -182,7 +182,7 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-          <div className="md:w-[303px]">
+          <div className="w-full lg:w-[303px]">
             <h2 className="text-24 font-raleway font-[500] text-[#1D1F2C] mb-3 md:mb-5">
               {footerData.subscribeSection?.title}
             </h2>
