@@ -5,23 +5,15 @@ import React, { useState, useEffect } from 'react';
 import { FaCheck } from 'react-icons/fa6';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { scheduleAPI, courseAPI, Schedule } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { ProductDialog } from '@/components/dialog/ProductDialog';
 import Contact from '@/components/common/Contact';
 import { halkbanaContentService, HalkbanaContent } from '@/services/halkbanaContentService';
+import { fetchCoursesByCategory, CategoryCourseItem } from '@/lib/categoryAPI';
 
 // Static metadata will be handled by layout.tsx or metadata.ts file
 
-type HalkbanaItem = {
-  _id?: string;
-  scheduleId?: string;
-  date: string;
-  time: string;
-  title: string;
-  seats: string;
-  price: string;
-};
+type HalkbanaItem = CategoryCourseItem;
 
 export default function HalkbanaPage() {
   const { language } = useLanguage();
@@ -65,221 +57,72 @@ export default function HalkbanaPage() {
     fetchHalkbanaContent();
   }, [language]); // Re-fetch when language changes
 
-  // Fetch course schedules from API
+  // Fetch course schedules using the new category API
   useEffect(() => {
-    const fetchHalkbanaCourses = async () => {
+    const loadHalkbanaCourses = async () => {
       try {
         setLoading(true);
         setError(null);
+        console.log('🔍 Loading Risk2 (Halkbana) category courses...');
 
-        console.log('🔍 Starting Risk2 (Halkbana) course search...');
-        let response;
+        // Try different category variations
+        let result;
         
         // Strategy 1: Try exact "Risk2 (Halkbana)" category match
-        try {
-          console.log('📋 Trying category search: Risk2 (Halkbana)');
-          response = await courseAPI.getByCategory('Risk2 (Halkbana)');
-          console.log('🔍 Risk2 (Halkbana) Category API response:', response);
-          
-          if (response.success && response.data && response.data.length > 0) {
-            console.log(`✅ Found ${response.data.length} courses with Risk2 (Halkbana) category`);
-          }
-        } catch (error) {
-          console.error('❌ Error with Risk2 (Halkbana) category search:', error);
+        result = await fetchCoursesByCategory('Risk2 (Halkbana)');
+        
+        // Strategy 2: Try "Halkbana" as fallback
+        if (!result.success || result.data.length === 0) {
+          console.log('📋 Trying Halkbana category as fallback...');
+          result = await fetchCoursesByCategory('Halkbana');
         }
         
-        // Strategy 2: Try "Risk2" as fallback
-        if (!response || !response.success || !response.data || response.data.length === 0) {
-          try {
-            console.log('📋 Trying category search: Risk2');
-            response = await courseAPI.getByCategory('Risk2');
-            console.log('🔍 Risk2 Category API response:', response);
-            
-            if (response.success && response.data && response.data.length > 0) {
-              console.log(`✅ Found ${response.data.length} courses with Risk2 category`);
-            }
-          } catch (error) {
-            console.error('❌ Error with Risk2 category search:', error);
-          }
+        // Strategy 3: Try "Risk2" as additional fallback
+        if (!result.success || result.data.length === 0) {
+          console.log('📋 Trying Risk2 category as fallback...');
+          result = await fetchCoursesByCategory('Risk2');
         }
         
-        // Strategy 3: Try "Halkbana" as additional fallback
-        if (!response || !response.success || !response.data || response.data.length === 0) {
-          try {
-            console.log('📋 Trying category search: Halkbana');
-            response = await courseAPI.getByCategory('Halkbana');
-            console.log('🔍 Halkbana Category API response:', response);
-            
-            if (response.success && response.data && response.data.length > 0) {
-              console.log(`✅ Found ${response.data.length} courses with Halkbana category`);
-            }
-          } catch (error) {
-            console.error('❌ Error with Halkbana category search:', error);
-          }
-        }
-        
-        // Strategy 4: Final fallback to title search
-        if (!response || !response.success || !response.data || response.data.length === 0) {
-          try {
-            console.log('📋 Trying title search: Halkbana');
-            response = await scheduleAPI.getByTitle('Halkbana');
-            console.log('🔍 Title search API response:', response);
-            
-            if (response.success && response.data && response.data.length > 0) {
-              console.log(`✅ Found ${response.data.length} courses with title search`);
-            }
-          } catch (error) {
-            console.error('❌ Error with title search:', error);
-          }
-        }
-
-        if (response && response.success && response.data && response.data.length > 0) {
-          // Transform API data to match component format
-          const transformedSlots: HalkbanaItem[] = response.data.map(
-            (item: any, index: number) => {
-              let scheduleDate, formattedDate, timeRange, availableSeats, seatsText;
-              
-              try {
-                // Check if this is schedule data or course data with schedule info
-                if (item.date && item.startTime && item.endTime) {
-                  // This is schedule data
-                  scheduleDate = new Date(item.date);
-                  formattedDate = scheduleDate.toLocaleDateString(
-                    language === 'ar'
-                      ? 'ar-SA'
-                      : language === 'sv'
-                        ? 'sv-SE'
-                        : 'en-US',
-                    {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                    }
-                  );
-                  timeRange = `${item.startTime} - ${item.endTime}`;
-                  availableSeats = item.availableSlots || item.availableSeats || item.totalSeats || 10;
-                } else {
-                  // This is course data, use default values with staggered dates
-                  const tomorrow = new Date();
-                  tomorrow.setDate(tomorrow.getDate() + 1 + index); // Stagger dates for multiple courses
-                  formattedDate = tomorrow.toLocaleDateString(
-                    language === 'ar'
-                      ? 'ar-SA'
-                      : language === 'sv'
-                        ? 'sv-SE'
-                        : 'en-US',
-                    {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                    }
-                  );
-                  timeRange = item.schedule?.time || '09:00 - 12:00';
-                  availableSeats = item.maxStudents || item.totalSeats || 10;
-                }
-
-                // Calculate available seats text
-                seatsText =
-                  availableSeats > 0
-                    ? `${availableSeats} ${language === 'ar' ? 'مقاعد متاحة' : language === 'sv' ? 'platser tillgängliga' : 'seats available'}`
-                    : language === 'ar'
-                      ? 'مكتملة'
-                      : language === 'sv'
-                        ? 'Fullbokad'
-                        : 'Fully booked';
-
-                return {
-                  _id: item._id || item.scheduleId || `halkbana-${index}`,
-                  scheduleId: item.scheduleId || item._id,
-                  date: formattedDate,
-                  time: timeRange,
-                  title: item.title || item.course?.title || (language === 'ar' ? 'دورة هالكبانا (ريسك 2)' : language === 'sv' ? 'Halkbana (Risk2)' : 'Halkbana (Risk2)'),
-                  seats: seatsText,
-                  price: `${item.price || item.course?.price || 599} ${language === 'ar' ? 'كرونة' : 'kr'}`,
-                };
-              } catch (transformError) {
-                console.error('❌ Error transforming course data:', transformError, item);
-                // Return a fallback object
-                return {
-                  _id: `halkbana-fallback-${index}`,
-                  scheduleId: item._id || `schedule-${index}`,
-                  date: language === 'ar' ? 'موعد لاحق' : language === 'sv' ? 'Datum TBD' : 'Date TBD',
-                  time: language === 'ar' ? 'وقت لاحق' : language === 'sv' ? 'Tid TBD' : 'Time TBD',
-                  title: language === 'ar' ? 'دورة هالكبانا (ريسك 2)' : language === 'sv' ? 'Halkbana (Risk2)' : 'Halkbana (Risk2)',
-                  seats: language === 'ar' ? 'اتصل للتوفر' : language === 'sv' ? 'Kontakta för tillgänglighet' : 'Contact for availability',
-                  price: language === 'ar' ? '599 كرونة' : '599 kr',
-                };
-              }
-            }
-          ).filter(Boolean); // Remove any null/undefined items
-
-          setCourseSlots(transformedSlots);
-          console.log(`✅ Successfully loaded ${transformedSlots.length} Risk2 (Halkbana) courses`);
+        if (result.success && result.data.length > 0) {
+          setCourseSlots(result.data);
+          console.log(`✅ Loaded ${result.data.length} Risk2 (Halkbana) courses`);
         } else {
-          // No data found from API, use fallback data
-          console.log('❌ No Risk2 (Halkbana) courses found in database after trying all search methods');
+          // Fallback to default data
+          console.log('⚠️ No courses found, using fallback data');
           setCourseSlots([
             {
-              date:
-                language === 'ar'
-                  ? 'الأربعاء 2024-03-20'
-                  : language === 'sv'
-                    ? '2024-03-20 Onsdag'
-                    : '2024-03-20 Wednesday',
+              _id: 'halkbana-default-1',
+              date: language === 'ar' 
+                ? 'الأربعاء 2024-03-20' 
+                : language === 'sv' 
+                  ? '2024-03-20 Onsdag' 
+                  : '2024-03-20 Wednesday',
               time: '09:00 - 12:00',
-              title:
-                language === 'ar'
-                  ? 'دورة هالكبانا (ريسك 2)'
-                  : language === 'sv'
-                    ? 'Halkbana (Risk2)'
-                    : 'Halkbana (Risk2)',
-              seats:
-                language === 'ar'
-                  ? '8 مقاعد متاحة'
-                  : language === 'sv'
-                    ? '8 platser tillgängliga'
-                    : '8 seats available',
+              title: language === 'ar' 
+                ? 'دورة هالكبانا (ريسك 2)' 
+                : language === 'sv' 
+                  ? 'Halkbana (Risk2)' 
+                  : 'Halkbana (Risk2)',
+              seats: language === 'ar' 
+                ? '8 مقاعد متاحة' 
+                : language === 'sv' 
+                  ? '8 platser tillgängliga' 
+                  : '8 seats available',
               price: language === 'ar' ? '599 كرونة' : '599 kr',
             },
           ]);
         }
+        
       } catch (err) {
-        console.error('❌ Error fetching Risk2 (Halkbana) courses:', err);
-        setError(null); // Don't show error, just fall back to static data
-
-        // Fallback to static data
-        setCourseSlots([
-          {
-            date:
-              language === 'ar'
-                ? 'الأربعاء 2024-03-20'
-                : language === 'sv'
-                  ? '2024-03-20 Onsdag'
-                  : '2024-03-20 Wednesday',
-            time: '09:00 - 12:00',
-            title:
-              language === 'ar'
-                ? 'دورة هالكبانا (ريسك 2)'
-                : language === 'sv'
-                  ? 'Halkbana (Risk2)'
-                  : 'Halkbana (Risk2)',
-            seats:
-              language === 'ar'
-                ? '8 مقاعد متاحة'
-                : language === 'sv'
-                  ? '8 platser tillgängliga'
-                  : '8 seats available',
-            price: language === 'ar' ? '599 كرونة' : '599 kr',
-          },
-        ]);
+        console.error('❌ Error loading Risk2 (Halkbana) courses:', err);
+        setError('Unable to load courses at the moment');
+        setCourseSlots([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchHalkbanaCourses();
+    loadHalkbanaCourses();
   }, [language]);
 
   const handleBooking = (data: HalkbanaItem) => {

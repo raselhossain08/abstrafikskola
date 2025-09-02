@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import Image from 'next/image';
 import { FaEdit } from 'react-icons/fa';
 import { IoIosArrowBack } from 'react-icons/io';
@@ -47,20 +48,28 @@ export function ProductDialog({
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loadingSchedules, setLoadingSchedules] = useState(false);
 
-  // Validation schema - no need for scheduleId validation as it's auto-selected
+  // Validation schema - updated for international support
   const validationSchema = Yup.object().shape({
     firstName: Yup.string()
       .required('First name is required')
-      .matches(/^[a-zA-Z]+$/, 'Only letters are allowed'),
+      .min(2, 'First name must be at least 2 characters')
+      .max(50, 'First name must be less than 50 characters')
+      .matches(/^[a-zA-ZÀ-ÿ\u00C0-\u017F\u0100-\u017F\u1E00-\u1EFF\s'-]+$/, 'Only letters, spaces, hyphens and apostrophes are allowed'),
     lastName: Yup.string()
       .required('Last name is required')
-      .matches(/^[a-zA-Z]+$/, 'Only letters are allowed'),
+      .min(2, 'Last name must be at least 2 characters')
+      .max(50, 'Last name must be less than 50 characters')
+      .matches(/^[a-zA-ZÀ-ÿ\u00C0-\u017F\u0100-\u017F\u1E00-\u1EFF\s'-]+$/, 'Only letters, spaces, hyphens and apostrophes are allowed'),
     personNumber: Yup.string()
-      .required('Person number is required')
-      .matches(/^\d+$/, 'Only numbers are allowed'),
+      .required('Person/ID number is required')
+      .min(6, 'Person/ID number must be at least 6 characters')
+      .max(20, 'Person/ID number must be less than 20 characters')
+      .matches(/^[0-9A-Za-z\-\s]+$/, 'Only numbers, letters, hyphens and spaces are allowed'),
     mobile: Yup.string()
       .required('Mobile number is required')
-      .matches(/^\+?[0-9]+$/, 'Invalid phone number'),
+      .min(8, 'Mobile number must be at least 8 digits')
+      .max(20, 'Mobile number must be less than 20 digits')
+      .matches(/^[\+]?[0-9\s\-\(\)]+$/, 'Invalid phone number format. Use format: +46123456789 or 0123456789'),
     email: Yup.string()
       .email('Invalid email address')
       .required('Email is required'),
@@ -190,6 +199,9 @@ export function ProductDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="md:max-w-[80%] overflow-y-auto max-h-[100vh] xl:max-w-[1320px] md:px-[32px] py-[100px] bg-white">
+        <VisuallyHidden>
+          <DialogTitle>Course Booking Form</DialogTitle>
+        </VisuallyHidden>
         <div className="w-full h-full relative">
           <div className="flex items-center mb-5">
             <Image src="/logo.svg" alt="" width={75} height={35} />
@@ -374,7 +386,10 @@ export function ProductDialog({
                           {formik.values.lastName}
                         </p>
                         <p className="text-14 text-[#4A4C56]">
-                          <strong>Email:</strong> {formik.values.email}
+                          <strong>Person/ID Number:</strong> {formik.values.personNumber}
+                        </p>
+                        <p className="text-14 text-[#4A4C56]">
+                          <strong>Mobile:</strong> {formik.values.mobile}
                         </p>
                         <p className="text-14 text-[#4A4C56]">
                           <strong>Schedule ID:</strong>{' '}
@@ -445,13 +460,13 @@ export function ProductDialog({
                         htmlFor="personNumber"
                         className="block text-18 font-medium text-[#4A4C56] mb-2"
                       >
-                        Person Number*
+                        Person/ID Number*
                       </Label>
                       <Input
                         type="text"
                         id="personNumber"
                         name="personNumber"
-                        placeholder="123456789"
+                        placeholder="Swedish: 19901231-1234, US: SSN123456789, etc."
                         className="w-full px-4 py-2 rounded-full border border-[#E9E9EA80] outline-none bg-white h-[45px] font-16 font-medium text-[#777980] focus:ring-0 focus:ring-transparent"
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
@@ -464,6 +479,13 @@ export function ProductDialog({
                             {formik.errors.personNumber}
                           </div>
                         )}
+                      <div className="text-xs text-[#777980] mt-1">
+                        <p>🆔 Accepted ID formats:</p>
+                        <p>• Sweden: 19901231-1234 (Personal number)</p>
+                        <p>• USA: SSN123456789 (Social Security)</p>
+                        <p>• UK: AB123456C (National Insurance)</p>
+                        <p>• EU: Various national ID formats</p>
+                      </div>
                     </div>
 
                     <div>
@@ -471,13 +493,13 @@ export function ProductDialog({
                         htmlFor="mobile"
                         className="block text-18 font-medium text-[#4A4C56] mb-2"
                       >
-                        Mobile*
+                        Mobile Number*
                       </Label>
                       <Input
-                        type="text"
+                        type="tel"
                         id="mobile"
                         name="mobile"
-                        placeholder="+1234567890"
+                        placeholder="+46 123 456 789, +1 (555) 123-4567, 07123456789"
                         className="w-full px-4 py-2 rounded-full border border-[#E9E9EA80] outline-none bg-white h-[45px] font-16 font-medium text-[#777980] focus:ring-0 focus:ring-transparent"
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
@@ -489,6 +511,13 @@ export function ProductDialog({
                           {formik.errors.mobile}
                         </div>
                       )}
+                      <div className="text-xs text-[#777980] mt-1">
+                        <p>📱 Supported formats:</p>
+                        <p>• Sweden: +46 123 456 789 or 07123456789</p>
+                        <p>• USA: +1 (555) 123-4567 or (555) 123-4567</p>
+                        <p>• UK: +44 20 7946 0958 or 020 7946 0958</p>
+                        <p>• International: +[country code] [number]</p>
+                      </div>
                     </div>
 
                     <div>

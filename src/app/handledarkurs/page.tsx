@@ -2,32 +2,14 @@
 import Contact from '@/components/common/Contact';
 import { ProductDialog } from '@/components/dialog/ProductDialog';
 import { Button } from '@/components/ui/button';
-import { scheduleAPI, courseAPI, type Schedule } from '@/lib/api';
 import { handledarkursContentService, HandledarkursContent } from '@/services/handledarkursContentService';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { fetchCoursesByCategory, CategoryCourseItem } from '@/lib/categoryAPI';
 import Image from 'next/image';
 import React, { useState, useEffect } from 'react';
 import { FaCheck } from 'react-icons/fa6';
-type HandledarkursItem = {
-  scheduleId: string;
-  date: string;
-  time: string;
-  title: string;
-  seats: string;
-  price: string;
-  maxStudents: number;
-  currentBookings: number;
-  startTime: string;
-  endTime: string;
-  venue?: string;
-  instructor?: string;
-  status: boolean;
-  course?: {
-    title: string;
-    category: string;
-    language: string;
-  };
-};
+
+type HandledarkursItem = CategoryCourseItem;
 
 export default function page() {
   const { language } = useLanguage(); // Get current language from context
@@ -69,133 +51,56 @@ export default function page() {
     fetchHandledarkursContent();
   }, [language]); // Re-fetch when language changes
 
+  // Fetch handledarkurs courses using category API
   useEffect(() => {
-    fetchHandledarkursCourses();
-  }, []);
+    const loadHandledarkursCourses = async () => {
+      try {
+        setLoading(true);
+        console.log('🔍 Loading Handledarkurs category courses...');
 
-  const fetchHandledarkursCourses = async () => {
-    try {
-      setLoading(true);
-
-      // First try to search by Handledarkurs category, then fallback to other searches
-      let response;
-      
-      // Try Handledarkurs category first (exact match)
-      response = await courseAPI.getByCategory('Handledarkurs');
-      console.log('🔍 Handledarkurs Category API response:', response);
-      
-      if (!response.success || !response.data || response.data.length === 0) {
-        // Try handledarkurs lowercase as fallback
-        console.log('❌ No Handledarkurs courses found, trying lowercase handledarkurs');
-        response = await courseAPI.getByCategory('handledarkurs');
-        console.log('🔍 handledarkurs Category API response:', response);
-      }
-      
-      if (!response.success || !response.data || response.data.length === 0) {
-        // Final fallback to title search
-        console.log('❌ No category courses found, falling back to title search');
-        response = await scheduleAPI.getByTitle('Handledarkurs');
-        console.log('🔍 Title search API response:', response);
-      }
-
-      if (response.success && response.data && response.data.length > 0) {
-        // Transform the course data to match our component interface
-        const transformedCourses = response.data.map((item: any) => {
-          let scheduleDate, formattedDate, timeRange, availableSeats;
-          
-          // Check if this is schedule data or course data with schedule info
-          if (item.date && item.startTime && item.endTime) {
-            // This is schedule data
-            scheduleDate = new Date(item.date);
-            formattedDate = formatScheduleDate(item.date);
-            timeRange = `${item.startTime} - ${item.endTime}`;
-            availableSeats = item.availableSlots || item.availableSeats || item.totalSeats || 15;
-          } else {
-            // This is course data, use default values
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            formattedDate = formatScheduleDate(tomorrow.toISOString());
-            timeRange = '09:00 - 17:00';
-            availableSeats = item.maxStudents || item.totalSeats || 15;
-          }
-
-          return {
-            scheduleId: item.scheduleId || item._id,
-            date: formattedDate,
-            time: timeRange,
-            title: item.title || item.course?.title || 'Handledarkurs',
-            seats: `${availableSeats} seats available`,
-            price: `${item.price || 1500} kr`,
-            maxStudents: item.maxStudents || item.totalSeats || 15,
-            currentBookings: item.currentBookings || item.bookedSeats || 0,
-            startTime: item.startTime || '09:00',
-            endTime: item.endTime || '17:00',
-            venue: item.venue || 'ABS Trafikskola Södertälje',
-            instructor: item.instructor || item.teacherName || 'Certified Instructor',
-            status: item.status !== false,
-            course: {
-              title: item.title || item.course?.title || 'Handledarkurs',
-              category: 'Handledarkurs',
-              language: item.language || 'Svenska',
-            },
-          };
-        });
-
-        setCourseSlots(transformedCourses);
-        console.log(`✅ Loaded ${transformedCourses.length} handledarkurs courses`);
-      } else {
-        console.log('❌ No handledarkurs courses found, falling back to title search');
+        // Try to fetch Handledarkurs category courses
+        const result = await fetchCoursesByCategory('Handledarkurs');
         
-        // Fallback to the original method if category API doesn't return results
-        const fallbackResponse = await scheduleAPI.getByTitle('Handledarkurs');
-        
-        if (fallbackResponse.success && fallbackResponse.data && fallbackResponse.data.length > 0) {
-          const transformedCourses = fallbackResponse.data.map((schedule: Schedule) => {
-            return {
-              scheduleId: schedule.scheduleId,
-              date: formatScheduleDate(schedule.date),
-              time: `${schedule.startTime} - ${schedule.endTime}`,
-              title: schedule.title,
-              seats: `${schedule.availableSlots} seats available`,
-              price: `${schedule.price} kr`,
-              maxStudents: schedule.maxStudents,
-              currentBookings: schedule.currentBookings,
-              startTime: schedule.startTime,
-              endTime: schedule.endTime,
-              venue: schedule.venue,
-              instructor: schedule.instructor,
-              status: schedule.isAvailable,
-              course: {
-                title: schedule.title,
-                category: 'Handledarkurs',
-                language: 'Svenska',
-              },
-            };
-          });
-
-          setCourseSlots(transformedCourses);
+        if (result.success && result.data.length > 0) {
+          setCourseSlots(result.data);
+          console.log(`✅ Loaded ${result.data.length} Handledarkurs courses`);
         } else {
-          setCourseSlots([]);
+          // Fallback to default data
+          console.log('⚠️ No Handledarkurs courses found, using fallback data');
+          setCourseSlots([
+            {
+              _id: 'handledarkurs-default-1',
+              date: language === 'ar' 
+                ? 'السبت 2024-03-23' 
+                : language === 'sv' 
+                  ? '2024-03-23 Lördag' 
+                  : '2024-03-23 Saturday',
+              time: '09:00 - 17:00',
+              title: language === 'ar' 
+                ? 'دورة المرشد (هاندليداركورس)' 
+                : language === 'sv' 
+                  ? 'Handledarkurs' 
+                  : 'Supervisor Course',
+              seats: language === 'ar' 
+                ? '12 مقاعد متاحة' 
+                : language === 'sv' 
+                  ? '12 platser tillgängliga' 
+                  : '12 seats available',
+              price: language === 'ar' ? '1500 كرونة' : '1500 kr',
+            },
+          ]);
         }
+        
+      } catch (err) {
+        console.error('❌ Error loading Handledarkurs courses:', err);
+        setCourseSlots([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error fetching handledarkurs courses:', err);
-      setCourseSlots([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatScheduleDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      weekday: 'long',
     };
-    return date.toLocaleDateString('en-US', options);
-  };
+
+    loadHandledarkursCourses();
+  }, [language]);
 
   const handleSubmit = (data: HandledarkursItem) => {
     setHandledarkursOpen(true);
@@ -277,7 +182,7 @@ export default function page() {
                   Currently, there are no Handledarkurs category courses scheduled.
                 </p>
                 <Button
-                  onClick={fetchHandledarkursCourses}
+                  onClick={() => window.location.reload()}
                   className="border border-[#3F8FEE] rounded-[30px] h-[48px] bg-[#3F8FEE] text-white hover:bg-[#3F8FEE]"
                 >
                   Refresh

@@ -235,6 +235,70 @@ export const contactAPI = {
   create: (contactData: ContactData) => apiClient.createContact(contactData),
 };
 
+// Riskettan API - specifically for Risk 1 courses
+export const riskettanAPI = {
+  // Get Risk 1 courses with available schedules
+  getCoursesWithSchedules: async () => {
+    try {
+      console.log('🔍 Riskettan API: Searching for Riskettan category courses with schedules...');
+      
+      // Step 1: Get all courses with "Riskettan" category
+      const coursesResponse = await courseAPI.getByCategory('Riskettan');
+      
+      if (!coursesResponse.success || !coursesResponse.data || coursesResponse.data.length === 0) {
+        console.log('❌ Riskettan API: No courses found with Riskettan category');
+        return {
+          success: false,
+          data: [],
+          message: 'No Riskettan courses found'
+        };
+      }
+      
+      console.log(`✅ Riskettan API: Found ${coursesResponse.data.length} courses with Riskettan category`);
+      
+      // Step 2: For each course, check if it has available schedules
+      const coursesWithSchedules = [];
+      
+      for (const course of coursesResponse.data) {
+        try {
+          const scheduleResponse = await scheduleAPI.getByCourseId(course._id);
+          
+          if (scheduleResponse.success && scheduleResponse.data && scheduleResponse.data.length > 0) {
+            // Filter for future and available schedules only
+            const availableSchedules = scheduleResponse.data.filter((schedule: Schedule) => {
+              const scheduleDate = new Date(schedule.date);
+              return schedule.isAvailable !== false && scheduleDate >= new Date();
+            });
+            
+            if (availableSchedules.length > 0) {
+              coursesWithSchedules.push({
+                course: course,
+                schedules: availableSchedules
+              });
+            }
+          }
+        } catch (scheduleError) {
+          console.error(`❌ Error fetching schedules for course ${course.title}:`, scheduleError);
+        }
+      }
+      
+      return {
+        success: true,
+        data: coursesWithSchedules,
+        message: `Found ${coursesWithSchedules.length} Riskettan courses with available schedules`
+      };
+      
+    } catch (error) {
+      console.error('❌ Riskettan API: Error fetching courses with schedules:', error);
+      return {
+        success: false,
+        data: [],
+        message: 'Failed to fetch Riskettan courses'
+      };
+    }
+  }
+};
+
 // Risk1Risk2 combined package API
 export const risk1Risk2API = {
   // Get combined Risk1 + Risk2 courses

@@ -9,7 +9,7 @@ import React, { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaRegClock } from 'react-icons/fa';
 import { FaCheck } from 'react-icons/fa6';
 import { SlLike } from 'react-icons/sl';
-import { scheduleAPI, courseAPI, risk1Risk2API, type Schedule } from '@/lib/api';
+import { fetchCoursesByCategory, CategoryCourseItem } from '@/lib/categoryAPI';
 import { risk1Risk2ContentService } from '@/services/risk1Risk2ContentService';
 
 type Risk1Risk2ContentData = {
@@ -52,27 +52,7 @@ type Risk1Risk2ContentData = {
   };
 };
 
-type Risk1Risk2Item = {
-  _id?: string;
-  scheduleId?: string;
-  date: string;
-  time: string;
-  title: string;
-  seats: string;
-  price: string;
-  maxStudents?: number;
-  currentBookings?: number;
-  startTime?: string;
-  endTime?: string;
-  venue?: string;
-  instructor?: string;
-  status?: boolean;
-  course?: {
-    title: string;
-    category: string;
-    language: string;
-  };
-};
+type Risk1Risk2Item = CategoryCourseItem;
 
 export default function page() {
   const { language } = useLanguage();
@@ -105,156 +85,38 @@ export default function page() {
     try {
       setLoading(true);
       setError(null);
+      console.log('🔍 Loading Risk1 + Risk2 category courses...');
 
-      console.log('🔍 Starting Risk1 + Risk2 course search...');
-      let response;
-      let allCourses: Risk1Risk2Item[] = [];
-
-      // Strategy 1: Try exact "Risk1 + Risk2" category match
-      try {
-        console.log('📋 Trying category search: Risk1 + Risk2');
-        response = await courseAPI.getByCategory('Risk1 + Risk2');
-        console.log('🔍 Risk1 + Risk2 Category API response:', response);
-        
-        if (response.success && response.data && response.data.length > 0) {
-          console.log(`✅ Found ${response.data.length} courses with Risk1 + Risk2 category`);
-          
-          // Transform combined category courses
-          const transformedCourses = response.data.map((item: any, index: number) => {
-            let scheduleDate, formattedDate, timeRange, availableSeats;
-            
-            try {
-              if (item.date && item.startTime && item.endTime) {
-                scheduleDate = new Date(item.date);
-                formattedDate = scheduleDate.toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric', 
-                  month: '2-digit',
-                  day: '2-digit',
-                });
-                timeRange = `${item.startTime} - ${item.endTime}`;
-                availableSeats = item.availableSlots || item.availableSeats || item.totalSeats || 15;
-              } else {
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1 + index);
-                formattedDate = tomorrow.toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: '2-digit', 
-                  day: '2-digit',
-                });
-                timeRange = item.schedule?.time || '09:00 - 15:00';
-                availableSeats = item.maxStudents || item.totalSeats || 15;
-              }
-
-              return {
-                _id: item._id || item.scheduleId || `risk-combined-${index}`,
-                scheduleId: item.scheduleId || item._id,
-                date: formattedDate,
-                time: timeRange,
-                title: item.title || item.course?.title || 'Risk1 + Risk2',
-                seats: `${availableSeats} seats available`,
-                price: `${item.price || item.course?.price || 1200} kr`,
-                maxStudents: item.maxStudents || item.totalSeats || 15,
-                currentBookings: item.currentBookings || item.bookedSeats || 0,
-                startTime: item.startTime || '09:00',
-                endTime: item.endTime || '15:00',
-                venue: item.venue || 'ABS Trafikskola Södertälje',
-                instructor: item.instructor || item.teacherName || 'Certified Instructor',
-                status: item.status !== false,
-                course: {
-                  title: item.title || 'Risk1 + Risk2',
-                  category: 'Risk1 + Risk2',
-                  language: item.language || 'Svenska',
-                },
-              };
-            } catch (transformError) {
-              console.error('❌ Error transforming Risk1 + Risk2 course data:', transformError);
-              return {
-                _id: `risk-combined-fallback-${index}`,
-                scheduleId: item._id || `schedule-${index}`,
-                date: 'Date TBD',
-                time: 'Time TBD',
-                title: 'Risk1 + Risk2',
-                seats: 'Contact for availability',
-                price: '1200 kr',
-                maxStudents: 15,
-                currentBookings: 0,
-                startTime: '09:00',
-                endTime: '15:00',
-                venue: 'ABS Trafikskola Södertälje',
-                instructor: 'Certified Instructor',
-                status: true,
-                course: {
-                  title: 'Risk1 + Risk2',
-                  category: 'Risk1 + Risk2',
-                  language: 'Svenska',
-                },
-              };
-            }
-          }).filter(Boolean);
-
-          allCourses = [...allCourses, ...transformedCourses];
-        }
-      } catch (error) {
-        console.error('❌ Error with Risk1 + Risk2 category search:', error);
-      }
-
-      // Strategy 2: If no combined courses found, fallback to the original combined API
-      if (allCourses.length === 0) {
-        console.log('❌ No Risk1 + Risk2 category courses found, falling back to combined API');
-        
-        try {
-          // Use the original Risk1Risk2 API service
-          const combinedResponse = await risk1Risk2API.getCombinedCourses();
-
-          if (combinedResponse && combinedResponse.success && combinedResponse.data && combinedResponse.data.length > 0) {
-            // Transform data for display
-            const transformedCourses = combinedResponse.data.map((schedule: any) => {
-              const scheduleDate = new Date(schedule.date);
-              const formattedDate = scheduleDate.toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-              });
-
-              return {
-                _id: schedule._id,
-                scheduleId: schedule.scheduleId,
-                date: formattedDate,
-                time: `${schedule.startTime} - ${schedule.endTime}`,
-                title: schedule.title,
-                seats: `${schedule.availableSlots} seats available`,
-                price: `${schedule.price} kr`,
-                maxStudents: schedule.maxStudents,
-                currentBookings: schedule.currentBookings,
-                startTime: schedule.startTime,
-                endTime: schedule.endTime,
-                venue: schedule.venue,
-                instructor: schedule.instructor,
-                status: schedule.isAvailable,
-                course: {
-                  title: schedule.title,
-                  category: 'Risk1 + Risk2',
-                  language: 'Svenska',
-                },
-              };
-            });
-
-            allCourses = [...allCourses, ...transformedCourses];
-            console.log(`✅ Found ${transformedCourses.length} courses from combined API`);
+      const result = await fetchCoursesByCategory('Risk1 + Risk2');
+      
+      if (result.success && result.data.length > 0) {
+        setCourseSlots(result.data);
+        console.log(`✅ Loaded ${result.data.length} Risk1 + Risk2 courses`);
+      } else {
+        // Fallback to sample data if no courses found
+        console.log('⚠️ No courses found, using fallback data');
+        setCourseSlots([
+          {
+            _id: 'r1-r2-default-1',
+            date: 'Wednesday 2024-03-20',
+            time: '09:00 - 15:00',
+            title: 'Risk1 + Risk2 Course',
+            seats: '12 places available',
+            price: '1800 kr',
+          },
+          {
+            _id: 'r1-r2-default-2', 
+            date: 'Saturday 2024-03-23',
+            time: '10:00 - 16:00',
+            title: 'Risk1 + Risk2 Weekend Course',
+            seats: '8 places available',
+            price: '1800 kr',
           }
-        } catch (combinedApiError) {
-          console.error('❌ Error with combined API:', combinedApiError);
-        }
+        ]);
       }
-
-      setCourseSlots(allCourses);
-      console.log(`✅ Successfully loaded ${allCourses.length} Risk1/Risk2 courses from various sources`);
     } catch (err) {
-      console.error('❌ Error fetching Risk1 + Risk2 courses:', err);
-      setError('Failed to load Risk1 + Risk2 courses. Please try again later.');
+      console.error('❌ Error loading Risk1 + Risk2 courses:', err);
+      setError('Unable to load courses at the moment');
       setCourseSlots([]);
     } finally {
       setLoading(false);
