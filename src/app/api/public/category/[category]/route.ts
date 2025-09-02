@@ -65,10 +65,10 @@ const getSampleData = (category: string) => {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { category: string } }
+  { params }: { params: Promise<{ category: string }> }
 ) {
   try {
-    const { category } = params;
+    const { category } = await params;
     
     console.log(`🔍 Frontend API: Fetching courses for category: ${category}`);
     
@@ -107,10 +107,11 @@ export async function GET(
     }
 
   } catch (error) {
-    console.error(`❌ API route error for category ${params.category}:`, error);
+    const resolvedParams = await params;
+    console.error(`❌ API route error for category ${resolvedParams.category}:`, error);
     
     // Return sample data as fallback
-    const sampleData = getSampleData(params.category);
+    const sampleData = getSampleData(resolvedParams.category);
     return NextResponse.json(sampleData);
   }
 }

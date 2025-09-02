@@ -102,10 +102,11 @@ const mockSchedules = {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { title: string } }
+  { params }: { params: Promise<{ title: string }> }
 ) {
   try {
-    const title = decodeURIComponent(params.title);
+    const { title: rawTitle } = await params;
+    const title = decodeURIComponent(rawTitle);
     
     // Get schedules for the requested title
     const schedules = mockSchedules[title as keyof typeof mockSchedules] || [];
