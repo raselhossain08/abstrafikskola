@@ -7,6 +7,7 @@ import React, {
   useEffect,
   ReactNode,
 } from 'react';
+import { ClientCookies } from '@/lib/cookies';
 
 export interface User {
   id: string;
@@ -220,8 +221,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     setUser(null);
+    
+    // Clear all authentication cookies comprehensively
     removeAuthCookie('auth_token');
     removeAuthCookie('refresh_token');
+    removeAuthCookie('token');
+    removeAuthCookie('access_token');
+    removeAuthCookie('jwt_token');
+    removeAuthCookie('authorization_token');
+    removeAuthCookie('session');
+    removeAuthCookie('sessionId');
+    removeAuthCookie('user');
+    removeAuthCookie('userId');
+    removeAuthCookie('userInfo');
+    
+    // Use the comprehensive client-side cookie clearing
+    ClientCookies.clearAllAuth();
 
     // Optional: Call logout endpoint to invalidate server-side session
     fetch(`${API_BASE_URL}/auth/logout`, {

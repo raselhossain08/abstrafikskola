@@ -110,7 +110,49 @@ export class ClientCookies {
   // Remove cookie (client-side)
   static remove(name: string): void {
     if (typeof document === 'undefined') return;
+    
+    // Standard removal
     document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+    
+    // Try with different domain variations for thorough cleanup
+    try {
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${location.hostname}`;
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${location.hostname}`;
+    } catch (error) {
+      // Ignore domain-specific removal errors
+    }
+  }
+
+  // Clear all authentication cookies (client-side)
+  static clearAllAuth(): void {
+    if (typeof document === 'undefined') return;
+    
+    const authCookiesToClear = [
+      'auth_token',
+      'refresh_token',
+      'token',
+      'access_token',
+      'jwt_token',
+      'authorization_token',
+      'session',
+      'sessionId',
+      'user',
+      'userId',
+      'userInfo',
+      'authToken',
+      'accessToken',
+      'refreshToken',
+      'bearer_token',
+      'user_session',
+      'login_token',
+      'remember_token'
+    ];
+    
+    for (const cookieName of authCookiesToClear) {
+      this.remove(cookieName);
+    }
+    
+    console.log('🧹 All authentication cookies cleared from client-side');
   }
 
   // Get language (client-side)
