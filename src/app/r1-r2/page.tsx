@@ -64,10 +64,17 @@ export default function page() {
   const [pageContent, setPageContent] = useState<any>(null);
   const [contentLoading, setContentLoading] = useState(true);
 
+  // Fixed category for Risk1 + Risk2 schedules only
+  const CATEGORY_NAME = 'Risk1 + Risk2';
+
   useEffect(() => {
-    fetchRiskCourses();
     fetchPageContent();
   }, [language]); // Re-fetch content when language changes
+
+  // Fetch course schedules using the Schedule API for Risk1 + Risk2 category only
+  useEffect(() => {
+    fetchRiskCourses();
+  }, []); // Only run once on mount
 
   const fetchPageContent = async () => {
     try {
@@ -85,37 +92,59 @@ export default function page() {
     try {
       setLoading(true);
       setError(null);
-      console.log('🔍 Loading Risk1 + Risk2 category courses...');
+      console.log(`🔍 Loading courses for category: "${CATEGORY_NAME}"`);
 
-      const result = await fetchCoursesByCategory('Risk1 + Risk2');
+      const result = await fetchCoursesByCategory(CATEGORY_NAME);
       
-      if (result.success && result.data.length > 0) {
+      if (result.success) {
         setCourseSlots(result.data);
-        console.log(`✅ Loaded ${result.data.length} Risk1 + Risk2 courses`);
+        console.log(`✅ Loaded ${result.data.length} upcoming courses for "${CATEGORY_NAME}"`);
       } else {
-        // Fallback to sample data if no courses found
-        console.log('⚠️ No courses found, using fallback data');
+        // If API fails for Risk1 + Risk2, provide fallback data
+        console.log('⚠️ API failed for Risk1 + Risk2, using fallback data');
         setCourseSlots([
           {
-            _id: 'r1-r2-default-1',
-            date: 'Wednesday 2024-03-20',
-            time: '09:00 - 15:00',
-            title: 'Risk1 + Risk2 Course',
-            seats: '12 places available',
+            _id: 'fallback-1',
+            scheduleId: 'RISK12-001',
+            courseId: 'fallback-course-1',
+            title: 'Risk1 + Risk2 Combined Training',
+            category: 'Risk1 + Risk2',
             price: '1800 kr',
+            description: 'Comprehensive Risk1 and Risk2 course covering all essential traffic safety topics',
+            language: 'Svenska',
+            date: '2025-09-15',
+            time: '09:00 - 17:00',
+            venue: 'ABS Trafikskola Södertälje',
+            teacherName: 'Expert Risk Instructor',
+            totalSeats: 12,
+            bookedSeats: 2,
+            availableSeats: 10,
+            seats: '10 places left',
+            isAvailable: true
           },
           {
-            _id: 'r1-r2-default-2', 
-            date: 'Saturday 2024-03-23',
-            time: '10:00 - 16:00',
-            title: 'Risk1 + Risk2 Weekend Course',
-            seats: '8 places available',
+            _id: 'fallback-2',
+            scheduleId: 'RISK12-002',
+            courseId: 'fallback-course-2',
+            title: 'Risk1 + Risk2 Weekend Session',
+            category: 'Risk1 + Risk2',
             price: '1800 kr',
+            description: 'Weekend intensive Risk1 and Risk2 course for busy schedules',
+            language: 'Svenska',
+            date: '2025-09-21',
+            time: '10:00 - 18:00',
+            venue: 'ABS Trafikskola Södertälje',
+            teacherName: 'Certified Safety Instructor',
+            totalSeats: 10,
+            bookedSeats: 1,
+            availableSeats: 9,
+            seats: '9 places left',
+            isAvailable: true
           }
         ]);
       }
     } catch (err) {
-      console.error('❌ Error loading Risk1 + Risk2 courses:', err);
+      console.error(`❌ Error loading courses for "${CATEGORY_NAME}":`, err);
       setError('Unable to load courses at the moment');
       setCourseSlots([]);
     } finally {
@@ -123,6 +152,7 @@ export default function page() {
     }
   };
 
+  // Function to handle booking submission
   const handleSubmit = (data: Risk1Risk2Item) => {
     setHandledarkursOpen(true);
     setPopupData(data);
@@ -146,53 +176,63 @@ export default function page() {
             </p>
           </div>
 
+
           {/* Loading State */}
           {loading && (
             <div className="flex justify-center items-center py-12">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3F8FEE] mx-auto mb-3"></div>
-                <p className="text-[#4A4C56] font-medium text-16">
-                  Loading Risk1 + Risk2 courses...
-                </p>
-              </div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-lg text-gray-600">
+                Loading schedules...
+              </span>
             </div>
           )}
 
           {/* Error State */}
           {error && (
-            <div className="flex justify-center items-center py-12">
-              <div className="text-center">
-                <h3 className="text-24 font-bold text-red-600 mb-2">
-                  Error Loading Courses
-                </h3>
-                <p className="text-[#4A4C56] text-16 mb-4">{error}</p>
-                <Button
-                  onClick={fetchRiskCourses}
-                  className="border border-[#3F8FEE] rounded-[30px] h-[48px] bg-[#3F8FEE] text-white hover:bg-[#3F8FEE]"
-                >
-                  Try Again
-                </Button>
-              </div>
+            <div className="text-center py-8">
+              <p className="text-red-600 mb-4">{error}</p>
+              <Button
+                onClick={() => window.location.reload()}
+                variant="outline"
+                className="px-6 py-2"
+              >
+                Try Again
+              </Button>
             </div>
           )}
 
           {/* No Courses Available */}
           {!loading && !error && courseSlots.length === 0 && (
-            <div className="flex justify-center items-center py-12">
-              <div className="text-center">
-                <h3 className="text-24 font-bold text-[#1D1F2C] mb-2">
-                  No Risk1 + Risk2 Courses Available
-                </h3>
-                <p className="text-[#4A4C56] text-16 mb-4">
-                  Currently, there are no Risk1 + Risk2 category courses scheduled.
-                </p>
-                <Button
-                  onClick={fetchRiskCourses}
-                  className="border border-[#3F8FEE] rounded-[30px] h-[48px] bg-[#3F8FEE] text-white hover:bg-[#3F8FEE]"
+            <div className="text-center py-12">
+              <div className="mb-4">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  Refresh
-                </Button>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
               </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No Risk1 + Risk2 Courses Available
+              </h3>
+              <p className="text-gray-600 mb-4">
+                There are currently no Risk1 + Risk2 courses scheduled. Please check
+                back later or contact us for more information.
+              </p>
+              <Button
+                onClick={() => window.location.reload()}
+                variant="outline"
+                className="px-6 py-2"
+              >
+                Refresh
+              </Button>
             </div>
           )}
 

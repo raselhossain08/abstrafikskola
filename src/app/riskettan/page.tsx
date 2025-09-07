@@ -52,24 +52,24 @@ export default function RiskettanPage() {
 
   // Fetch course schedules using the new category API
   useEffect(() => {
-    const loadRiskettanCourses = async () => {
+    const loadCourses = async () => {
       try {
         setLoading(true);
         setError(null);
-        console.log('🔍 Loading Riskettan category courses...');
+        console.log(`🔍 Loading Riskettan courses`);
 
         const result = await fetchCoursesByCategory('Riskettan');
         
         if (result.success) {
           setRiskOneSlots(result.data);
-          console.log(`✅ Loaded ${result.data.length} Riskettan courses`);
+          console.log(`✅ Loaded ${result.data.length} upcoming Riskettan courses`);
         } else {
           setError(result.error || 'Failed to load courses');
           setRiskOneSlots([]);
-          console.warn('⚠️ Failed to load Riskettan courses:', result.error);
+          console.warn(`⚠️ Failed to load Riskettan courses:`, result.error);
         }
       } catch (err) {
-        console.error('❌ Error loading Riskettan courses:', err);
+        console.error(`❌ Error loading Riskettan courses:`, err);
         setError('Unable to load courses at the moment');
         setRiskOneSlots([]);
       } finally {
@@ -77,8 +77,8 @@ export default function RiskettanPage() {
       }
     };
 
-    loadRiskettanCourses();
-  }, []);
+    loadCourses();
+  }, []); // Only load once on component mount
 
   const handleSubmit = (data: ProductItem) => {
     setHandledarkursOpen(true);
@@ -127,6 +127,8 @@ export default function RiskettanPage() {
                   {pageContent?.pageContent?.description || 'Learn essential driving skills and road safety regulations'}
                 </p>
               </div>
+
+
 
               {/* Schedule Loading State */}
               {loading ? (
@@ -182,8 +184,7 @@ export default function RiskettanPage() {
               ) : (
                 <>
                   {/* Desktop Schedule Cards */}
-                  <div className=" w-full">
-                    {riskOneSlots.map((item, index) => {
+                  <div className=" w-full">{riskOneSlots.map((item, index) => {
                       return (
                         <div
                           className="hidden xl:flex items-center justify-between bg-[0px 4px 35px 0px #0000000A] bg-white border border-[#FFFFFF] py-[9px] px-[24px] rounded-[8px] mb-8"

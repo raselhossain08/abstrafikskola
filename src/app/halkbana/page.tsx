@@ -65,23 +65,8 @@ export default function HalkbanaPage() {
         setError(null);
         console.log('🔍 Loading Risk2 (Halkbana) category courses...');
 
-        // Try different category variations
-        let result;
-        
-        // Strategy 1: Try exact "Risk2 (Halkbana)" category match
-        result = await fetchCoursesByCategory('Risk2 (Halkbana)');
-        
-        // Strategy 2: Try "Halkbana" as fallback
-        if (!result.success || result.data.length === 0) {
-          console.log('📋 Trying Halkbana category as fallback...');
-          result = await fetchCoursesByCategory('Halkbana');
-        }
-        
-        // Strategy 3: Try "Risk2" as additional fallback
-        if (!result.success || result.data.length === 0) {
-          console.log('📋 Trying Risk2 category as fallback...');
-          result = await fetchCoursesByCategory('Risk2');
-        }
+        // Use the exact category name "Risk2 (Halkbana)"
+        const result = await fetchCoursesByCategory('Risk2 (Halkbana)');
         
         if (result.success && result.data.length > 0) {
           setCourseSlots(result.data);
@@ -92,6 +77,9 @@ export default function HalkbanaPage() {
           setCourseSlots([
             {
               _id: 'halkbana-default-1',
+              scheduleId: 'HALKBANA-DEFAULT-001',
+              courseId: 'halkbana-course-1',
+              category: 'Risk2 (Halkbana)',
               date: language === 'ar' 
                 ? 'الأربعاء 2024-03-20' 
                 : language === 'sv' 
@@ -109,6 +97,18 @@ export default function HalkbanaPage() {
                   ? '8 platser tillgängliga' 
                   : '8 seats available',
               price: language === 'ar' ? '599 كرونة' : '599 kr',
+              description: language === 'ar' 
+                ? 'دورة متقدمة لتعلم القيادة على الأسطح المنزلقة في ظروف الطقس السيئ' 
+                : language === 'sv' 
+                  ? 'Avancerad kurs för körning på halt underlag i dåliga väderförhållanden' 
+                  : 'Advanced course for driving on slippery surfaces in bad weather conditions',
+              language: language === 'ar' ? 'العربية' : language === 'sv' ? 'Svenska' : 'English',
+              venue: 'ABS Trafikskola Halkbana Center',
+              teacherName: 'Expert Halkbana Instructor',
+              totalSeats: 8,
+              bookedSeats: 0,
+              availableSeats: 8,
+              isAvailable: true,
             },
           ]);
         }
@@ -213,23 +213,40 @@ export default function HalkbanaPage() {
 
           {/* No Courses Available */}
           {!loading && courseSlots.length === 0 && (
-            <div className="flex justify-center items-center py-12">
-              <div className="text-center">
-                <h3 className="text-24 font-bold text-[#1D1F2C] mb-2">
-                  No Risk2 (Halkbana) Courses Available
-                </h3>
-                <p className="text-[#4A4C56] text-16 mb-4">
-                  Currently, there are no Risk2 (Halkbana) category courses scheduled. Please check back later.
-                </p>
-                <Button
-                  onClick={() => window.location.reload()}
-                  className="border border-[#3F8FEE] rounded-[30px] h-[48px] bg-[#3F8FEE] text-white hover:bg-[#3F8FEE]"
+            <div className="text-center py-12">
+              <div className="mb-4">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  Refresh Page
-                </Button>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
               </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No Risk2 (Halkbana) Courses Available
+              </h3>
+              <p className="text-gray-600 mb-4">
+                There are currently no Risk2 (Halkbana) courses scheduled. Please check
+                back later or contact us for more information.
+              </p>
+              <Button
+                onClick={() => window.location.reload()}
+                variant="outline"
+                className="px-6 py-2"
+              >
+                Refresh
+              </Button>
             </div>
           )}
+
+
 
           {/* desktop version */}
           {!loading && courseSlots.length > 0 && (

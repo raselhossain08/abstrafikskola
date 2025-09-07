@@ -70,6 +70,9 @@ export default function page() {
           setCourseSlots([
             {
               _id: 'handledarkurs-default-1',
+              scheduleId: 'HANDLE-DEFAULT-001',
+              courseId: 'handledarkurs-course-1',
+              category: 'Handledarkurs',
               date: language === 'ar' 
                 ? 'السبت 2024-03-23' 
                 : language === 'sv' 
@@ -87,6 +90,18 @@ export default function page() {
                   ? '12 platser tillgängliga' 
                   : '12 seats available',
               price: language === 'ar' ? '1500 كرونة' : '1500 kr',
+              description: language === 'ar' 
+                ? 'دورة تأهيل المشرفين على تعليم القيادة' 
+                : language === 'sv' 
+                  ? 'Utbildning för handledare i privat övningskörning' 
+                  : 'Training course for private driving supervisors',
+              language: language === 'ar' ? 'العربية' : language === 'sv' ? 'Svenska' : 'English',
+              venue: 'ABS Trafikskola Södertälje',
+              teacherName: 'Certified Instructor',
+              totalSeats: 12,
+              bookedSeats: 0,
+              availableSeats: 12,
+              isAvailable: true,
             },
           ]);
         }
@@ -159,6 +174,7 @@ export default function page() {
             </p>
           </div>
 
+
           {/* Loading State */}
           {loading && (
             <div className="flex justify-center items-center py-12">
@@ -175,21 +191,41 @@ export default function page() {
           {!loading && courseSlots.length === 0 && (
             <div className="flex justify-center items-center py-12">
               <div className="text-center">
-                <h3 className="text-24 font-bold text-[#1D1F2C] mb-2">
+                <div className="mb-4">
+                  <svg
+                    className="mx-auto h-12 w-12 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
                   No Handledarkurs Courses Available
                 </h3>
-                <p className="text-[#4A4C56] text-16 mb-4">
-                  Currently, there are no Handledarkurs category courses scheduled.
+                <p className="text-gray-600 mb-4">
+                  There are currently no Handledarkurs courses scheduled. Please check
+                  back later or contact us for more information.
                 </p>
                 <Button
                   onClick={() => window.location.reload()}
-                  className="border border-[#3F8FEE] rounded-[30px] h-[48px] bg-[#3F8FEE] text-white hover:bg-[#3F8FEE]"
+                  variant="outline"
+                  className="px-6 py-2"
                 >
                   Refresh
                 </Button>
               </div>
             </div>
           )}
+
+          {/* Schedule Info */}
+
 
           {/* desktop version */}
           {!loading && courseSlots.length > 0 && (

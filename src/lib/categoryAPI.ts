@@ -1,14 +1,14 @@
-// Utility functions for category-based course and schedule fetching
+// Direct API for fetching schedules with category filtering
 export interface CategoryCourseItem {
-  _id?: string;
-  scheduleId?: string;
+  _id: string;
+  scheduleId: string;
   courseId?: string;
   date: string;
   time: string;
   title: string;
   seats: string;
   price: string;
-  category?: string;
+  category: string;
   description?: string;
   language?: string;
   venue?: string;
@@ -17,22 +17,81 @@ export interface CategoryCourseItem {
   totalSeats?: number;
   bookedSeats?: number;
   isAvailable?: boolean;
+  startTime?: string;
+  endTime?: string;
+  status?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface CategoryAPIResponse {
+export interface ScheduleAPIResponse {
   success: boolean;
   message: string;
-  data: any[];
-  category: string;
-  totalCourses?: number;
-  totalSchedules?: number;
-  note?: string;
+  data: CategoryCourseItem[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalSchedules: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
 }
 
+// Supported categories for filtering
+export const SUPPORTED_CATEGORIES = [
+  "Handledarkurs",
+  "Riskettan", 
+  "Risk2 (Halkbana)",
+  "Risk1 + Risk2"
+] as const;
+
+export type SupportedCategory = typeof SUPPORTED_CATEGORIES[number];
+
+// Get API base URL from environment or use default
+const getApiBaseUrl = (): string => {
+  // Check for environment variables
+  if (typeof window !== 'undefined') {
+    // Client-side: use window location or environment
+    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  } else {
+    // Server-side: use environment variable or default
+    return process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  }
+};
+
+// Helper function to check if a date is in the future
+const isFutureDate = (dateString: string): boolean => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+    
+    let scheduleDate: Date;
+    
+    // Handle different date formats
+    if (dateString.includes('-')) {
+      // Format: "2025-09-28"
+      scheduleDate = new Date(dateString);
+    } else if (dateString.includes('/')) {
+      // Format: "09/28/2025" or "Saturday, 09/28/2025"
+      const cleanDate = dateString.split(',').pop()?.trim() || dateString;
+      const [month, day, year] = cleanDate.split('/');
+      scheduleDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    } else {
+      console.warn('Unknown date format:', dateString);
+      return true; // Keep schedule if format is unknown
+    }
+    
+    return scheduleDate >= today;
+  } catch (error) {
+    console.warn('Error parsing date:', dateString, error);
+    return true; // Keep schedule if there's a parsing error
+  }
+};
+
 /**
- * Fetch courses and schedules by category
- * @param category - The category name (e.g., "Riskettan", "Risk2 (Halkbana)", etc.)
- * @returns Promise with transformed course data
+ * Fetch all schedules directly from the API and filter by category
+ * @param category - The category to filter by
+ * @returns Promise with filtered schedule data
  */
 export const fetchCoursesByCategory = async (category: string): Promise<{
   data: CategoryCourseItem[];
@@ -40,114 +99,191 @@ export const fetchCoursesByCategory = async (category: string): Promise<{
   error?: string;
 }> => {
   try {
-    console.log(`🔍 Fetching courses for category: ${category}`);
+    const baseUrl = getApiBaseUrl();
+    const apiUrl = `${baseUrl}/public/schedules`;
     
-    const response = await fetch(`/api/public/category/${encodeURIComponent(category)}`);
-    const apiData: CategoryAPIResponse = await response.json();
+    console.log(`🔍 Fetching all schedules from: ${apiUrl}`);
+    console.log(`📋 Filtering by category: "${category}"`);
     
-    console.log(`📄 API Response for ${category}:`, apiData);
+    const response = await fetch(apiUrl);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const apiData: ScheduleAPIResponse = await response.json();
+    
+    console.log(`📄 API Response:`, apiData);
 
     if (!apiData.success) {
       return {
         data: [],
         success: false,
-        error: apiData.message || 'Failed to fetch courses'
+        error: apiData.message || 'Failed to fetch schedules'
       };
     }
 
     if (!apiData.data || apiData.data.length === 0) {
-      console.log(`⚠️ No courses found for category: ${category}`);
+      console.log(`⚠️ No schedules found in API response`);
       return {
         data: [],
         success: true,
-        error: `No courses available for ${category} at the moment`
+        error: `No schedules available at the moment`
       };
     }
 
-    // Transform API data to match component format
-    const transformedData: CategoryCourseItem[] = apiData.data.map((item: any) => {
-      // Format date with day name
-      let formattedDate = item.date;
-      if (item.date && item.date !== 'Invalid Date') {
-        try {
-          const scheduleDate = new Date(item.date);
-          if (!isNaN(scheduleDate.getTime())) {
-            formattedDate = scheduleDate.toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-            });
-          }
-        } catch (e) {
-          console.warn('Date formatting error:', e);
-          formattedDate = item.date || 'Date TBD';
-        }
+    // Filter by category and future dates
+    const filteredSchedules = apiData.data.filter((schedule) => {
+      // Check category match (case insensitive)
+      const categoryMatch = schedule.category && 
+        schedule.category.toLowerCase().trim() === category.toLowerCase().trim();
+      
+      // Check if schedule is in the future
+      const isFuture = isFutureDate(schedule.date);
+      
+      if (!categoryMatch) {
+        console.log(`❌ Category mismatch: "${schedule.category}" !== "${category}"`);
       }
-
-      // Use the time field if available, otherwise construct from start/end time
-      const timeRange = item.time || 
-        `${item.startTime || '09:00'} - ${item.endTime || '12:00'}`;
-
-      // Handle seats information
-      let seatsText = item.seats;
-      if (!seatsText) {
-        if (item.availableSeats !== undefined) {
-          seatsText = item.availableSeats > 0 
-            ? `${item.availableSeats} places left`
-            : 'Fully booked';
-        } else if (item.totalSeats && item.bookedSeats !== undefined) {
-          const available = item.totalSeats - item.bookedSeats;
-          seatsText = available > 0 
-            ? `${available} places left`
-            : 'Fully booked';
-        } else {
-          seatsText = 'Available';
-        }
+      
+      if (!isFuture) {
+        console.log(`⏰ Past schedule filtered out: ${schedule.title} on ${schedule.date}`);
       }
-
-      // Handle price formatting
-      let priceText = item.price;
-      if (typeof item.price === 'number') {
-        priceText = `${item.price} kr`;
-      } else if (item.price && !item.price.includes('kr')) {
-        priceText = `${item.price} kr`;
-      } else if (!item.price) {
-        priceText = 'Price on request';
-      }
-
-      return {
-        _id: item._id || item.scheduleId,
-        scheduleId: item.scheduleId,
-        courseId: item.courseId,
-        date: formattedDate,
-        time: timeRange,
-        title: item.title || `${category} Course`,
-        seats: seatsText,
-        price: priceText,
-        category: item.category || category,
-        description: item.description,
-        language: item.language,
-        venue: item.venue,
-        teacherName: item.teacherName,
-        availableSeats: item.availableSeats,
-        totalSeats: item.totalSeats,
-        bookedSeats: item.bookedSeats,
-        isAvailable: item.isAvailable !== false,
-      };
+      
+      return categoryMatch && isFuture;
     });
 
-    console.log(`✅ Successfully transformed ${transformedData.length} courses for ${category}`);
+    console.log(`✅ Filtered ${filteredSchedules.length} schedules from ${apiData.data.length} total for category "${category}"`);
+
+    // Transform data to ensure consistent format
+    const transformedSchedules: CategoryCourseItem[] = filteredSchedules.map((schedule) => ({
+      _id: schedule._id,
+      scheduleId: schedule.scheduleId,
+      courseId: schedule.courseId,
+      date: schedule.date,
+      time: schedule.time,
+      title: schedule.title,
+      seats: schedule.seats,
+      price: schedule.price,
+      category: schedule.category,
+      description: schedule.description,
+      language: schedule.language || 'Svenska',
+      venue: schedule.venue || 'ABS Trafikskola Södertälje',
+      teacherName: schedule.teacherName || 'Available Instructor',
+      availableSeats: schedule.availableSeats,
+      totalSeats: schedule.totalSeats,
+      bookedSeats: schedule.bookedSeats,
+      isAvailable: schedule.isAvailable !== false,
+      startTime: schedule.startTime,
+      endTime: schedule.endTime,
+      status: schedule.status,
+      createdAt: schedule.createdAt,
+      updatedAt: schedule.updatedAt
+    }));
     
     return {
-      data: transformedData,
+      data: transformedSchedules,
       success: true
     };
 
   } catch (error) {
-    console.error(`❌ Error fetching courses for category ${category}:`, error);
+    console.error(`❌ Error fetching schedules for category ${category}:`, error);
     return {
       data: [],
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+};
+
+/**
+ * Fetch all future schedules for all supported categories
+ * @returns Promise with all future schedules grouped by category
+ */
+export const fetchAllCategoriesSchedules = async (): Promise<{
+  data: Record<SupportedCategory, CategoryCourseItem[]>;
+  success: boolean;
+  error?: string;
+}> => {
+  try {
+    const baseUrl = getApiBaseUrl();
+    const apiUrl = `${baseUrl}/public/schedules`;
+    
+    console.log(`🔍 Fetching all schedules from: ${apiUrl}`);
+    
+    const response = await fetch(apiUrl);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const apiData: ScheduleAPIResponse = await response.json();
+
+    if (!apiData.success) {
+      return {
+        data: {} as Record<SupportedCategory, CategoryCourseItem[]>,
+        success: false,
+        error: apiData.message || 'Failed to fetch schedules'
+      };
+    }
+
+    if (!apiData.data || apiData.data.length === 0) {
+      return {
+        data: {} as Record<SupportedCategory, CategoryCourseItem[]>,
+        success: true,
+        error: `No schedules available at the moment`
+      };
+    }
+
+    // Filter future schedules only
+    const futureSchedules = apiData.data.filter(schedule => isFutureDate(schedule.date));
+
+    // Group by category
+    const groupedSchedules = SUPPORTED_CATEGORIES.reduce((acc, category) => {
+      acc[category] = futureSchedules
+        .filter(schedule => 
+          schedule.category && 
+          schedule.category.toLowerCase().trim() === category.toLowerCase().trim()
+        )
+        .map(schedule => ({
+          _id: schedule._id,
+          scheduleId: schedule.scheduleId,
+          courseId: schedule.courseId,
+          date: schedule.date,
+          time: schedule.time,
+          title: schedule.title,
+          seats: schedule.seats,
+          price: schedule.price,
+          category: schedule.category,
+          description: schedule.description,
+          language: schedule.language || 'Svenska',
+          venue: schedule.venue || 'ABS Trafikskola Södertälje',
+          teacherName: schedule.teacherName || 'Available Instructor',
+          availableSeats: schedule.availableSeats,
+          totalSeats: schedule.totalSeats,
+          bookedSeats: schedule.bookedSeats,
+          isAvailable: schedule.isAvailable !== false,
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
+          status: schedule.status,
+          createdAt: schedule.createdAt,
+          updatedAt: schedule.updatedAt
+        }));
+      return acc;
+    }, {} as Record<SupportedCategory, CategoryCourseItem[]>);
+
+    console.log(`✅ Grouped schedules by categories:`, 
+      Object.entries(groupedSchedules).map(([cat, scheds]) => `${cat}: ${scheds.length}`).join(', ')
+    );
+
+    return {
+      data: groupedSchedules,
+      success: true
+    };
+
+  } catch (error) {
+    console.error(`❌ Error fetching all categories schedules:`, error);
+    return {
+      data: {} as Record<SupportedCategory, CategoryCourseItem[]>,
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred'
     };
@@ -162,7 +298,7 @@ export const CATEGORY_MAPPINGS = {
   '/halkbana': 'Risk2 (Halkbana)',
   '/handledarkurs': 'Handledarkurs',
   '/r1-r2': 'Risk1 + Risk2',
-  '/driving-lessons': 'Driving lessons',
+  '/driving-lessons': 'Driving lessons', // Not in supported categories but kept for compatibility
 } as const;
 
 /**
@@ -173,46 +309,3 @@ export const CATEGORY_MAPPINGS = {
 export const getCategoryFromPath = (pathname: string): string | null => {
   return CATEGORY_MAPPINGS[pathname as keyof typeof CATEGORY_MAPPINGS] || null;
 };
-
-/**
- * Hook for using category-based course fetching
- * @param category - Category name
- * @returns Object with data, loading, error states
- */
-export const useCategoryApi = (category: string) => {
-  const [data, setData] = React.useState<CategoryCourseItem[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-
-  const fetchData = React.useCallback(async () => {
-    if (!category) return;
-    
-    setLoading(true);
-    setError(null);
-    
-    const result = await fetchCoursesByCategory(category);
-    
-    if (result.success) {
-      setData(result.data);
-    } else {
-      setError(result.error || 'Failed to load courses');
-      setData([]);
-    }
-    
-    setLoading(false);
-  }, [category]);
-
-  React.useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  return {
-    data,
-    loading,
-    error,
-    refetch: fetchData
-  };
-};
-
-// Import React for the hook
-import React from 'react';
