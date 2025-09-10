@@ -48,42 +48,66 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
   children,
   initialLanguage,
 }) => {
-  const [language, setLanguageState] = useState<Language>(
-    initialLanguage || 'en'
-  );
+  // Simple initialization - always start with 'sv' default and then update from cookie
+  const [language, setLanguageState] = useState<Language>('sv');
+  const [isChangingLanguage, setIsChangingLanguage] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
+  // Load saved language from cookie after component mounts (client-side only)
   useEffect(() => {
-    // Load language from cookies on mount
+    setMounted(true);
+    
+    // Get saved language from cookie
     const savedLang = getCookie('language') as Language;
+    console.log(`🍪 [LanguageContext] Checking cookie on mount: ${savedLang}`);
+    
     if (savedLang && ['en', 'sv', 'ar'].includes(savedLang)) {
+      console.log(`🔄 [LanguageContext] Setting language from cookie: ${savedLang}`);
       setLanguageState(savedLang);
-      // Update document direction immediately
-      document.documentElement.dir = savedLang === 'ar' ? 'rtl' : 'ltr';
-      document.documentElement.lang = savedLang;
-    } else if (initialLanguage) {
+    } else if (initialLanguage && initialLanguage !== language) {
+      console.log(`🔄 [LanguageContext] Using initial language: ${initialLanguage}`);
       setLanguageState(initialLanguage);
-      // Update document direction immediately
-      document.documentElement.dir = initialLanguage === 'ar' ? 'rtl' : 'ltr';
-      document.documentElement.lang = initialLanguage;
+    } else {
+      console.log(`🔄 [LanguageContext] Keeping default language: sv`);
     }
-  }, [initialLanguage]);
+  }, []); // Run only once on mount
 
-  const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-    setCookie('language', lang, 365); // Cookie expires in 1 year
+  const setLanguage = async (lang: Language) => {
+    if (lang === language) {
+      console.log(`🌐 [LanguageContext] Language ${lang} already active, skipping`);
+      return; // Don't update if same language
+    }
+    
+    console.log(`🌐 [LanguageContext] Switching language from ${language} to ${lang}`);
+    setIsChangingLanguage(true);
+    
+    try {
+      // Update state immediately for responsive UI
+      setLanguageState(lang);
+      setCookie('language', lang, 365); // Cookie expires in 1 year
+      console.log(`🍪 [LanguageContext] Language cookie set to: ${lang}`);
+      
+      // Verify cookie was set
+      const verification = getCookie('language');
+      console.log(`🔍 [LanguageContext] Cookie verification: ${verification}`);
 
-    // Also call Next.js API route to set server-side cookie
-    fetch('/api/language', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ language: lang }),
-    }).catch(console.error);
-
-    // Update document direction
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = lang;
+      // Call Next.js API route to set server-side cookie (non-blocking)
+      fetch('/api/language', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ language: lang }),
+      }).catch(console.error);
+      
+    } catch (error) {
+      console.error('❌ [LanguageContext] Error setting language:', error);
+    } finally {
+      // Add small delay for smooth transition
+      setTimeout(() => {
+        setIsChangingLanguage(false);
+      }, 300);
+    }
   };
 
   const isRTL = language === 'ar';
@@ -94,9 +118,20 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
     isRTL,
   };
 
+  // Prevent hydration mismatch by not rendering transition until mounted
+  if (!mounted) {
+    return (
+      <LanguageContext.Provider value={value}>
+        {children}
+      </LanguageContext.Provider>
+    );
+  }
+
   return (
     <LanguageContext.Provider value={value}>
-      {children}
+      <div className={`transition-opacity duration-200 ${isChangingLanguage ? 'opacity-90' : 'opacity-100'}`}>
+        {children}
+      </div>
     </LanguageContext.Provider>
   );
 };

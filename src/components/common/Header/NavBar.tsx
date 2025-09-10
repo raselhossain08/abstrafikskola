@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { IoCloseSharp } from 'react-icons/io5';
 import { usePathname, useRouter } from 'next/navigation';
 import { Login } from '../../dialog/Login';
@@ -24,7 +24,7 @@ interface NavBarProps {
 }
 
 export default function NavBar({
-  lang = 'en',
+  lang = 'sv',
   isScrolled = false,
 }: NavBarProps) {
   // All hooks must be declared before any conditional returns
@@ -48,18 +48,74 @@ export default function NavBar({
   const textDirection = isRTLContent ? 'ltr' : 'ltr';
 
   // Get multilingual content based on current language
-  const getLocalizedText = (textObj: any) => {
+  const getLocalizedText = useCallback((textObj: any) => {
     if (typeof textObj === 'string') return textObj;
     return textObj?.[language] || textObj?.en || textObj;
-  };
+  }, [language]);
 
-  const loginButtonText =
-    getLocalizedText(headerContent?.loginButton) ||
-    (language === 'ar'
-      ? 'تسجيل الدخول'
-      : language === 'sv'
-        ? 'Logga in'
-        : 'Login');
+  // Get proper language display with fallback for better language names
+  const getLanguageDisplayName = useCallback((langCode: string) => {
+    switch (langCode) {
+      case 'en':
+        return 'English';
+      case 'sv':
+        return 'Svenska';
+      case 'ar':
+        return 'العربية';
+      default:
+        return langCode.toUpperCase();
+    }
+  }, []);
+
+  // Get proper flag URL with fallback
+  const getLanguageFlagUrl = useCallback((langCode: string) => {
+    switch (langCode) {
+      case 'en':
+        return 'https://cdn-icons-png.flaticon.com/512/323/323329.png'; // UK flag
+      case 'sv':
+        return 'https://cdn-icons-png.flaticon.com/512/197/197564.png'; // Sweden flag
+      case 'ar':
+        return 'https://cdn-icons-png.flaticon.com/512/323/323301.png'; // Saudi Arabia flag
+      default:
+        return '/icons/default-flag.svg';
+    }
+  }, []);
+
+  // Compute login button text dynamically based on current language - simplified
+  const loginButtonText = useMemo(() => {
+    // Always use fallback for reliable text switching
+    switch (language) {
+      case 'ar':
+        return 'تسجيل الدخول';
+      case 'sv':
+        return 'Logga in';
+      case 'en':
+      default:
+        return 'Login';
+    }
+  }, [language]);
+
+  // Current language display - moved before any returns
+  const currentLanguageDisplay = useMemo(() => {
+    if (selectedLanguage) {
+      return selectedLanguage;
+    }
+    
+    const foundLanguage = languages.find((l) => l.code === language);
+    if (foundLanguage) {
+      return foundLanguage;
+    }
+    
+    // Fallback with proper names and flags
+    return {
+      code: language,
+      name: getLanguageDisplayName(language),
+      flag: getLanguageFlagUrl(language)
+    };
+  }, [selectedLanguage, languages, language]);
+
+  // Force re-render when language changes to ensure text updates
+  const [, forceUpdate] = useState({});
 
   // Initialize selectedLanguage after languages are loaded
   useEffect(() => {
@@ -69,6 +125,10 @@ export default function NavBar({
       );
     }
   }, [languages, language]);
+
+  useEffect(() => {
+    forceUpdate({});
+  }, [language]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -103,9 +163,15 @@ export default function NavBar({
   // Handler functions
   const handleLanguageChange = (newLang: string) => {
     const languageObj = languages.find((l) => l.code === newLang);
-    if (languageObj) {
+    if (languageObj && newLang !== language) {
+      // Close any open dropdowns immediately
+      setActiveDropdown(null);
+      
+      // Update the context immediately (no timeout needed)
       setLanguage(newLang as Language);
-      setSelectedLanguage(languageObj);
+      
+      // Force immediate re-render for UI updates
+      forceUpdate({});
     }
   };
 
@@ -135,12 +201,44 @@ export default function NavBar({
   };
 
   // Don't render if essential data is not loaded yet
-  if (!headerContent || navigationItems.length === 0 || !selectedLanguage) {
+  if (isLoading && !headerContent) {
     return (
-      <div className={`h-16 flex items-center justify-center ${
-        isScrolled ? 'bg-white shadow-md' : 'bg-white'
+      <div className={`h-16 lg:h-24 flex items-center transition-all duration-300 ${
+        isScrolled ? 'bg-white shadow-md lg:h-[70px]' : 'bg-white'
       }`}>
-        <div className="text-gray-500 text-sm">Loading navigation...</div>
+        <div className="w-full xl:w-[1320px] mx-auto px-4 xl:px-0">
+          <div className="flex items-center justify-between">
+            {/* Logo skeleton */}
+            <div className="flex items-center">
+              <div className="w-[75px] h-[35px] bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            
+            {/* Navigation skeleton */}
+            <div className="hidden xl:flex space-x-8">
+              {[1, 2, 3, 4].map((item) => (
+                <div key={item} className="w-16 h-4 bg-gray-200 rounded animate-pulse"></div>
+              ))}
+            </div>
+            
+            {/* Right side skeleton */}
+            <div className="flex items-center space-x-2 lg:space-x-6">
+              <div className="w-[120px] h-[48px] bg-gray-200 rounded-full animate-pulse hidden lg:block"></div>
+              <div className="w-[46px] h-[24px] lg:w-[152px] lg:h-[48px] bg-gray-200 rounded-full animate-pulse"></div>
+              <div className="w-[24px] h-[24px] bg-gray-200 rounded animate-pulse xl:hidden"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If we have no data and not loading, show error state
+  if (!headerContent || navigationItems.length === 0) {
+    return (
+      <div className={`h-16 lg:h-24 flex items-center justify-center transition-all duration-300 ${
+        isScrolled ? 'bg-white shadow-md lg:h-[70px]' : 'bg-white'
+      }`}>
+        <div className="text-red-500 text-sm">Failed to load navigation</div>
       </div>
     );
   }
@@ -186,10 +284,10 @@ export default function NavBar({
                       <div className="relative dropdown-container">
                         <button
                           onClick={() => handleDropdownToggle(index)}
-                          className="flex items-center font-raleway font-medium space-x-1 text-16 leading-[1.4] tracking-[0.5%] transition-colors duration-200"
+                          className="flex items-center font-raleway font-medium space-x-1 text-16 leading-[1.4] tracking-[0.5%] transition-all duration-200"
                         >
                           <span
-                            className={`${
+                            className={`transition-all duration-200 ${
                               pathname.startsWith('/info')
                                 ? 'text-blue-500'
                                 : 'text-gray-700 hover:text-blue-500'
@@ -209,7 +307,7 @@ export default function NavBar({
                           />
                         </button>
                         {activeDropdown === index && (
-                          <ul className="absolute bg-white shadow-lg mt-2 rounded-md p-2 space-y-2 min-w-[190px] z-50">
+                          <ul className="absolute bg-white shadow-lg mt-2 rounded-md p-2 space-y-2 min-w-[190px] z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                             {item.dropdownItems?.map((subItem, subIndex) => (
                               <li key={subItem.id}>
                                 <button
@@ -330,6 +428,7 @@ export default function NavBar({
                     ))}
                     <div className="w-full max-w-xs pt-4">
                       <Button
+                        key={`mobile-login-${language}`}
                         className="bg-white px-6 w-full h-[48px] rounded-full font-raleway font-medium text-16 text-blue-600 hover:bg-gray-100 transition-colors duration-200"
                         onClick={() => {
                           setLoginOpen(true);
@@ -348,6 +447,7 @@ export default function NavBar({
             {/* Right side (Login + Language + Menu icon) */}
             <div className="flex items-center space-x-2 lg:space-x-6 h-full">
               <Button
+                key={`desktop-login-${language}`}
                 className="bg-blue-500 px-6  w-[120px] h-[48px] rounded-full font-raleway font-medium text-16 text-white hover:bg-blue-600 transition-colors duration-200 lg:block hidden"
                 onClick={() => setLoginOpen(true)}
                 dir={textDirection}
@@ -364,15 +464,15 @@ export default function NavBar({
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center lg:space-x-2">
                         <Image
-                          src={typeof selectedLanguage.flag === 'string' ? selectedLanguage.flag : selectedLanguage.flag?.url || '/icons/default-flag.svg'}
+                          src={typeof currentLanguageDisplay.flag === 'string' ? currentLanguageDisplay.flag : currentLanguageDisplay.flag?.url || '/icons/default-flag.svg'}
                           height={24}
                           width={24}
-                          alt={`${getLocalizedText(selectedLanguage.name)} Flag`}
-                          className="rounded-full w-[16px] h-[16px] lg:w-[24px] lg:h-[24px]"
+                          alt={`${getLocalizedText(currentLanguageDisplay.name)} Flag`}
+                          className="rounded-full w-[16px] h-[16px] lg:w-[24px] lg:h-[24px] transition-opacity duration-200"
                           unoptimized
                         />
-                        <span className="lg:block hidden">
-                          {getLocalizedText(selectedLanguage.name)}
+                        <span className="lg:block hidden transition-opacity duration-200">
+                          {getLocalizedText(currentLanguageDisplay.name)}
                         </span>
                       </div>
                       <Image
@@ -391,26 +491,45 @@ export default function NavBar({
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuRadioGroup
-                    value={selectedLanguage.code}
+                    value={currentLanguageDisplay.code}
                     onValueChange={handleLanguageChange}
                   >
-                    {languages.map((lang) => (
+                    {languages.length > 0 ? languages.map((lang) => (
                       <DropdownMenuRadioItem
                         key={lang.code}
                         value={lang.code}
-                        className={`flex items-center space-x-2 ${language === 'ar' ? 'flex-row-reverse space-x-reverse' : ''}`}
+                        className={`flex items-center space-x-2 transition-colors duration-200 ${language === 'ar' ? 'flex-row-reverse space-x-reverse' : ''}`}
                       >
                         <Image
-                          src={typeof lang.flag === 'string' ? lang.flag : lang.flag?.url || '/icons/default-flag.svg'}
+                          src={typeof lang.flag === 'string' ? lang.flag : lang.flag?.url || getLanguageFlagUrl(lang.code)}
                           height={20}
                           width={20}
                           alt={`${getLocalizedText(lang.name)} Flag`}
                           className="rounded-full"
                           unoptimized
                         />
-                        <span>{getLocalizedText(lang.name)}</span>
+                        <span>{getLocalizedText(lang.name) || getLanguageDisplayName(lang.code)}</span>
                       </DropdownMenuRadioItem>
-                    ))}
+                    )) : (
+                      // Fallback when languages are not loaded from API
+                      ['en', 'sv', 'ar'].map((langCode) => (
+                        <DropdownMenuRadioItem
+                          key={langCode}
+                          value={langCode}
+                          className={`flex items-center space-x-2 transition-colors duration-200 ${language === 'ar' ? 'flex-row-reverse space-x-reverse' : ''}`}
+                        >
+                          <Image
+                            src={getLanguageFlagUrl(langCode)}
+                            height={20}
+                            width={20}
+                            alt={`${getLanguageDisplayName(langCode)} Flag`}
+                            className="rounded-full"
+                            unoptimized
+                          />
+                          <span>{getLanguageDisplayName(langCode)}</span>
+                        </DropdownMenuRadioItem>
+                      ))
+                    )}
                   </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
               </DropdownMenu>

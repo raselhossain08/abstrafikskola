@@ -48,6 +48,25 @@ export function ProductDialog({
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loadingSchedules, setLoadingSchedules] = useState(false);
 
+  // Helper function to format personal number with automatic hyphen
+  const formatPersonNumber = (value: string) => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+    
+    // If 8 or more digits, add hyphen after 8th digit
+    if (digits.length >= 8) {
+      return `${digits.slice(0, 8)}-${digits.slice(8, 12)}`;
+    }
+    
+    return digits;
+  };
+
+  // Handle personal number input change
+  const handlePersonNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPersonNumber(e.target.value);
+    formik.setFieldValue('personNumber', formatted);
+  };
+
   // Validation schema - updated for international support
   const validationSchema = Yup.object().shape({
     firstName: Yup.string()
@@ -61,15 +80,13 @@ export function ProductDialog({
       .max(50, 'Last name must be less than 50 characters')
       .matches(/^[a-zA-ZÀ-ÿ\u00C0-\u017F\u0100-\u017F\u1E00-\u1EFF\s'-]+$/, 'Only letters, spaces, hyphens and apostrophes are allowed'),
     personNumber: Yup.string()
-      .required('Person/ID number is required')
-      .min(6, 'Person/ID number must be at least 6 characters')
-      .max(20, 'Person/ID number must be less than 20 characters')
-      .matches(/^[0-9A-Za-z\-\s]+$/, 'Only numbers, letters, hyphens and spaces are allowed'),
+      .required('Swedish personal number is required')
+      .length(13, 'Swedish personal number must be exactly 13 characters (YYYYMMDD-XXXX)')
+      .matches(/^[0-9]{8}-[0-9]{4}$/, 'Personal number must be in format YYYYMMDD-XXXX (e.g., 19901231-1234)'),
     mobile: Yup.string()
-      .required('Mobile number is required')
-      .min(8, 'Mobile number must be at least 8 digits')
-      .max(20, 'Mobile number must be less than 20 digits')
-      .matches(/^[\+]?[0-9\s\-\(\)]+$/, 'Invalid phone number format. Use format: +46123456789 or 0123456789'),
+      .required('Swedish mobile number is required')
+      .length(10, 'Swedish mobile number must be exactly 10 digits')
+      .matches(/^07[0-9]{8}$/, 'Mobile number must start with 07 followed by 8 digits (e.g., 0712345678)'),
     email: Yup.string()
       .email('Invalid email address')
       .required('Email is required'),
@@ -349,7 +366,19 @@ export function ProductDialog({
               <Image src="/img/1.png" alt="" width={596} height={413} />
             </div>
             <div>
-              <div className="bg-[#F7FAFF] border border-[#ECF4FD] p-6 rounded-[16px]">
+              <div className="bg-[#F7FAFF] border border-[#ECF4FD] p-6 rounded-[16px] relative">
+                {/* Loading Overlay */}
+                {isSubmitting && (
+                  <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-10 rounded-[16px]">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3F8FEE] mx-auto mb-4"></div>
+                      <p className="text-[#3F8FEE] font-medium">
+                        {isConfirmed ? 'Confirming your booking...' : 'Processing your information...'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {isSuccess ? (
                   // Success message display
                   <div className="text-center space-y-4">
@@ -377,28 +406,6 @@ export function ProductDialog({
                       <p className="text-16 text-[#4A4C56] mb-4">
                         {successMessage}
                       </p>
-                      <div className="bg-white p-4 rounded-lg border border-green-200">
-                        <p className="text-14 text-[#4A4C56]">
-                          <strong>Course:</strong> {title}
-                        </p>
-                        <p className="text-14 text-[#4A4C56]">
-                          <strong>Customer:</strong> {formik.values.firstName}{' '}
-                          {formik.values.lastName}
-                        </p>
-                        <p className="text-14 text-[#4A4C56]">
-                          <strong>Person/ID Number:</strong> {formik.values.personNumber}
-                        </p>
-                        <p className="text-14 text-[#4A4C56]">
-                          <strong>Mobile:</strong> {formik.values.mobile}
-                        </p>
-                        <p className="text-14 text-[#4A4C56]">
-                          <strong>Schedule ID:</strong>{' '}
-                          {scheduleId ||
-                            (schedules.length > 0
-                              ? schedules[0].scheduleId
-                              : 'N/A')}
-                        </p>
-                      </div>
                     </div>
                   </div>
                 ) : (
@@ -416,11 +423,13 @@ export function ProductDialog({
                         id="firstName"
                         name="firstName"
                         placeholder="John"
-                        className="w-full px-4 py-2 rounded-full border border-[#E9E9EA80] outline-none bg-white h-[45px] font-16 font-medium text-[#777980] focus:ring-0 focus:ring-transparent"
+                        className={`w-full px-4 py-2 rounded-full border border-[#E9E9EA80] outline-none bg-white h-[45px] font-16 font-medium text-[#777980] focus:ring-0 focus:ring-transparent transition-opacity ${
+                          isConfirmed || isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
+                        }`}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         value={formik.values.firstName}
-                        disabled={isConfirmed}
+                        disabled={isConfirmed || isSubmitting}
                       />
                       {formik.touched.firstName && formik.errors.firstName && (
                         <div className="text-red-500 text-sm mt-1">
@@ -442,11 +451,13 @@ export function ProductDialog({
                         id="lastName"
                         name="lastName"
                         placeholder="Doe"
-                        className="w-full px-4 py-2 rounded-full border border-[#E9E9EA80] outline-none bg-white h-[45px] font-16 font-medium text-[#777980] focus:ring-0 focus:ring-transparent"
+                        className={`w-full px-4 py-2 rounded-full border border-[#E9E9EA80] outline-none bg-white h-[45px] font-16 font-medium text-[#777980] focus:ring-0 focus:ring-transparent transition-opacity ${
+                          isConfirmed || isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
+                        }`}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         value={formik.values.lastName}
-                        disabled={isConfirmed}
+                        disabled={isConfirmed || isSubmitting}
                       />
                       {formik.touched.lastName && formik.errors.lastName && (
                         <div className="text-red-500 text-sm mt-1">
@@ -460,18 +471,21 @@ export function ProductDialog({
                         htmlFor="personNumber"
                         className="block text-18 font-medium text-[#4A4C56] mb-2"
                       >
-                        Person/ID Number*
+                         Personal Number*
                       </Label>
                       <Input
                         type="text"
                         id="personNumber"
                         name="personNumber"
-                        placeholder="Swedish: 19901231-1234, US: SSN123456789, etc."
-                        className="w-full px-4 py-2 rounded-full border border-[#E9E9EA80] outline-none bg-white h-[45px] font-16 font-medium text-[#777980] focus:ring-0 focus:ring-transparent"
-                        onChange={formik.handleChange}
+                        placeholder="19901231-1234"
+                        maxLength={13}
+                        className={`w-full px-4 py-2 rounded-full border border-[#E9E9EA80] outline-none bg-white h-[45px] font-16 font-medium text-[#777980] focus:ring-0 focus:ring-transparent transition-opacity ${
+                          isConfirmed || isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
+                        }`}
+                        onChange={handlePersonNumberChange}
                         onBlur={formik.handleBlur}
                         value={formik.values.personNumber}
-                        disabled={isConfirmed}
+                        disabled={isConfirmed || isSubmitting}
                       />
                       {formik.touched.personNumber &&
                         formik.errors.personNumber && (
@@ -479,13 +493,6 @@ export function ProductDialog({
                             {formik.errors.personNumber}
                           </div>
                         )}
-                      <div className="text-xs text-[#777980] mt-1">
-                        <p>🆔 Accepted ID formats:</p>
-                        <p>• Sweden: 19901231-1234 (Personal number)</p>
-                        <p>• USA: SSN123456789 (Social Security)</p>
-                        <p>• UK: AB123456C (National Insurance)</p>
-                        <p>• EU: Various national ID formats</p>
-                      </div>
                     </div>
 
                     <div>
@@ -493,31 +500,27 @@ export function ProductDialog({
                         htmlFor="mobile"
                         className="block text-18 font-medium text-[#4A4C56] mb-2"
                       >
-                        Mobile Number*
+                        Swedish Mobile Number*
                       </Label>
                       <Input
                         type="tel"
                         id="mobile"
                         name="mobile"
-                        placeholder="+46 123 456 789, +1 (555) 123-4567, 07123456789"
-                        className="w-full px-4 py-2 rounded-full border border-[#E9E9EA80] outline-none bg-white h-[45px] font-16 font-medium text-[#777980] focus:ring-0 focus:ring-transparent"
+                        placeholder="0712345678"
+                        maxLength={10}
+                        className={`w-full px-4 py-2 rounded-full border border-[#E9E9EA80] outline-none bg-white h-[45px] font-16 font-medium text-[#777980] focus:ring-0 focus:ring-transparent transition-opacity ${
+                          isConfirmed || isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
+                        }`}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         value={formik.values.mobile}
-                        disabled={isConfirmed}
+                        disabled={isConfirmed || isSubmitting}
                       />
                       {formik.touched.mobile && formik.errors.mobile && (
                         <div className="text-red-500 text-sm mt-1">
                           {formik.errors.mobile}
                         </div>
                       )}
-                      <div className="text-xs text-[#777980] mt-1">
-                        <p>📱 Supported formats:</p>
-                        <p>• Sweden: +46 123 456 789 or 07123456789</p>
-                        <p>• USA: +1 (555) 123-4567 or (555) 123-4567</p>
-                        <p>• UK: +44 20 7946 0958 or 020 7946 0958</p>
-                        <p>• International: +[country code] [number]</p>
-                      </div>
                     </div>
 
                     <div>
@@ -532,11 +535,13 @@ export function ProductDialog({
                         id="email"
                         name="email"
                         placeholder="example@example.com"
-                        className="w-full px-4 py-2 rounded-full border border-[#E9E9EA80] outline-none bg-white h-[45px] font-16 font-medium text-[#777980] focus:ring-0 focus:ring-transparent"
+                        className={`w-full px-4 py-2 rounded-full border border-[#E9E9EA80] outline-none bg-white h-[45px] font-16 font-medium text-[#777980] focus:ring-0 focus:ring-transparent transition-opacity ${
+                          isConfirmed || isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
+                        }`}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         value={formik.values.email}
-                        disabled={isConfirmed}
+                        disabled={isConfirmed || isSubmitting}
                       />
                       {formik.touched.email && formik.errors.email && (
                         <div className="text-red-500 text-sm mt-1">
@@ -565,7 +570,7 @@ export function ProductDialog({
 
                     <Button
                       type="submit"
-                      className="w-full mt-4 bg-[#3F8FEE] h-[48px] text-16 font-medium text-white py-2 rounded-full text-center disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      className="w-full mt-4 bg-[#3F8FEE] h-[48px] text-16 font-medium text-white py-2 rounded-full text-center disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
                       disabled={
                         isSubmitting ||
                         !formik.isValid ||
@@ -573,13 +578,25 @@ export function ProductDialog({
                         loadingSchedules
                       }
                     >
-                      {loadingSchedules
-                        ? 'Loading...'
-                        : !hasValidSchedule()
-                          ? 'No Schedule Available'
-                          : isConfirmed
-                            ? 'Confirm'
-                            : 'Preview'}
+                      {isSubmitting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                          <span>
+                            {isConfirmed ? 'Confirming...' : 'Processing...'}
+                          </span>
+                        </>
+                      ) : loadingSchedules ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                          <span>Loading...</span>
+                        </>
+                      ) : !hasValidSchedule() ? (
+                        'No Schedule Available'
+                      ) : isConfirmed ? (
+                        'Confirm'
+                      ) : (
+                        'Preview'
+                      )}
                     </Button>
                   </form>
                 )}
@@ -587,7 +604,7 @@ export function ProductDialog({
             </div>
           </div>
 
-          <div className="absolute left-0 -bottom-20 md:-bottom-7 flex items-center space-x-3">
+          <div className="absolute left-0 -bottom-20 md:bottom-[-40px] flex items-center space-x-3">
             <Button
               type="button"
               className="bg-[#3F8FEE] rounded-[30px] h-[48px] w-[130px] text-14 font-medium has-[span]:text-white hover:bg-[#3F8FEE]"

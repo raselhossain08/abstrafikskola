@@ -8,6 +8,7 @@ import Footer from '@/components/common/Footer';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ClientOnly } from '@/components/common/ClientOnly';
+import { DocumentLanguageProvider } from '@/components/providers/DocumentLanguageProvider';
 
 // Load Raleway font with variable support
 const raleway = Raleway({
@@ -84,12 +85,13 @@ export default function RootLayout({
     <html
       lang={initialLanguage}
       className={`${raleway.variable} ${sansation.variable}`}
-     
+      suppressHydrationWarning
     >
-      <body className="font-sansation antialiased" suppressHydrationWarning dir='ltr'>
+      <body className="font-sansation antialiased" suppressHydrationWarning>
         <ClientOnly>
           <AuthProvider>
             <LanguageProvider initialLanguage={initialLanguage}>
+              <DocumentLanguageProvider />
               <Header />
               <main>{children}</main>
               <Footer />

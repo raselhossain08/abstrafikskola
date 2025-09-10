@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { headerApi } from '@/lib/headerApi';
 
@@ -117,6 +117,12 @@ export const useHeaderContent = (): UseHeaderContentReturn => {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Use useRef to track current language to avoid dependency array issues
+  const currentLanguageRef = useRef<string>(language);
+
+  // Cache for different languages to avoid refetching
+  const cacheRef = useRef<Map<string, HeaderContent>>(new Map());
 
   // Transform API response to component-friendly format - Updated for new backend format
   const transformApiResponse = (apiData: any): HeaderContent => {
@@ -259,6 +265,17 @@ export const useHeaderContent = (): UseHeaderContentReturn => {
 
   const fetchHeaderContent = async () => {
     try {
+      // Check cache first for quick switching
+      if (cacheRef.current.has(language)) {
+        const cachedContent = cacheRef.current.get(language)!;
+        setHeaderContent(cachedContent);
+        currentLanguageRef.current = language;
+        setIsLoading(false);
+        setError(null);
+        console.log(`✅ Header content loaded from cache for language: ${language}`);
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
 
@@ -267,8 +284,13 @@ export const useHeaderContent = (): UseHeaderContentReturn => {
 
       if (response.success && response.data) {
         const transformedData = transformApiResponse(response.data);
+        
+        // Cache the result
+        cacheRef.current.set(language, transformedData);
+        
         setHeaderContent(transformedData);
-        console.log(`✅ Header content loaded for language: ${language}`);
+        currentLanguageRef.current = language;
+        console.log(`✅ Header content loaded and cached for language: ${language}`);
       } else {
         throw new Error(response.message || 'Failed to load header content from API');
       }
@@ -287,8 +309,15 @@ export const useHeaderContent = (): UseHeaderContentReturn => {
 
   // Fetch header content when language changes
   useEffect(() => {
-    fetchHeaderContent();
+    if (language !== currentLanguageRef.current) {
+      fetchHeaderContent();
+    }
   }, [language]);
+
+  // Initial load
+  useEffect(() => {
+    fetchHeaderContent();
+  }, []); // Remove currentLanguage from dependencies to prevent size changes
 
   const refetch = async () => {
     await fetchHeaderContent();

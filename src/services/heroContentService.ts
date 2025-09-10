@@ -30,9 +30,13 @@ export interface HeroContent {
     order: number;
   }>;
   buttonStyle: {
-    variant: 'primary' | 'secondary' | 'outline';
-    size: 'sm' | 'md' | 'lg';
-    icon: boolean;
+    backgroundColor: string;
+    textColor: string;
+    width: number;
+    height: number;
+    borderRadius: number;
+    fontSize: number;
+    fontWeight: string;
   };
   seo: {
     title: string;
@@ -50,28 +54,53 @@ export interface ApiResponse<T> {
 }
 
 class HeroContentService {
-  private cache: HeroContent | null = null;
-  private cacheExpiry = 0;
+  private cache = new Map<string, { content: HeroContent; expiry: number }>();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  private listeners = new Set<() => void>();
 
   private isOnline(): boolean {
     return typeof navigator !== 'undefined' ? navigator.onLine : true;
   }
 
-  private isCacheValid(): boolean {
-    return this.cache !== null && Date.now() < this.cacheExpiry;
+  private isCacheValid(lang: string): boolean {
+    const cached = this.cache.get(lang);
+    return cached !== undefined && Date.now() < cached.expiry;
+  }
+
+  private getCachedContent(lang: string): HeroContent | null {
+    const cached = this.cache.get(lang);
+    return cached ? cached.content : null;
+  }
+
+  private setCachedContent(lang: string, content: HeroContent): void {
+    this.cache.set(lang, {
+      content,
+      expiry: Date.now() + this.CACHE_DURATION
+    });
+    // Notify all listeners when cache is updated
+    this.listeners.forEach(listener => listener());
+  }
+
+  // Add listener for cache updates
+  addListener(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
   }
 
   async getHeroContent(lang: string = 'en'): Promise<HeroContent> {
-    try {
-      // Return cached data if valid
-      if (this.isCacheValid()) {
-        console.log('✅ Returning cached hero content');
-        return this.cache!;
-      }
+    console.log(`🔍 [HeroService] Requesting content for language: ${lang}`);
+    console.log(`🔍 [HeroService] API_BASE_URL: ${API_BASE_URL}`);
+    
+    // Check if we have valid cached content (including real API data)
+    const cachedContent = this.getCachedContent(lang);
+    if (cachedContent && cachedContent.id !== 'fallback') {
+      console.log(`✅ [HeroService] Cache HIT with real data for ${lang}`);
+      return cachedContent;
+    }
 
-      console.log('🔄 Fetching hero content from API...');
-      
+    // Try to fetch real content first
+    try {
+      console.log(`🔄 [HeroService] Fetching real data for ${lang}...`);
       const response = await fetch(`${API_BASE_URL}/api/hero-content?lang=${lang}`, {
         method: 'GET',
         headers: {
@@ -80,43 +109,24 @@ class HeroContentService {
         cache: 'no-store',
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (response.ok) {
+        const result: ApiResponse<HeroContent> = await response.json();
+        if (result.success && result.data) {
+          console.log(`✅ [HeroService] Real API data loaded for ${lang}`);
+          this.setCachedContent(lang, result.data);
+          return result.data;
+        }
       }
-
-      const result: ApiResponse<HeroContent> = await response.json();
       
-      if (!result.success || !result.data) {
-        throw new Error('Invalid response format from API');
-      }
-
-      console.log('✅ Hero content loaded successfully');
-      console.log('📊 Content stats:', {
-        title: result.data.mainContent.title,
-        featuresCount: result.data.features.length,
-        backgroundImage: result.data.backgroundImage.url,
-        centerIcon: result.data.centerIcon.url,
-      });
-      
-      // Update cache
-      this.cache = result.data;
-      this.cacheExpiry = Date.now() + this.CACHE_DURATION;
-      
-      return result.data;
-
+      console.log(`⚠️ [HeroService] API failed, using fallback for ${lang}`);
     } catch (error) {
-      console.error('❌ Error fetching hero content:', error);
-      
-      // Return cached data if available
-      if (this.cache) {
-        console.log('⚠️ Returning cached data due to API error');
-        return this.cache;
-      }
-      
-      // Return fallback data
-      console.log('⚠️ Returning fallback hero content');
-      return this.getFallbackContent(lang);
+      console.log(`❌ [HeroService] API error, using fallback for ${lang}:`, error);
     }
+
+    // Return fallback if API fails
+    const fallbackContent = this.getFallbackContent(lang);
+    this.setCachedContent(lang, fallbackContent);
+    return fallbackContent;
   }
 
   private getFallbackContent(lang: string = 'en'): HeroContent {
@@ -261,7 +271,7 @@ class HeroContentService {
       id: 'fallback',
       mainContent: content.mainContent,
       backgroundImage: {
-        url: '/img/hero-bg.jpg',
+        url: '/img/hero/2.png',
         alt: content.backgroundImage.alt
       },
       centerIcon: {
@@ -273,15 +283,19 @@ class HeroContentService {
       features: content.features.map((feature, index) => ({
         ...feature,
         icon: {
-          url: `/icons/feature-${index + 1}.svg`,
+          url: `/img/hero/icon${index + 1}.svg`,
           alt: feature.icon.alt
         },
         order: index + 1
       })),
       buttonStyle: {
-        variant: 'primary',
-        size: 'lg',
-        icon: true
+        backgroundColor: '#0063D5',
+        textColor: '#FFFFFF',
+        width: 200,
+        height: 48,
+        borderRadius: 30,
+        fontSize: 18,
+        fontWeight: 'medium'
       },
       seo: {
         title: content.seo.title,
@@ -294,17 +308,21 @@ class HeroContentService {
   }
 
   clearCache(): void {
-    this.cache = null;
-    this.cacheExpiry = 0;
-    console.log('🗑️ Hero content cache cleared');
+    this.cache.clear();
+    console.log('🗑️ Hero content cache cleared for all languages');
+  }
+
+  clearCacheForLanguage(lang: string): void {
+    this.cache.delete(lang);
+    console.log(`🗑️ Hero content cache cleared for language: ${lang}`);
   }
 
   async preloadContent(lang: string = 'en'): Promise<void> {
     try {
       await this.getHeroContent(lang);
-      console.log('⚡ Hero content preloaded successfully');
+      console.log(`⚡ Hero content preloaded successfully for language: ${lang}`);
     } catch (error) {
-      console.error('❌ Failed to preload hero content:', error);
+      console.error(`❌ Failed to preload hero content for language ${lang}:`, error);
     }
   }
 }
