@@ -18,7 +18,10 @@ export function middleware(request: NextRequest) {
         .filter(lang => ['en', 'sv', 'ar'].includes(lang));
       
       if (browserLanguages.length > 0) {
-        currentLanguage = browserLanguages[0] as 'en' | 'sv' | 'ar';
+        // Prioritize Swedish if found, otherwise use first supported language
+        currentLanguage = browserLanguages.includes('sv') 
+          ? 'sv' 
+          : browserLanguages[0] as 'en' | 'sv' | 'ar';
       }
     }
     

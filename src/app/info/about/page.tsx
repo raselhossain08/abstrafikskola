@@ -264,41 +264,8 @@ export default function AboutPage() {
         </div>
       </div>
       
-      {/* Dynamic Contact Section */}
-      {contactSection && (
-        <div 
-          className={`relative ${contactSection.containerHeight.mobile} ${contactSection.containerHeight.desktop} bg-cover bg-center bg-no-repeat flex items-center justify-center px-4`}
-          style={{
-            backgroundImage: `url('${contactSection.backgroundImage}')`
-          }}
-        >
-          <div className="absolute inset-0 bg-black bg-opacity-50"></div>
-          <div className="relative z-10 text-center max-w-4xl mx-auto">
-            <h2 className={`${contactSection.textStyles.fontSize.mobile} ${contactSection.textStyles.fontSize.desktop} ${contactSection.textStyles.titleColor} ${contactSection.textStyles.fontWeight} ${contactSection.textStyles.textAlign} ${contactSection.textStyles.marginBottom}`}>
-              {contactSection.title}
-            </h2>
-            {contactSection.subtitle && (
-              <p className="text-white text-lg mb-4">
-                {contactSection.subtitle}
-              </p>
-            )}
-            {contactSection.description && (
-              <p className="text-white text-base mb-6">
-                {contactSection.description}
-              </p>
-            )}
-            <a
-              href={contactSection.buttonLink}
-              className={`inline-block ${contactSection.buttonStyle.backgroundColor} ${contactSection.buttonStyle.hoverColor} text-white font-semibold py-3 px-6 ${contactSection.buttonStyle.borderRadius} ${contactSection.buttonStyle.width} ${contactSection.buttonStyle.height} transition duration-300 flex items-center justify-center`}
-            >
-              {contactSection.buttonText}
-            </a>
-          </div>
-        </div>
-      )}
       
-      {/* Fallback Contact component if no contact section data */}
-      {!contactSection && <Contact />}
+      <Contact />
     </>
   );
 }

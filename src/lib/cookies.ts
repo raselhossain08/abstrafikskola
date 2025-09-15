@@ -8,7 +8,7 @@ export class ServerCookies {
   static async getLanguage(): Promise<Language> {
     // For app directory, we'll use a different approach
     // This function will be used in server components
-    return 'en'; // Default language - will be overridden by client-side logic
+    return 'sv'; // Default language - will be overridden by client-side logic
   }
 
   // Set language cookie (server-side) - Use in API routes or Server Actions
@@ -44,7 +44,7 @@ export class MiddlewareCookies {
     if (language && ['en', 'sv', 'ar'].includes(language)) {
       return language;
     }
-    return 'en';
+    return 'sv';
   }
 
   // Set language in response cookies

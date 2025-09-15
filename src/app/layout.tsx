@@ -79,7 +79,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   // Default language - will be detected client-side by LanguageProvider
-  const initialLanguage = 'en';
+  const initialLanguage = 'sv';
 
   return (
     <html

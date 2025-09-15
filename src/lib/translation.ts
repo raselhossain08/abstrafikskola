@@ -19,7 +19,7 @@ export const SUPPORTED_LANGUAGES = {
   ar: { name: 'Arabic', nativeName: 'العربية', flag: '🇸🇦' },
 } as const;
 
-export const DEFAULT_LANGUAGE: Language = 'en';
+export const DEFAULT_LANGUAGE: Language = 'sv';
 
 // Check if translation is needed
 export const needsTranslation = (sourceLanguage: Language, targetLanguage: Language): boolean => {
@@ -31,6 +31,8 @@ export const getBrowserLanguage = (): Language => {
   if (typeof window === 'undefined') return DEFAULT_LANGUAGE;
   
   const browserLang = navigator.language.split('-')[0];
+  // Prioritize Swedish if found, otherwise use supported languages
+  if (browserLang === 'sv') return 'sv';
   return Object.keys(SUPPORTED_LANGUAGES).includes(browserLang)
     ? browserLang as Language
     : DEFAULT_LANGUAGE;

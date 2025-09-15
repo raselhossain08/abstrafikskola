@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    const language = cookieStore.get('language')?.value || 'en';
+    const language = cookieStore.get('language')?.value || 'sv';
 
     return NextResponse.json({
       success: true,

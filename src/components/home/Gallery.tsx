@@ -254,33 +254,37 @@ export default function Gallery() {
                 </div>
                 <div className="relative rounded-xl overflow-hidden group inline-block">
                   <Image
-                    src="/img/gallery/6.png"
-                    alt="Gallery"
+                    src={getGalleryItem(5).image || '/img/gallery/6.png'}
+                    alt={getGalleryItem(5).alt || 'Gallery'}
                     width={872}
                     height={300}
                     className="w-full h-[300px] object-cover"
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-4">
-                    <div className="backdrop-blur-[20px] h-[56px] w-[56px] flex items-center justify-center rounded-full">
-                      <Link
-                        href=""
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-white  w-[48px] h-[48px] rounded-full flex items-center justify-center bg-[#1474FC] backdrop-blur-[20px]"
-                      >
-                        <FaFacebookF size={24} />
-                      </Link>
-                    </div>
-                    <div className="backdrop-blur-[20px] h-[56px] w-[56px] flex items-center justify-center rounded-full">
-                      <Link
-                        href=""
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-white  w-[48px] h-[48px] rounded-full flex items-center justify-center bg-[#1474FC] backdrop-blur-[20px]"
-                      >
-                        <FaInstagram size={24} />
-                      </Link>
-                    </div>
+                    {getGalleryItem(5).socialLinks?.facebook && (
+                      <div className="backdrop-blur-[20px] h-[56px] w-[56px] flex items-center justify-center rounded-full">
+                        <Link
+                          href={getGalleryItem(5).socialLinks?.facebook || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-white  w-[48px] h-[48px] rounded-full flex items-center justify-center bg-[#1474FC] backdrop-blur-[20px]"
+                        >
+                          <FaFacebookF size={24} />
+                        </Link>
+                      </div>
+                    )}
+                    {getGalleryItem(5).socialLinks?.instagram && (
+                      <div className="backdrop-blur-[20px] h-[56px] w-[56px] flex items-center justify-center rounded-full">
+                        <Link
+                          href={getGalleryItem(5).socialLinks?.instagram || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-white  w-[48px] h-[48px] rounded-full flex items-center justify-center bg-[#1474FC] backdrop-blur-[20px]"
+                        >
+                          <FaInstagram size={24} />
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -400,33 +404,37 @@ export default function Gallery() {
                 </div>
                 <div className="relative rounded-xl overflow-hidden group inline-block">
                   <Image
-                    src="/img/gallery/6.png"
-                    alt="Gallery"
+                    src={getGalleryItem(5).image || '/img/gallery/6.png'}
+                    alt={getGalleryItem(5).alt || 'Gallery'}
                     width={872}
                     height={300}
                     className="w-full h-[300px] object-cover"
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-4">
-                    <div className="backdrop-blur-[20px] h-[56px] w-[56px] flex items-center justify-center rounded-full">
-                      <Link
-                        href=""
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-white  w-[48px] h-[48px] rounded-full flex items-center justify-center bg-[#1474FC] backdrop-blur-[20px]"
-                      >
-                        <FaFacebookF size={24} />
-                      </Link>
-                    </div>
-                    <div className="backdrop-blur-[20px] h-[56px] w-[56px] flex items-center justify-center rounded-full">
-                      <Link
-                        href={getGalleryItem(2).socialLinks?.instagram || '#'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-white  w-[48px] h-[48px] rounded-full flex items-center justify-center bg-[#1474FC] backdrop-blur-[20px]"
-                      >
-                        <FaInstagram size={24} />
-                      </Link>
-                    </div>
+                    {getGalleryItem(5).socialLinks?.facebook && (
+                      <div className="backdrop-blur-[20px] h-[56px] w-[56px] flex items-center justify-center rounded-full">
+                        <Link
+                          href={getGalleryItem(5).socialLinks?.facebook || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-white  w-[48px] h-[48px] rounded-full flex items-center justify-center bg-[#1474FC] backdrop-blur-[20px]"
+                        >
+                          <FaFacebookF size={24} />
+                        </Link>
+                      </div>
+                    )}
+                    {getGalleryItem(5).socialLinks?.instagram && (
+                      <div className="backdrop-blur-[20px] h-[56px] w-[56px] flex items-center justify-center rounded-full">
+                        <Link
+                          href={getGalleryItem(5).socialLinks?.instagram || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-white  w-[48px] h-[48px] rounded-full flex items-center justify-center bg-[#1474FC] backdrop-blur-[20px]"
+                        >
+                          <FaInstagram size={24} />
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 </div>
             </div>
