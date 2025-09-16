@@ -65,45 +65,9 @@ export default function page() {
           setCourseSlots(result.data);
           console.log(`✅ Loaded ${result.data.length} Handledarkurs courses`);
         } else {
-          // Fallback to default data
-          console.log('⚠️ No Handledarkurs courses found, using fallback data');
-          setCourseSlots([
-            {
-              _id: 'handledarkurs-default-1',
-              scheduleId: 'HANDLE-DEFAULT-001',
-              courseId: 'handledarkurs-course-1',
-              category: 'Handledarkurs',
-              date: language === 'ar' 
-                ? 'السبت 2024-03-23' 
-                : language === 'sv' 
-                  ? '2024-03-23 Lördag' 
-                  : '2024-03-23 Saturday',
-              time: '09:00 - 17:00',
-              title: language === 'ar' 
-                ? 'دورة المرشد (هاندليداركورس)' 
-                : language === 'sv' 
-                  ? 'Handledarkurs' 
-                  : 'Supervisor Course',
-              seats: language === 'ar' 
-                ? '12 مقاعد متاحة' 
-                : language === 'sv' 
-                  ? '12 platser tillgängliga' 
-                  : '12 seats available',
-              price: language === 'ar' ? '1500 كرونة' : '1500 kr',
-              description: language === 'ar' 
-                ? 'دورة تأهيل المشرفين على تعليم القيادة' 
-                : language === 'sv' 
-                  ? 'Utbildning för handledare i privat övningskörning' 
-                  : 'Training course for private driving supervisors',
-              language: language === 'ar' ? 'العربية' : language === 'sv' ? 'Svenska' : 'English',
-              venue: 'ABS Trafikskola Södertälje',
-              teacherName: 'Certified Instructor',
-              totalSeats: 12,
-              bookedSeats: 0,
-              availableSeats: 12,
-              isAvailable: true,
-            },
-          ]);
+          // No courses found, so set to empty array
+          console.log('⚠️ No Handledarkurs courses found from API.');
+          setCourseSlots([]);
         }
         
       } catch (err) {

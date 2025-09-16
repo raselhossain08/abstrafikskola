@@ -72,45 +72,9 @@ export default function HalkbanaPage() {
           setCourseSlots(result.data);
           console.log(`✅ Loaded ${result.data.length} Risk2 (Halkbana) courses`);
         } else {
-          // Fallback to default data
-          console.log('⚠️ No courses found, using fallback data');
-          setCourseSlots([
-            {
-              _id: 'halkbana-default-1',
-              scheduleId: 'HALKBANA-DEFAULT-001',
-              courseId: 'halkbana-course-1',
-              category: 'Risk2 (Halkbana)',
-              date: language === 'ar' 
-                ? 'الأربعاء 2024-03-20' 
-                : language === 'sv' 
-                  ? '2024-03-20 Onsdag' 
-                  : '2024-03-20 Wednesday',
-              time: '09:00 - 12:00',
-              title: language === 'ar' 
-                ? 'دورة هالكبانا (ريسك 2)' 
-                : language === 'sv' 
-                  ? 'Halkbana (Risk2)' 
-                  : 'Halkbana (Risk2)',
-              seats: language === 'ar' 
-                ? '8 مقاعد متاحة' 
-                : language === 'sv' 
-                  ? '8 platser tillgängliga' 
-                  : '8 seats available',
-              price: language === 'ar' ? '599 كرونة' : '599 kr',
-              description: language === 'ar' 
-                ? 'دورة متقدمة لتعلم القيادة على الأسطح المنزلقة في ظروف الطقس السيئ' 
-                : language === 'sv' 
-                  ? 'Avancerad kurs för körning på halt underlag i dåliga väderförhållanden' 
-                  : 'Advanced course for driving on slippery surfaces in bad weather conditions',
-              language: language === 'ar' ? 'العربية' : language === 'sv' ? 'Svenska' : 'English',
-              venue: 'ABS Trafikskola Halkbana Center',
-              teacherName: 'Expert Halkbana Instructor',
-              totalSeats: 8,
-              bookedSeats: 0,
-              availableSeats: 8,
-              isAvailable: true,
-            },
-          ]);
+          // No courses found, so set to empty array
+          console.log('⚠️ No Risk2 (Halkbana) courses found from API.');
+          setCourseSlots([]);
         }
         
       } catch (err) {

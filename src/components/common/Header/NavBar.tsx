@@ -43,6 +43,26 @@ export default function NavBar({
   const languages = headerContent?.languages || [];
   const loginButton = headerContent?.loginButton || { en: 'Login', sv: 'Logga in', ar: 'تسجيل الدخول' };
 
+  // Define the desired language order
+  const languageOrder = ['sv', 'en', 'ar'];
+
+  // Sort the languages array according to the desired order
+  const sortedLanguages = useMemo(() => {
+    if (!languages || languages.length === 0) {
+      return [];
+    }
+    return [...languages].sort((a, b) => {
+      const indexA = languageOrder.indexOf(a.code);
+      const indexB = languageOrder.indexOf(b.code);
+      
+      // Handle cases where a language might not be in the order array
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      
+      return indexA - indexB;
+    });
+  }, [languages]);
+
   // Keep layout consistent - no RTL for the main container
   const isRTLContent = language === 'ar';
   const textDirection = isRTLContent ? 'ltr' : 'ltr';
@@ -494,7 +514,7 @@ export default function NavBar({
                     value={currentLanguageDisplay.code}
                     onValueChange={handleLanguageChange}
                   >
-                    {languages.length > 0 ? languages.map((lang) => (
+                    {sortedLanguages.length > 0 ? sortedLanguages.map((lang) => (
                       <DropdownMenuRadioItem
                         key={lang.code}
                         value={lang.code}
